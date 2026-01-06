@@ -2,18 +2,53 @@
 
 import type React from "react"
 import { Button } from "@/components/ui/button"
-import { ArrowLeft } from "lucide-react"
+import { ArrowLeft, Activity, Mail, Lock, Eye, EyeOff, Loader2 } from "lucide-react"
 import Link from "next/link"
 import { useState } from "react"
 import { ZenphonyLogo } from "@/components/zenphony-logo"
 import { Aurora } from "@/components/aurora"
+import { useAuth } from "@/contexts/auth-context"
+import Image from "next/image"
 
 export default function LoginPage() {
+  const { signIn } = useAuth()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [showPassword, setShowPassword] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    
+    // Validate inputs before submitting
+    if (!email || !password) {
+      setError("Please enter both email and password")
+      return
+    }
+    
+    setError(null)
+    setLoading(true)
+
+    console.log('[Login] Attempting sign in with:', { email })
+    
+    try {
+      const { error } = await signIn(email, password)
+      console.log('[Login] Sign in result:', { error })
+      
+      if (error) {
+        if (error.message.includes("Invalid login credentials")) {
+          setError("Invalid email or password")
+        } else {
+          setError(error.message)
+        }
+      }
+    } catch (err) {
+      console.error('[Login] Error during sign in:', err)
+      setError("An unexpected error occurred. Please try again.")
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -30,90 +65,115 @@ export default function LoginPage() {
       </Link>
 
       {/* Login Form */}
-      <div className="relative z-10 w-full max-w-md">
+      <div className="relative z-10 w-full max-w-4xl">
         <div className="flex items-center justify-center mb-8">
           <ZenphonyLogo className="h-10 w-auto" variant="light" />
         </div>
 
-        {/* Form Card - Updated to glassmorphic purple theme */}
-        <div className="rounded-3xl glass-strong border-glow p-8">
-          <h1 className="text-3xl font-black text-foreground mb-2">Welcome Back</h1>
-          <p className="text-muted-foreground mb-8">Sign in to your account to continue</p>
+        {/* Form Card - Glassmorphic with split layout */}
+        <div className="rounded-3xl glass-strong border-glow overflow-hidden flex flex-col md:flex-row">
+          {/* Left Side - Single Image (50%) */}
+          <div className="w-full md:w-1/2 relative bg-gradient-to-br from-violet-900/50 via-purple-900/30 to-background min-h-[400px] overflow-hidden">
+            <Image
+              src="/person-wearing-futuristic-headphones-purple-neon-l.jpg"
+              alt="Creator"
+              fill
+              className="object-cover opacity-60"
+            />
+            {/* Gradient overlay */}
+            <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent to-background/80" />
 
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Email Field */}
-            <div>
-              <label htmlFor="email" className="block text-foreground mb-2 text-sm font-medium">
-                Email
-              </label>
-              <input
-                type="email"
-                id="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl bg-secondary/50 border border-border/30 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-violet focus:ring-1 focus:ring-violet transition-colors"
-                placeholder="you@example.com"
-                required
-              />
-            </div>
-
-            {/* Password Field */}
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <label htmlFor="password" className="block text-foreground text-sm font-medium">
-                  Password
-                </label>
-                <Link href="#" className="text-sm text-violet hover:underline transition-colors">
-                  Forgot?
-                </Link>
+            {/* Quote overlay */}
+            <div className="absolute bottom-0 left-0 right-0 p-8">
+              <div className="space-y-3">
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-violet-600 to-fuchsia-600 flex items-center justify-center shadow-[0_0_30px_rgba(139,92,246,0.5)]">
+                  <Activity className="w-7 h-7 text-white" />
+                </div>
+                <p className="text-xl font-bold text-white leading-tight">Welcome back, creator</p>
+                <p className="text-white/60 font-medium">Zenphony Audio</p>
               </div>
-              <input
-                type="password"
-                id="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl bg-secondary/50 border border-border/30 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-violet focus:ring-1 focus:ring-violet transition-colors"
-                placeholder="••••••••"
-                required
-              />
-            </div>
-
-            {/* Remember Me */}
-            <div className="flex items-center">
-              <input
-                type="checkbox"
-                id="remember"
-                className="w-4 h-4 rounded border-border/30 bg-secondary/50 text-violet focus:ring-2 focus:ring-violet/50"
-              />
-              <label htmlFor="remember" className="ml-2 text-sm text-muted-foreground">
-                Remember me for 30 days
-              </label>
-            </div>
-
-            <Button
-              type="submit"
-              size="lg"
-              className="w-full rounded-full bg-gradient-to-r from-violet to-purple text-white hover:opacity-90 font-bold glow-violet"
-            >
-              Sign In
-            </Button>
-          </form>
-
-          {/* Divider */}
-          <div className="relative my-6">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-border/30" />
-            </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-4 bg-transparent text-muted-foreground">Or continue with</span>
             </div>
           </div>
 
-          {/* Social Login */}
-          <div className="grid grid-cols-2 gap-4">
+          {/* Right Side - Form (50%) */}
+          <div className="w-full md:w-1/2 p-8 flex flex-col justify-center">
+            <h1 className="text-3xl font-black text-foreground mb-2">Welcome back, creator</h1>
+            <p className="text-muted-foreground mb-6">Sign in to your account to continue</p>
+
+            {error && (
+              <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm mb-6">
+                {error}
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Email Field */}
+              <div className="relative">
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-foreground/40" />
+                <input
+                  type="email"
+                  id="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full pl-12 h-14 rounded-2xl bg-white/[0.05] border-white/10 text-foreground placeholder:text-white/40 focus-visible:ring-violet-500 focus-visible:border-violet-500"
+                  placeholder="Email address"
+                  required
+                  disabled={loading}
+                />
+              </div>
+
+              {/* Password Field */}
+              <div className="relative">
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-foreground/40" />
+                <input
+                  type={showPassword ? "text" : "password"}
+                  id="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full pl-12 pr-12 h-14 rounded-2xl bg-white/[0.05] border-white/10 text-foreground placeholder:text-white/40 focus-visible:ring-violet-500 focus-visible:border-violet-500"
+                  placeholder="Password"
+                  required
+                  disabled={loading}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/60 transition-colors"
+                >
+                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
+              </div>
+
+              <Button
+                type="submit"
+                disabled={loading}
+                className="w-full h-14 rounded-2xl bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white font-bold text-base shadow-[0_8px_32px_rgba(139,92,246,0.4)] hover:shadow-[0_8px_40px_rgba(139,92,246,0.6)] transition-all duration-300 border-0 disabled:opacity-50"
+              >
+                {loading ? (
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                ) : (
+                  <>
+                    Sign In
+                  </>
+                )}
+              </Button>
+            </form>
+
+            {/* Divider */}
+            <div className="relative my-6">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-border/30" />
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-4 bg-transparent text-muted-foreground">Or continue with</span>
+              </div>
+            </div>
+
+            {/* Social Login */}
             <Button
               variant="outline"
-              className="border-border/30 text-foreground hover:bg-violet/10 hover:border-violet/30 bg-transparent rounded-full"
+              className="border-border/30 text-foreground hover:bg-violet/10 hover:border-violet/30 bg-transparent rounded-full w-full"
             >
               <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
                 <path
@@ -135,24 +195,15 @@ export default function LoginPage() {
               </svg>
               Google
             </Button>
-            <Button
-              variant="outline"
-              className="border-border/30 text-foreground hover:bg-violet/10 hover:border-violet/30 bg-transparent rounded-full"
-            >
-              <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" />
-              </svg>
-              GitHub
-            </Button>
-          </div>
 
-          {/* Sign Up Link */}
-          <p className="text-center text-muted-foreground mt-6">
-            Don&apos;t have an account?{" "}
-            <Link href="/signup" className="text-violet hover:underline font-medium">
-              Sign up
-            </Link>
-          </p>
+            {/* Sign Up Link */}
+            <p className="text-center text-white/50 mt-8">
+              Don't have an account?{" "}
+              <Link href="/signup" className="text-violet hover:underline font-medium">
+                Sign up
+              </Link>
+            </p>
+          </div>
         </div>
       </div>
     </div>

@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { ArrowRight, Check, Headphones, BarChart3, Waves, Zap, Music, Mic, Download, Play, Sparkles, MessageCircle, Library, Settings2, Film, Megaphone, Crown, AudioWaveform } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 
 const listeningModes = [
   { icon: Music, label: "Mixing", desc: "Balance, clarity, and translation" },
@@ -26,20 +26,20 @@ const exampleInsights = [
 
 const features = [
   {
-    icon: Headphones,
-    title: "Reference Comparison",
-    description: "Compare against professional tracks",
-    image: "/abstract-3d-purple-headphones-floating-neon-glow.jpg",
-    gradientStyle: "linear-gradient(135deg, #f59e0b, #f97316, #ef4444)",
-    glowStyle: "rgba(249, 115, 22, 0.3)",
-  },
-  {
     icon: Waves,
     title: "Spectral Visualization",
     description: "See your sound in stunning detail",
     image: "/sound-wave-visualization-purple-cyan-abstract.jpg",
     gradientStyle: "linear-gradient(135deg, #06b6d4, #14b8a6, #10b981)",
     glowStyle: "rgba(6, 182, 212, 0.3)",
+  },
+  {
+    icon: Headphones,
+    title: "Mix references",
+    description: "Compare against professional tracks",
+    image: "/abstract-3d-purple-headphones-floating-neon-glow.jpg",
+    gradientStyle: "linear-gradient(135deg, #f59e0b, #f97316, #ef4444)",
+    glowStyle: "rgba(249, 115, 22, 0.3)",
   },
   {
     icon: BarChart3,
@@ -111,10 +111,10 @@ export default function ListenBuddyPage() {
           <div className="relative max-w-4xl mx-auto text-center">
             {/* Listen Buddy Logo */}
             <div className="inline-flex flex-col items-center mb-10">
-              <div className="flex items-center gap-1">
-                <span className="text-2xl sm:text-3xl font-bold text-white">LISTEN</span>
+              <div className="flex items-center gap-2">
+                <span className="text-3xl sm:text-4xl md:text-5xl font-bold text-white">LISTEN</span>
                 {/* Listen Buddy Icon */}
-                <div className="relative w-8 h-8 sm:w-9 sm:h-9 overflow-hidden">
+                <div className="relative w-14 h-14 sm:w-16 sm:h-16 md:w-18 md:h-18 overflow-hidden">
                   <Image
                     src="/listen-buddy-icon.png"
                     alt="Listen Buddy Icon"
@@ -123,9 +123,9 @@ export default function ListenBuddyPage() {
                     priority
                   />
                 </div>
-                <span className="text-2xl sm:text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-indigo-400">BUDDY</span>
+                <span className="text-3xl sm:text-4xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-indigo-400">BUDDY</span>
               </div>
-              <span className="text-[10px] sm:text-xs text-white/40 uppercase tracking-[0.3em] mt-1">Audio Analysis Plugin</span>
+              <span className="text-xs sm:text-sm text-white/40 uppercase tracking-[0.3em] mt-2">Audio Analysis Plugin</span>
             </div>
 
             <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-white mb-6 leading-tight">
