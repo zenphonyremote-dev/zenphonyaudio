@@ -4,8 +4,8 @@ import type React from "react"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft, Activity, Mail, Lock, Eye, EyeOff, Loader2 } from "lucide-react"
 import Link from "next/link"
-import { useState } from "react"
-import { useRouter } from "next/navigation"
+import { useState, useEffect } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 import { ZenphonyLogo } from "@/components/zenphony-logo"
 import { Aurora } from "@/components/aurora"
 import { useAuth } from "@/contexts/auth-context"
@@ -14,11 +14,20 @@ import Image from "next/image"
 export default function LoginPage() {
   const { signIn, user, loading: authLoading, signOut } = useAuth()
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const redirectTo = searchParams.get("redirect") || "/profile"
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  // Redirect if already logged in
+  useEffect(() => {
+    if (!authLoading && user) {
+      router.push(redirectTo)
+    }
+  }, [user, authLoading, router, redirectTo])
 
   // Show already logged in message if user is authenticated
   if (!authLoading && user) {
@@ -91,13 +100,16 @@ export default function LoginPage() {
     try {
       const { error } = await signIn(email, password)
       console.log('[Login] Sign in result:', { error })
-      
+
       if (error) {
         if (error.message.includes("Invalid login credentials")) {
           setError("Invalid email or password")
         } else {
           setError(error.message)
         }
+      } else {
+        // Successful login - redirect to intended destination
+        router.push(redirectTo)
       }
     } catch (err) {
       console.error('[Login] Error during sign in:', err)

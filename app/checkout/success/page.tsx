@@ -95,13 +95,13 @@ function SuccessContent() {
             Download Plugin
           </Button>
         </Link>
-        <Link href="/">
+        <Link href="/profile">
           <Button
             variant="outline"
             className="rounded-full border-white/20 text-white hover:bg-white/5 bg-transparent font-semibold px-10 py-7 text-lg"
           >
             <Home className="w-6 h-6 mr-2" />
-            Go to Dashboard
+            Go to Profile
           </Button>
         </Link>
       </div>

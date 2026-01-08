@@ -1,9 +1,12 @@
+"use client"
+
 import { Navigation } from "@/components/navigation"
 import { Footer } from "@/components/footer"
 import { ColorBends } from "@/components/color-bends"
 import { Button } from "@/components/ui/button"
 import { Check, ArrowRight, Sparkles } from "lucide-react"
 import Link from "next/link"
+import { useAuth } from "@/contexts/auth-context"
 
 const plans = [
   {
@@ -52,6 +55,8 @@ const plans = [
 ]
 
 export default function PricingPage() {
+  const { user } = useAuth()
+
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
       <ColorBends />
@@ -117,7 +122,13 @@ export default function PricingPage() {
                     ))}
                   </ul>
 
-                  <Link href="/signup">
+                  <Link href={
+                    plan.price === "Custom"
+                      ? "/contact"
+                      : user
+                        ? `/checkout?plan=${plan.name.toLowerCase()}`
+                        : `/login?redirect=${encodeURIComponent(`/checkout?plan=${plan.name.toLowerCase()}`)}`
+                  }>
                     <Button
                       className={`w-full rounded-full font-bold py-6 ${
                         plan.popular
@@ -125,7 +136,7 @@ export default function PricingPage() {
                           : "bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white hover:from-violet-500 hover:to-fuchsia-500"
                       }`}
                     >
-                      {plan.price === "Custom" ? "Contact Sales" : "Start Free Trial"}
+                      {plan.price === "Custom" ? "Contact Sales" : "Get Started"}
                       <ArrowRight className="w-4 h-4 ml-2" />
                     </Button>
                   </Link>

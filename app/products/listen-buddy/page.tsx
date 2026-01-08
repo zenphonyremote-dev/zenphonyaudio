@@ -558,7 +558,7 @@ export default function ListenBuddyPage() {
                       ))}
                     </div>
 
-                    <Link href={`/checkout?plan=${plan.id}`}>
+                    <Link href={user ? `/checkout?plan=${plan.id}` : `/login?redirect=${encodeURIComponent(`/checkout?plan=${plan.id}`)}`}>
                       <Button
                         className={`w-full rounded-xl py-6 text-base font-semibold transition-all ${
                           selectedPlan === plan.id

@@ -8,6 +8,7 @@ import { ColorBends } from "@/components/color-bends"
 import { Button } from "@/components/ui/button"
 import { Loader2, ArrowLeft, Check, Crown, Sparkles, Shield, Zap, Headphones } from "lucide-react"
 import Link from "next/link"
+import { useAuth } from "@/contexts/auth-context"
 
 const plans = [
   {
@@ -48,9 +49,18 @@ const plans = [
 function CheckoutContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
+  const { user, loading: authLoading } = useAuth()
   const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (!authLoading && !user) {
+      const planId = searchParams.get("plan") || "pro"
+      router.push(`/login?redirect=${encodeURIComponent(`/checkout?plan=${planId}`)}`)
+    }
+  }, [user, authLoading, router, searchParams])
 
   useEffect(() => {
     const planId = searchParams.get("plan")
@@ -62,10 +72,19 @@ function CheckoutContent() {
     }
   }, [searchParams])
 
+  // Show loading while checking auth
+  if (authLoading || !user) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="w-8 h-8 animate-spin text-violet-500" />
+      </div>
+    )
+  }
+
   const selectedPlan = plans.find(p => p.id === selectedPlanId)
 
   const handleCheckout = async () => {
-    if (!selectedPlan) return
+    if (!selectedPlan || !user) return
 
     setLoading(true)
     setError(null)
@@ -78,6 +97,7 @@ function CheckoutContent() {
         },
         body: JSON.stringify({
           planId: selectedPlan.id,
+          email: user.email, // Pass user email for Stripe
         }),
       })
 
