@@ -19,7 +19,7 @@ export function HeroSection() {
         {/* Badge */}
         <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-violet-500/10 border border-violet-500/20 mb-4">
           <Sparkles className="w-4 h-4 text-violet-400" />
-          <span className="text-sm text-violet-300 font-medium">AI-Powered Audio Tools</span>
+          <span className="text-sm text-violet-300 font-medium">Audio Tools</span>
         </div>
 
         {/* Main Headline */}
@@ -28,7 +28,9 @@ export function HeroSection() {
             <span className="block text-transparent bg-clip-text bg-gradient-to-r from-violet-400 via-fuchsia-400 to-indigo-400 font-[family-name:var(--font-alphacorsa)] italic pb-3 pt-4 pl-3">
               Intelligence
             </span>
-            <span className="block text-white/80 text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-semibold tracking-tight">for Sound</span>
+            <span className="block text-transparent bg-clip-text bg-gradient-to-br from-white via-violet-200 to-fuchsia-300 text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-light tracking-[0.15em] uppercase drop-shadow-[0_0_20px_rgba(139,92,246,0.5)]">
+              for Sound
+            </span>
           </h1>
         </div>
 

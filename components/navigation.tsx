@@ -1,16 +1,20 @@
 "use client"
 
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { useState, useEffect } from "react"
 import { ZenphonyLogo } from "@/components/zenphony-logo"
-import { Menu, X } from "lucide-react"
+import { Menu, X, User, LogOut } from "lucide-react"
+import { useAuth } from "@/contexts/auth-context"
 
 export function Navigation() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
+  const [userMenuOpen, setUserMenuOpen] = useState(false)
   const pathname = usePathname()
+  const router = useRouter()
+  const { user, profile, signOut } = useAuth()
 
   useEffect(() => {
     const handleScroll = () => {
@@ -73,23 +77,70 @@ export function Navigation() {
               </div>
             </div>
 
-            {/* Right Side - Login & Get Started */}
+            {/* Right Side - User Avatar or Login */}
             <div className="hidden md:flex items-center gap-3 mr-2 lg:mr-4">
-              <Link href="/login">
-                <Button
-                  variant="ghost"
-                  className="rounded-full text-white/70 hover:text-white hover:bg-white/10 font-medium px-5 py-2 text-sm transition-all duration-200"
-                >
-                  Log in
-                </Button>
-              </Link>
-              <Link href="/get-started">
-                <Button
-                  className="rounded-full bg-violet-600 hover:bg-violet-500 text-white font-semibold px-5 py-2 text-sm shadow-lg shadow-violet-600/25 hover:shadow-violet-500/30 transition-all duration-200 border-0"
-                >
-                  Get Started
-                </Button>
-              </Link>
+              {user ? (
+                <div className="relative">
+                  <button
+                    onClick={() => setUserMenuOpen(!userMenuOpen)}
+                    className="flex items-center gap-2 px-3 py-2 rounded-full bg-white/[0.06] hover:bg-white/10 border border-white/10 transition-all duration-200"
+                  >
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-violet-600 to-fuchsia-600 flex items-center justify-center text-white font-semibold text-sm">
+                      {profile?.full_name?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase()}
+                    </div>
+                    <span className="text-white/70 text-sm font-medium">
+                      {profile?.full_name || user.email?.split('@')[0]}
+                    </span>
+                  </button>
+
+                  {/* User Dropdown Menu */}
+                  {userMenuOpen && (
+                    <div className="absolute right-0 top-full mt-2 w-48 bg-slate-900/95 backdrop-blur-xl border border-white/10 rounded-xl shadow-xl overflow-hidden z-50">
+                      <Link
+                        href="/profile"
+                        onClick={() => setUserMenuOpen(false)}
+                        className="flex items-center gap-3 px-4 py-3 text-white/70 hover:text-white hover:bg-white/5 transition-colors"
+                      >
+                        <User className="w-4 h-4" />
+                        <span className="text-sm font-medium">Profile</span>
+                      </Link>
+                      <button
+                        onClick={async () => {
+                          try {
+                            await signOut()
+                            setUserMenuOpen(false)
+                            router.push("/")
+                          } catch (error) {
+                            console.error('Sign out error:', error)
+                          }
+                        }}
+                        className="w-full flex items-center gap-3 px-4 py-3 text-red-400 hover:text-red-300 hover:bg-white/5 transition-colors"
+                      >
+                        <LogOut className="w-4 h-4" />
+                        <span className="text-sm font-medium">Sign Out</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <>
+                  <Link href="/login">
+                    <Button
+                      variant="ghost"
+                      className="rounded-full text-white/70 hover:text-white hover:bg-white/10 font-medium px-5 py-2 text-sm transition-all duration-200"
+                    >
+                      Log in
+                    </Button>
+                  </Link>
+                  <Link href="/get-started">
+                    <Button
+                      className="rounded-full bg-violet-600 hover:bg-violet-500 text-white font-semibold px-5 py-2 text-sm shadow-lg shadow-violet-600/25 hover:shadow-violet-500/30 transition-all duration-200 border-0"
+                    >
+                      Get Started
+                    </Button>
+                  </Link>
+                </>
+              )}
             </div>
 
             {/* Mobile Menu Button */}
@@ -127,21 +178,63 @@ export function Navigation() {
                 )
               })}
               <div className="mt-3 pt-3 border-t border-white/10 space-y-2">
-                <Link href="/login" onClick={() => setMobileMenuOpen(false)}>
-                  <Button
-                    variant="ghost"
-                    className="w-full rounded-xl text-white/70 hover:text-white hover:bg-white/10 font-medium py-3"
-                  >
-                    Log in
-                  </Button>
-                </Link>
-                <Link href="/get-started" onClick={() => setMobileMenuOpen(false)}>
-                  <Button
-                    className="w-full rounded-xl bg-violet-600 hover:bg-violet-500 text-white font-semibold py-3 transition-all duration-200"
-                  >
-                    Get Started
-                  </Button>
-                </Link>
+                {user ? (
+                  <>
+                    <div className="flex items-center gap-3 px-4 py-3 bg-white/[0.03] rounded-xl">
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-violet-600 to-fuchsia-600 flex items-center justify-center text-white font-bold">
+                        {profile?.full_name?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase()}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-white font-medium text-sm truncate">
+                          {profile?.full_name || user.email?.split('@')[0]}
+                        </p>
+                        <p className="text-white/50 text-xs truncate">{user.email}</p>
+                      </div>
+                    </div>
+                    <Link href="/profile" onClick={() => setMobileMenuOpen(false)}>
+                      <Button
+                        variant="ghost"
+                        className="w-full rounded-xl text-white/70 hover:text-white hover:bg-white/10 font-medium py-3"
+                      >
+                        <User className="w-4 h-4 mr-2" />
+                        Profile
+                      </Button>
+                    </Link>
+                    <button
+                      onClick={async () => {
+                        try {
+                          await signOut()
+                          setMobileMenuOpen(false)
+                          router.push("/")
+                        } catch (error) {
+                          console.error('Sign out error:', error)
+                        }
+                      }}
+                      className="w-full rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-300 font-medium py-3 transition-colors"
+                    >
+                      <LogOut className="w-4 h-4 mr-2" />
+                      Sign Out
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <Link href="/login" onClick={() => setMobileMenuOpen(false)}>
+                      <Button
+                        variant="ghost"
+                        className="w-full rounded-xl text-white/70 hover:text-white hover:bg-white/10 font-medium py-3"
+                      >
+                        Log in
+                      </Button>
+                    </Link>
+                    <Link href="/get-started" onClick={() => setMobileMenuOpen(false)}>
+                      <Button
+                        className="w-full rounded-xl bg-violet-600 hover:bg-violet-500 text-white font-semibold py-3 transition-all duration-200"
+                      >
+                        Get Started
+                      </Button>
+                    </Link>
+                  </>
+                )}
               </div>
             </div>
           </div>

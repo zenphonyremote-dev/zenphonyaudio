@@ -1,6 +1,5 @@
 import { Navigation } from "@/components/navigation"
 import { HeroSection } from "@/components/hero-section"
-import { MarqueeSection } from "@/components/marquee-section"
 import { ServicesSection } from "@/components/services-section"
 import { CTASection } from "@/components/cta-section"
 import { Footer } from "@/components/footer"
@@ -20,7 +19,6 @@ export default function HomePage() {
       <div className="relative z-10">
         <Navigation />
         <HeroSection />
-        <MarqueeSection />
         <ServicesSection />
         <CTASection />
         <Footer />

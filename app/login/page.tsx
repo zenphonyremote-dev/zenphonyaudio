@@ -5,18 +5,74 @@ import { Button } from "@/components/ui/button"
 import { ArrowLeft, Activity, Mail, Lock, Eye, EyeOff, Loader2 } from "lucide-react"
 import Link from "next/link"
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { ZenphonyLogo } from "@/components/zenphony-logo"
 import { Aurora } from "@/components/aurora"
 import { useAuth } from "@/contexts/auth-context"
 import Image from "next/image"
 
 export default function LoginPage() {
-  const { signIn } = useAuth()
+  const { signIn, user, loading: authLoading, signOut } = useAuth()
+  const router = useRouter()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  // Show already logged in message if user is authenticated
+  if (!authLoading && user) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+        <Aurora />
+
+        {/* Back Button */}
+        <Link
+          href="/"
+          className="absolute top-8 left-8 flex items-center gap-2 text-muted-foreground hover:text-violet transition-colors z-10"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          <span>Back to Home</span>
+        </Link>
+
+        {/* Already Logged In Message */}
+        <div className="relative z-10 w-full max-w-md">
+          <div className="rounded-3xl glass-strong border-glow p-8 text-center">
+            <div className="flex justify-center mb-6">
+              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-violet-600 to-fuchsia-600 flex items-center justify-center shadow-[0_0_30px_rgba(139,92,246,0.5)]">
+                <Activity className="w-10 h-10 text-white" />
+              </div>
+            </div>
+
+            <h1 className="text-2xl font-black text-foreground mb-3">
+              You're Already Logged In
+            </h1>
+            <p className="text-muted-foreground mb-8">
+              You're currently signed in as <span className="text-violet font-medium">{user.email}</span>
+            </p>
+
+            <div className="space-y-3">
+              <button
+                onClick={async () => {
+                  await signOut()
+                  router.push("/")
+                }}
+                className="w-full h-14 rounded-2xl bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white font-bold text-base shadow-[0_8px_32px_rgba(139,92,246,0.4)] hover:shadow-[0_8px_40px_rgba(139,92,246,0.6)] transition-all duration-300 border-0"
+              >
+                Sign Out
+              </button>
+              <Link
+                href="/"
+                className="block w-full h-14 rounded-2xl bg-white/[0.05] border border-white/10 text-foreground/70 hover:text-foreground hover:bg-white/10 font-semibold text-base transition-all duration-200 flex items-center justify-center"
+              >
+                Go to Homepage
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

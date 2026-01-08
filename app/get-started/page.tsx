@@ -45,7 +45,7 @@ const loginImages = [
 function GetStartedContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
-  const { user, signIn, signUp, signInWithGoogle } = useAuth()
+  const { user, signIn, signUp, signInWithGoogle, loading: authLoading, signOut } = useAuth()
 
   // Initialize isLogin based on URL param immediately
   const initialMode = searchParams.get("mode") === "login"
@@ -59,17 +59,24 @@ function GetStartedContent() {
   const [error, setError] = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
 
-  // Redirect if already logged in
+  // Show already logged in message instead of redirecting
+  const handleLogout = async () => {
+    await signOut()
+    router.push("/")
+  }
+
+  // Redirect if already logged in - wait for auth to finish loading
   useEffect(() => {
-    if (user) {
-      const plan = searchParams.get("plan")
-      if (plan) {
-        router.push(`/products/listen-buddy#pricing`)
-      } else {
-        router.push("/")
-      }
+    console.log('[GetStarted] Auth state check:', {
+      user: user ? 'user exists' : 'no user',
+      authLoading,
+      userId: user?.id
+    })
+    if (!authLoading && user) {
+      console.log('[GetStarted] User already logged in, showing message instead of redirecting, user ID:', user.id)
+      // Don't redirect - show the "already logged in" message instead
     }
-  }, [user, router, searchParams])
+  }, [user, authLoading])
 
   // Update mode when URL changes
   useEffect(() => {
@@ -136,6 +143,61 @@ function GetStartedContent() {
     if (error) {
       setError(error.message)
     }
+  }
+
+  // Show "already logged in" message if user is authenticated
+  if (!authLoading && user) {
+    return (
+      <div className="min-h-screen bg-background relative overflow-hidden flex items-center justify-center px-4">
+        <ColorBends
+          colors={["#8b5cf6", "#a855f7", "#d946ef", "#7c3aed", "#6366f1"]}
+          speed={0.015}
+          blur={120}
+        />
+
+        {/* Back to home link */}
+        <Link
+          href="/"
+          className="absolute top-8 left-8 z-20 flex items-center gap-2 text-white/60 hover:text-white transition-colors"
+        >
+          <ArrowRight className="w-4 h-4 rotate-180" />
+          <span className="text-sm font-medium">Back to Home</span>
+        </Link>
+
+        {/* Centered Modal */}
+        <div className="relative z-10 w-full max-w-md mx-4">
+          <div className="relative bg-white/[0.03] backdrop-blur-2xl rounded-3xl border border-white/[0.08] shadow-[0_8px_32px_rgba(0,0,0,0.3),inset_0_1px_0_rgba(255,255,255,0.05)] p-8 text-center">
+            <div className="flex justify-center mb-6">
+              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-violet-600 to-fuchsia-600 flex items-center justify-center shadow-[0_0_30px_rgba(139,92,246,0.5)]">
+                <Activity className="w-10 h-10 text-white" />
+              </div>
+            </div>
+
+            <h1 className="text-2xl font-black text-white mb-3">
+              You're Already Logged In
+            </h1>
+            <p className="text-white/60 mb-8">
+              You're currently signed in as <span className="text-violet-400 font-medium">{user.email}</span>
+            </p>
+
+            <div className="space-y-3">
+              <Button
+                onClick={handleLogout}
+                className="w-full h-14 rounded-2xl bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white font-bold text-base shadow-[0_8px_32px_rgba(139,92,246,0.4)] hover:shadow-[0_8px_40px_rgba(139,92,246,0.6)] transition-all duration-300 border-0"
+              >
+                Sign Out
+              </Button>
+              <Link
+                href="/"
+                className="block w-full h-14 rounded-2xl bg-white/[0.05] border border-white/10 text-white/70 hover:text-white hover:bg-white/10 font-semibold text-base transition-all duration-200 flex items-center justify-center"
+              >
+                Go to Homepage
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (

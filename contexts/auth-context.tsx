@@ -76,11 +76,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const signUp = async (email: string, password: string, name?: string) => {
+    const redirectUrl = `${process.env.NEXT_PUBLIC_BASE_URL || window.location.origin}/auth/callback`
+    console.log('[AuthContext] signUp redirect URL:', redirectUrl)
+    
     const { error } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
+        emailRedirectTo: redirectUrl,
         data: {
           full_name: name,
         },
@@ -93,21 +96,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     console.log('[AuthContext] signIn called with:', { email })
     console.log('[AuthContext] Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL)
     
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     })
     
-    console.log('[AuthContext] signIn result:', { error })
+    console.log('[AuthContext] signIn result:', { error, hasSession: !!data?.session })
+    
+    if (error) {
+      console.error('[AuthContext] Sign in error details:', {
+        message: error.message,
+        status: error.status,
+        name: error.name
+      })
+    }
+    
     return { error }
   }
 
   const signInWithGoogle = async () => {
     try {
+      const redirectUrl = `${process.env.NEXT_PUBLIC_BASE_URL || window.location.origin}/auth/callback`
+      console.log('[AuthContext] Google OAuth redirect URL:', redirectUrl)
+      
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo: redirectUrl,
         },
       })
       return { error }
@@ -118,7 +133,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const signOut = async () => {
-    await supabase.auth.signOut()
+    const { error } = await supabase.auth.signOut()
+    if (error) {
+      console.error('Error signing out:', error)
+      throw error
+    }
+    // Explicitly clear all auth states
+    setUser(null)
+    setSession(null)
     setProfile(null)
   }
 

@@ -10,6 +10,8 @@ export interface Profile {
   subscription_status: 'active' | 'cancelled' | 'past_due'
   listening_minutes_used: number
   listening_minutes_limit: number
+  stripe_customer_id: string | null
+  stripe_subscription_id: string | null
   created_at: string
   updated_at: string
 }

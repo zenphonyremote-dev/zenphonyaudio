@@ -8,6 +8,7 @@ import { ArrowRight, Check, Headphones, BarChart3, Waves, Zap, Music, Mic, Downl
 import Link from "next/link"
 import Image from "next/image"
 import { useState, useEffect } from "react"
+import { useAuth } from "@/contexts/auth-context"
 
 const listeningModes = [
   { icon: Music, label: "Mixing", desc: "Balance, clarity, and translation" },
@@ -92,6 +93,7 @@ const plans = [
 ]
 
 export default function ListenBuddyPage() {
+  const { user } = useAuth()
   const [selectedPlan, setSelectedPlan] = useState("pro")
 
   return (
@@ -141,14 +143,24 @@ export default function ListenBuddyPage() {
 
             {/* CTAs */}
             <div className="flex flex-wrap justify-center gap-4">
-              <Link href="/get-started?mode=login">
-                <Button className="rounded-full bg-violet-600 hover:bg-violet-500 text-white font-semibold px-10 py-7 text-lg shadow-lg shadow-violet-600/25 transition-all duration-200">
-                  <Play className="w-6 h-6 mr-2" />
-                  Start Free Trial
-                </Button>
-              </Link>
+              {user ? (
+                <Link href="/checkout?plan=free">
+                  <Button className="rounded-full bg-violet-600 hover:bg-violet-500 text-white font-semibold px-10 py-7 text-lg shadow-lg shadow-violet-600/25 transition-all duration-200">
+                    <Play className="w-6 h-6 mr-2" />
+                    Start Free Trial
+                  </Button>
+                </Link>
+              ) : (
+                <Link href="/get-started?mode=login">
+                  <Button className="rounded-full bg-violet-600 hover:bg-violet-500 text-white font-semibold px-10 py-7 text-lg shadow-lg shadow-violet-600/25 transition-all duration-200">
+                    <Play className="w-6 h-6 mr-2" />
+                    Start Free Trial
+                  </Button>
+                </Link>
+              )}
               <Button
                 variant="outline"
+                onClick={() => document.getElementById('what-you-get')?.scrollIntoView({ behavior: 'smooth' })}
                 className="rounded-full border-white/20 text-white hover:bg-white/5 bg-transparent font-semibold px-10 py-7 text-lg"
               >
                 See How It Works
@@ -227,7 +239,7 @@ export default function ListenBuddyPage() {
         </section>
 
         {/* What You Get Section */}
-        <section className="py-20 px-6 lg:px-8">
+        <section className="py-20 px-6 lg:px-8" id="what-you-get">
           <div className="max-w-5xl mx-auto">
             <div className="text-center mb-12">
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/20 mb-6">
@@ -333,12 +345,13 @@ export default function ListenBuddyPage() {
         <section className="py-16 px-6 lg:px-8">
           <div className="max-w-xl mx-auto">
             <div className="bg-gradient-to-br from-white/[0.04] to-white/[0.01] rounded-3xl p-12 border border-white/10 text-center">
-              <Link href="/get-started?mode=login">
-                <Button className="rounded-full bg-violet-600 hover:bg-violet-500 text-white font-semibold px-12 py-7 text-lg shadow-lg shadow-violet-600/25 transition-all duration-200 mb-8">
-                  <Download className="w-6 h-6 mr-2" />
-                  Download Listen Buddy
-                </Button>
-              </Link>
+              <Button
+                onClick={() => document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' })}
+                className="rounded-full bg-violet-600 hover:bg-violet-500 text-white font-semibold px-12 py-7 text-lg shadow-lg shadow-violet-600/25 transition-all duration-200 mb-8"
+              >
+                <Download className="w-6 h-6 mr-2" />
+                Download Listen Buddy
+              </Button>
               <div className="space-y-3">
                 {["Free plugin assistant (forever)", "Free audio analysis trial", "Install and start immediately"].map((text, i) => (
                   <div key={i} className="flex items-center justify-center gap-3 text-white/50 text-base">
@@ -545,7 +558,7 @@ export default function ListenBuddyPage() {
                       ))}
                     </div>
 
-                    <Link href={`/get-started?plan=${plan.id}`}>
+                    <Link href={`/checkout?plan=${plan.id}`}>
                       <Button
                         className={`w-full rounded-xl py-6 text-base font-semibold transition-all ${
                           selectedPlan === plan.id
@@ -575,13 +588,14 @@ export default function ListenBuddyPage() {
             <p className="text-xl text-white/60 mb-10 max-w-xl mx-auto">
               Listen Buddy is the "extra set of ears" that fits right into your session—quick, clear, and always on your side.
             </p>
-            <Link href="/get-started">
-              <Button className="rounded-full bg-violet-600 hover:bg-violet-500 text-white font-semibold px-12 py-7 text-lg shadow-lg shadow-violet-600/25 transition-all duration-200">
-                <Sparkles className="w-6 h-6 mr-2" />
-                Start with Listen Buddy
-                <ArrowRight className="w-6 h-6 ml-2" />
-              </Button>
-            </Link>
+            <Button
+              onClick={() => document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' })}
+              className="rounded-full bg-violet-600 hover:bg-violet-500 text-white font-semibold px-12 py-7 text-lg shadow-lg shadow-violet-600/25 transition-all duration-200"
+            >
+              <Sparkles className="w-6 h-6 mr-2" />
+              Start with Listen Buddy
+              <ArrowRight className="w-6 h-6 ml-2" />
+            </Button>
           </div>
         </section>
 

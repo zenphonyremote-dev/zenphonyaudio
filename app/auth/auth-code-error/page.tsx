@@ -1,12 +1,16 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { ArrowLeft, AlertCircle } from "lucide-react"
+import { ArrowLeft, AlertCircle, RefreshCw } from "lucide-react"
 import Link from "next/link"
 import { ZenphonyLogo } from "@/components/zenphony-logo"
 import { Aurora } from "@/components/aurora"
+import { useSearchParams } from "next/navigation"
 
 export default function AuthCodeErrorPage() {
+  const searchParams = useSearchParams()
+  const error = searchParams.get('error')
+  const errorMessage = error ? decodeURIComponent(error) : null
   return (
     <div className="min-h-screen bg-background flex items-center justify-center px-4 sm:px-6 lg:px-8 py-12 relative overflow-hidden">
       <Aurora />
@@ -39,7 +43,10 @@ export default function AuthCodeErrorPage() {
           </h1>
           
           <p className="text-muted-foreground mb-6 leading-relaxed">
-            There was an issue with the authentication code. The link may have expired or is invalid.
+            {errorMessage
+              ? errorMessage
+              : "There was an issue with the authentication code. The link may have expired or is invalid."
+            }
           </p>
 
           <div className="bg-red-500/10 rounded-xl p-4 border border-red-500/20 mb-6">
