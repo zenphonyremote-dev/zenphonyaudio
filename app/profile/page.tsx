@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation"
 import { User, Mail, Phone, Building, Briefcase, Camera, LogOut, Loader2, Check, Crown, Zap, Clock } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Navigation } from "@/components/navigation"
 import { Footer } from "@/components/footer"
 import { ColorBends } from "@/components/color-bends"
 import { useAuth } from "@/contexts/auth-context"
@@ -139,7 +138,6 @@ export default function ProfilePage() {
       />
 
       <div className="relative z-10">
-        <Navigation />
 
         <main className="pt-32 pb-24 px-6 lg:px-8">
           <div className="max-w-4xl mx-auto">

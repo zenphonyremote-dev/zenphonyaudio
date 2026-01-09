@@ -32,18 +32,19 @@ export function Navigation() {
   ]
 
   return (
-    <>
-      {/* Full Width Navigation Container */}
       <nav
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-          scrolled ? "py-2 bg-slate-950/80 backdrop-blur-xl border-b border-white/5" : "py-4"
+        className={`fixed top-0 left-0 right-0 transition-all duration-300 ${
+          scrolled
+            ? "py-2 bg-slate-950 backdrop-blur-xl border-b border-white/10 shadow-lg shadow-black/30"
+            : "py-4 bg-transparent"
         }`}
+        style={{ zIndex: 99999 }}
       >
         <div className="w-full px-6 lg:px-12 xl:px-16">
           <div className="flex items-center justify-between">
             {/* Logo - Left with margin */}
             <Link href="/" className="flex items-center hover:opacity-80 transition-opacity ml-2 lg:ml-4">
-              <ZenphonyLogo className="h-10 sm:h-11 lg:h-12 w-auto" variant="light" />
+              <ZenphonyLogo className="h-11 sm:h-12 lg:h-14 w-auto" variant="light" />
             </Link>
 
             {/* Center Navigation - Compact Pill */}
@@ -240,6 +241,5 @@ export function Navigation() {
           </div>
         )}
       </nav>
-    </>
   )
 }

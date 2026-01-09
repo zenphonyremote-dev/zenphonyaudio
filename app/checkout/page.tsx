@@ -2,7 +2,6 @@
 
 import { useState, useEffect, Suspense } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
-import { Navigation } from "@/components/navigation"
 import { Footer } from "@/components/footer"
 import { ColorBends } from "@/components/color-bends"
 import { Button } from "@/components/ui/button"
@@ -341,7 +340,6 @@ export default function CheckoutPage() {
       />
 
       <div className="relative z-10">
-        <Navigation />
 
         {/* Checkout Section */}
         <section className="pt-32 pb-20 px-6 lg:px-8">

@@ -1,6 +1,5 @@
 "use client"
 
-import { Navigation } from "@/components/navigation"
 import { Footer } from "@/components/footer"
 import { ColorBends } from "@/components/color-bends"
 import { Button } from "@/components/ui/button"
@@ -17,7 +16,6 @@ export default function ContactPage() {
       />
 
       <div className="relative z-10">
-        <Navigation />
 
         <main className="pt-32 pb-20 px-6 lg:px-8">
           <div className="max-w-5xl mx-auto">

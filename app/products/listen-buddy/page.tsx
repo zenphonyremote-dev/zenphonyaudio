@@ -1,14 +1,27 @@
 "use client"
 
-import { Navigation } from "@/components/navigation"
 import { Footer } from "@/components/footer"
 import { ColorBends } from "@/components/color-bends"
 import { Button } from "@/components/ui/button"
 import { ArrowRight, Check, Headphones, BarChart3, Waves, Zap, Music, Mic, Download, Play, Sparkles, MessageCircle, Library, Settings2, Film, Megaphone, Crown, AudioWaveform } from "lucide-react"
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel"
+import Autoplay from "embla-carousel-autoplay"
 import Link from "next/link"
 import Image from "next/image"
 import { useState, useEffect } from "react"
 import { useAuth } from "@/contexts/auth-context"
+
+const galleryImages = [
+  { src: "/listen-buddy-film.jpg", alt: "Listen Buddy - Film Mode Analysis" },
+  { src: "/listen-buddy-commercial.jpg", alt: "Listen Buddy - Commercial Mode Analysis" },
+  { src: "/listen-buddy-mix.jpg", alt: "Listen Buddy - Mix Mode Analysis" },
+]
 
 const listeningModes = [
   { icon: Music, label: "Mixing", desc: "Balance, clarity, and translation" },
@@ -36,7 +49,7 @@ const features = [
   },
   {
     icon: Headphones,
-    title: "Mix references",
+    title: "References",
     description: "Compare against professional tracks",
     image: "/abstract-3d-purple-headphones-floating-neon-glow.jpg",
     gradientStyle: "linear-gradient(135deg, #f59e0b, #f97316, #ef4444)",
@@ -97,7 +110,7 @@ export default function ListenBuddyPage() {
   const [selectedPlan, setSelectedPlan] = useState("pro")
 
   return (
-    <div className="min-h-screen bg-background relative overflow-hidden">
+    <div className="min-h-screen bg-background relative overflow-x-hidden">
       {/* ColorBends - Full page animated background */}
       <ColorBends
         colors={["#8b5cf6", "#a855f7", "#d946ef", "#7c3aed", "#6366f1"]}
@@ -106,7 +119,6 @@ export default function ListenBuddyPage() {
       />
 
       <div className="relative z-10">
-        <Navigation />
 
         {/* Hero Section */}
         <section className="relative pt-32 pb-20 px-6 lg:px-8">
@@ -127,7 +139,7 @@ export default function ListenBuddyPage() {
                 </div>
                 <span className="text-3xl sm:text-4xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-indigo-400">BUDDY</span>
               </div>
-              <span className="text-xs sm:text-sm text-white/40 uppercase tracking-[0.3em] mt-2">Audio Analysis Plugin</span>
+              <span className="text-sm sm:text-base text-white/60 font-medium uppercase tracking-[0.3em] mt-2">Audio Analysis Plugin</span>
             </div>
 
             <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-white mb-6 leading-tight">
@@ -142,7 +154,7 @@ export default function ListenBuddyPage() {
             </p>
 
             {/* CTAs */}
-            <div className="flex flex-wrap justify-center gap-4">
+            <div className="flex flex-wrap justify-center gap-4 mb-16">
               {user ? (
                 <Link href="/checkout?plan=free">
                   <Button className="rounded-full bg-violet-600 hover:bg-violet-500 text-white font-semibold px-10 py-7 text-lg shadow-lg shadow-violet-600/25 transition-all duration-200">
@@ -166,6 +178,156 @@ export default function ListenBuddyPage() {
                 See How It Works
                 <ArrowRight className="w-6 h-6 ml-2" />
               </Button>
+            </div>
+
+            {/* Product Gallery Carousel */}
+            <div className="relative max-w-6xl mx-auto px-16">
+              {/* Floating Decorative Elements Around Carousel */}
+
+              {/* Top Left - Mode Indicator */}
+              <div className="absolute -top-6 left-8 z-30 p-3 sm:p-4 rounded-2xl bg-black/70 backdrop-blur-xl border border-white/10 shadow-xl shadow-violet-500/20">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center">
+                    <Waves className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-white">Mix Mode</p>
+                    <p className="text-xs text-white/50">Active</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Top Right - AI Badge */}
+              <div className="absolute -top-4 right-8 z-30 flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-600 shadow-lg shadow-violet-500/40">
+                <Sparkles className="w-4 h-4 text-white animate-pulse" />
+                <span className="text-sm font-semibold text-white">AI Powered</span>
+              </div>
+
+              {/* Bottom Left - Stats */}
+              <div className="absolute -bottom-8 left-4 z-30 p-4 rounded-2xl bg-black/70 backdrop-blur-xl border border-white/10 shadow-xl">
+                <div className="flex items-center gap-5">
+                  <div className="text-center">
+                    <p className="text-2xl font-bold text-violet-400">6</p>
+                    <p className="text-xs text-white/50">Modes</p>
+                  </div>
+                  <div className="w-px h-10 bg-white/10" />
+                  <div className="text-center">
+                    <p className="text-2xl font-bold text-emerald-400">∞</p>
+                    <p className="text-xs text-white/50">Insights</p>
+                  </div>
+                  <div className="w-px h-10 bg-white/10" />
+                  <div className="text-center">
+                    <p className="text-2xl font-bold text-cyan-400">RT</p>
+                    <p className="text-xs text-white/50">Analysis</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Bottom Right - Waveform Card */}
+              <div className="absolute -bottom-6 right-4 z-30 p-4 rounded-2xl bg-black/70 backdrop-blur-xl border border-white/10 shadow-xl">
+                <div className="flex items-center gap-3">
+                  <div className="flex items-end gap-0.5 h-10">
+                    <div className="w-2 bg-gradient-to-t from-violet-500 to-fuchsia-500 rounded-full animate-pulse" style={{ height: '50%' }} />
+                    <div className="w-2 bg-gradient-to-t from-violet-500 to-fuchsia-500 rounded-full animate-pulse" style={{ height: '100%', animationDelay: '0.1s' }} />
+                    <div className="w-2 bg-gradient-to-t from-violet-500 to-fuchsia-500 rounded-full animate-pulse" style={{ height: '30%', animationDelay: '0.2s' }} />
+                    <div className="w-2 bg-gradient-to-t from-violet-500 to-fuchsia-500 rounded-full animate-pulse" style={{ height: '70%', animationDelay: '0.3s' }} />
+                    <div className="w-2 bg-gradient-to-t from-violet-500 to-fuchsia-500 rounded-full animate-pulse" style={{ height: '60%', animationDelay: '0.4s' }} />
+                    <div className="w-2 bg-gradient-to-t from-violet-500 to-fuchsia-500 rounded-full animate-pulse" style={{ height: '90%', animationDelay: '0.5s' }} />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-white">Spectral</p>
+                    <p className="text-xs text-white/50">Live Feed</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Orbiting Decorative Dots */}
+              <div className="absolute top-1/2 -left-4 w-3 h-3 rounded-full bg-violet-500 blur-[2px] animate-pulse" />
+              <div className="absolute top-1/4 -right-2 w-2 h-2 rounded-full bg-fuchsia-500 blur-[1px] animate-pulse" style={{ animationDelay: '0.5s' }} />
+              <div className="absolute bottom-1/3 -left-3 w-2 h-2 rounded-full bg-cyan-500 blur-[1px] animate-pulse" style={{ animationDelay: '1s' }} />
+              <div className="absolute top-1/3 -right-3 w-3 h-3 rounded-full bg-indigo-500 blur-[2px] animate-pulse" style={{ animationDelay: '1.5s' }} />
+
+              {/* Large Glow Effects */}
+              <div className="absolute -inset-8 bg-gradient-to-r from-violet-600/30 via-fuchsia-500/20 to-indigo-600/30 rounded-[3rem] blur-3xl animate-pulse pointer-events-none" />
+              <div className="absolute -inset-4 bg-gradient-to-br from-violet-500/20 to-transparent rounded-3xl blur-2xl pointer-events-none" />
+
+              <Carousel
+                opts={{
+                  align: "center",
+                  loop: true,
+                }}
+                plugins={[
+                  Autoplay({
+                    delay: 4000,
+                  }),
+                ]}
+                className="w-full"
+              >
+                <CarouselContent>
+                  {galleryImages.map((image, index) => (
+                    <CarouselItem key={index}>
+                      <div className="relative aspect-[16/10] w-full rounded-3xl overflow-hidden">
+                        {/* Main Image Container */}
+                        <div className="relative w-full h-full rounded-3xl overflow-hidden border-2 border-white/20 shadow-2xl shadow-violet-500/30">
+                          <Image
+                            src={image.src}
+                            alt={image.alt}
+                            fill
+                            className="object-cover"
+                            priority={index === 0}
+                          />
+
+                          {/* Overlay Gradients */}
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-black/20" />
+
+                          {/* Top Highlight */}
+                          <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/50 to-transparent" />
+
+                          {/* Left Highlight */}
+                          <div className="absolute top-0 left-0 bottom-0 w-px bg-gradient-to-b from-white/40 via-white/10 to-transparent" />
+
+                          {/* Corner Accents */}
+                          <div className="absolute top-0 left-0 w-32 h-32 bg-gradient-to-br from-white/10 to-transparent" />
+                          <div className="absolute bottom-0 right-0 w-32 h-32 bg-gradient-to-tl from-violet-500/30 to-transparent" />
+
+                          {/* Inner Floating UI Elements */}
+                          <div className="absolute top-4 left-4 flex items-center gap-2 px-4 py-2 rounded-full bg-black/60 backdrop-blur-md border border-white/20 shadow-lg">
+                            <div className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse shadow-lg shadow-emerald-400/50" />
+                            <span className="text-sm font-medium text-white">Live Analysis</span>
+                          </div>
+
+                          <div className="absolute top-4 right-4 flex items-center gap-2 px-4 py-2 rounded-full bg-violet-500/80 backdrop-blur-md border border-violet-400/30 shadow-lg">
+                            <span className="text-sm font-semibold text-white">PRO</span>
+                          </div>
+
+                          {/* Bottom Info Bar */}
+                          <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between">
+                            <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-black/60 backdrop-blur-md border border-white/10">
+                              <BarChart3 className="w-4 h-4 text-violet-400" />
+                              <span className="text-sm font-medium text-white/80">{image.alt.split(' - ')[1]}</span>
+                            </div>
+                            <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-black/60 backdrop-blur-md border border-white/10">
+                              <div className="flex items-center gap-1">
+                                <div className="w-1.5 h-4 bg-violet-400 rounded-full animate-pulse" />
+                                <div className="w-1.5 h-6 bg-fuchsia-400 rounded-full animate-pulse" style={{ animationDelay: "0.1s" }} />
+                                <div className="w-1.5 h-3 bg-violet-400 rounded-full animate-pulse" style={{ animationDelay: "0.2s" }} />
+                                <div className="w-1.5 h-5 bg-fuchsia-400 rounded-full animate-pulse" style={{ animationDelay: "0.3s" }} />
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+                <CarouselPrevious className="-left-6 w-12 h-12 bg-black/60 border-white/20 text-white hover:bg-violet-600 hover:border-violet-500 hover:text-white transition-all shadow-lg" />
+                <CarouselNext className="-right-6 w-12 h-12 bg-black/60 border-white/20 text-white hover:bg-violet-600 hover:border-violet-500 hover:text-white transition-all shadow-lg" />
+              </Carousel>
+
+              {/* Slide Indicators Text */}
+              <div className="flex justify-center mt-6 gap-2">
+                <span className="text-sm text-white/40">Swipe or use arrows to explore</span>
+              </div>
             </div>
           </div>
         </section>
@@ -238,61 +400,15 @@ export default function ListenBuddyPage() {
           </div>
         </section>
 
-        {/* What You Get Section */}
-        <section className="py-20 px-6 lg:px-8" id="what-you-get">
-          <div className="max-w-5xl mx-auto">
-            <div className="text-center mb-12">
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/20 mb-6">
-                <Sparkles className="w-5 h-5 text-emerald-400" />
-                <span className="text-base text-emerald-300 font-medium">What You Get</span>
-              </div>
-              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-4">
-                Free Plugin Assistant —{" "}
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400">
-                  Yours Forever
-                </span>
-              </h2>
-              <p className="text-lg text-white/50 max-w-xl mx-auto">
-                The moment you install Listen Buddy, you get:
-              </p>
-            </div>
-
-            <div className="grid sm:grid-cols-3 gap-6 mb-10">
-              {[
-                { icon: MessageCircle, title: "Real-time mixing guidance", desc: "Ask questions and get immediate, practical answers." },
-                { icon: Settings2, title: "Plugin workflow advice", desc: "Learn how your tools interact effectively." },
-                { icon: Library, title: "Complete plugin knowledgebase", desc: "Every plugin you own, searchable and explained." },
-              ].map((item, i) => (
-                <div key={i} className="bg-gradient-to-br from-white/[0.04] to-white/[0.01] rounded-2xl p-8 border border-white/10 hover:border-emerald-500/30 transition-all duration-300">
-                  <div className="w-14 h-14 rounded-xl bg-emerald-600/20 flex items-center justify-center mb-5">
-                    <item.icon className="w-7 h-7 text-emerald-400" />
-                  </div>
-                  <h3 className="text-xl font-semibold text-white mb-3">{item.title}</h3>
-                  <p className="text-base text-white/50 leading-relaxed">{item.desc}</p>
-                </div>
-              ))}
-            </div>
-
-            <div className="flex flex-wrap justify-center gap-6 text-base">
-              {["No subscription required", "No credit card", "Just install and use"].map((text, i) => (
-                <div key={i} className="flex items-center gap-2 text-white/50">
-                  <Check className="w-5 h-5 text-emerald-400" />
-                  <span>{text}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
         {/* AI Audio Analysis Section */}
         <section className="py-20 px-6 lg:px-8">
-          <div className="max-w-6xl mx-auto">
-            <div className="grid lg:grid-cols-2 gap-16 items-start">
+          <div className="max-w-7xl mx-auto">
+            <div className="grid lg:grid-cols-[1fr_1.4fr] gap-10 items-start">
               {/* Left Content - Bigger Card */}
               <div className="bg-gradient-to-br from-white/[0.06] to-white/[0.02] rounded-3xl p-10 border border-white/10">
                 <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-violet-500/10 border border-violet-500/20 mb-6">
                   <BarChart3 className="w-5 h-5 text-violet-400" />
-                  <span className="text-base text-violet-300 font-medium">AI Audio Analysis</span>
+                  <span className="text-lg text-violet-300 font-medium">AI Audio Analysis</span>
                 </div>
                 <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-6">
                   This is where Listen Buddy{" "}
@@ -300,7 +416,7 @@ export default function ListenBuddyPage() {
                     actually listens.
                   </span>
                 </h2>
-                <p className="text-lg text-white/60 mb-8">
+                <p className="text-xl text-white/70 font-medium mb-8">
                   Upload your track and receive:
                 </p>
 
@@ -310,29 +426,29 @@ export default function ListenBuddyPage() {
                       <div className="w-8 h-8 rounded-lg bg-violet-500/20 flex items-center justify-center">
                         <Check className="w-4 h-4 text-violet-400" />
                       </div>
-                      <span className="text-lg text-white/70">{item}</span>
+                      <span className="text-xl text-white/70 font-medium">{item}</span>
                     </div>
                   ))}
                 </div>
 
                 <div className="p-6 bg-violet-500/10 rounded-xl border border-violet-500/20">
-                  <p className="text-lg text-white/70">
+                  <p className="text-xl text-white/70 font-medium">
                     Try <span className="text-violet-400 font-semibold">5 minutes</span> of listening completely free.
                   </p>
                 </div>
               </div>
 
               {/* Right - Listening Modes */}
-              <div>
-                <p className="text-base text-white/40 mb-5 font-medium">Listening Modes</p>
-                <div className="grid grid-cols-2 gap-4">
+              <div className="lg:flex-1">
+                <p className="text-xl text-white/70 mb-6 font-semibold">Listening Modes</p>
+                <div className="grid grid-cols-2 gap-6">
                   {listeningModes.map((mode, i) => (
-                    <div key={i} className="bg-gradient-to-br from-white/[0.04] to-white/[0.01] rounded-xl p-6 border border-white/10 hover:border-violet-500/30 transition-all duration-300">
-                      <div className="w-12 h-12 rounded-lg bg-violet-600/20 flex items-center justify-center mb-4">
-                        <mode.icon className="w-6 h-6 text-violet-400" />
+                    <div key={i} className="bg-gradient-to-br from-white/[0.04] to-white/[0.01] rounded-2xl p-8 px-10 border border-white/10 hover:border-violet-500/30 transition-all duration-300">
+                      <div className="w-16 h-16 rounded-xl bg-violet-600/20 flex items-center justify-center mb-5">
+                        <mode.icon className="w-8 h-8 text-violet-400" />
                       </div>
-                      <h4 className="text-lg text-white font-semibold mb-2">{mode.label}</h4>
-                      <p className="text-sm text-white/40">{mode.desc}</p>
+                      <h4 className="text-2xl text-white font-semibold mb-3">{mode.label}</h4>
+                      <p className="text-lg text-white/70 font-medium">{mode.desc}</p>
                     </div>
                   ))}
                 </div>
@@ -354,7 +470,7 @@ export default function ListenBuddyPage() {
               </Button>
               <div className="space-y-3">
                 {["Free plugin assistant (forever)", "Free audio analysis trial", "Install and start immediately"].map((text, i) => (
-                  <div key={i} className="flex items-center justify-center gap-3 text-white/50 text-base">
+                  <div key={i} className="flex items-center justify-center gap-3 text-white/70 text-lg font-medium">
                     <Check className="w-5 h-5 text-emerald-400" />
                     <span>{text}</span>
                   </div>
@@ -380,14 +496,14 @@ export default function ListenBuddyPage() {
 
             <div className="grid sm:grid-cols-3 gap-6">
               {[
-                { num: "1", label: "Insert", desc: "On any track or master bus" },
+                { num: "1", label: "Capture", desc: "Capture the audio and Listen automatically" },
                 { num: "2", label: "Analyze", desc: "One click to get feedback" },
                 { num: "3", label: "Apply", desc: "Actionable moves, immediately" },
               ].map((item, i) => (
                 <div key={i} className="bg-gradient-to-br from-white/[0.04] to-white/[0.01] rounded-2xl p-8 border border-white/10">
                   <div className="text-4xl font-bold text-violet-400 mb-3">{item.num}</div>
-                  <h4 className="text-xl font-semibold text-white mb-2">{item.label}</h4>
-                  <p className="text-base text-white/50">{item.desc}</p>
+                  <h4 className="text-2xl font-semibold text-white mb-2">{item.label}</h4>
+                  <p className="text-lg text-white/70 font-medium">{item.desc}</p>
                 </div>
               ))}
             </div>
@@ -404,7 +520,7 @@ export default function ListenBuddyPage() {
                   translation-first listening.
                 </span>
               </h2>
-              <p className="text-lg text-white/50 max-w-2xl mx-auto">
+              <p className="text-xl text-white/70 font-medium max-w-2xl mx-auto">
                 Balance, clarity, punch, width, and emotional read—not genre templates.
               </p>
             </div>
@@ -419,16 +535,16 @@ export default function ListenBuddyPage() {
               ].map((item, i) => (
                 <div key={i} className="flex items-center gap-3 px-6 py-4 bg-white/[0.04] rounded-full border border-white/10">
                   <item.icon className="w-5 h-5 text-violet-400" />
-                  <span className="text-white/70 text-base font-medium">{item.label}</span>
+                  <span className="text-white/70 text-lg font-medium">{item.label}</span>
                 </div>
               ))}
             </div>
 
             <div className="bg-violet-500/10 rounded-2xl p-8 border border-violet-500/20 text-center">
-              <p className="text-lg text-white/70 mb-4">Choose the lens that matches the job:</p>
+              <p className="text-xl text-white/70 font-medium mb-4">Choose the lens that matches the job:</p>
               <div className="flex flex-wrap justify-center gap-3">
                 {["Mix", "Mastering", "Production", "Podcast", "Film", "Commercial"].map((mode, i) => (
-                  <span key={i} className="px-4 py-2 bg-white/10 rounded-full text-base font-medium text-white/70">
+                  <span key={i} className="px-4 py-2 bg-white/10 rounded-full text-lg font-medium text-white/70">
                     {mode}
                   </span>
                 ))}
@@ -452,34 +568,80 @@ export default function ListenBuddyPage() {
             <div className="grid md:grid-cols-2 gap-6">
               {/* Buddy Selector */}
               <div className="bg-gradient-to-br from-white/[0.04] to-white/[0.01] rounded-2xl p-8 border border-white/10">
-                <h3 className="text-xl font-semibold text-white mb-6">Choose Your Buddy</h3>
+                <h3 className="text-2xl font-semibold text-white mb-6">Choose Your Buddy</h3>
                 <div className="space-y-4">
                   <div className="p-5 bg-violet-500/10 rounded-xl border border-violet-500/20">
-                    <h4 className="font-semibold text-violet-400 text-lg mb-2">Velvet</h4>
-                    <p className="text-base text-white/50">Warm, detailed, thoughtful analysis.</p>
+                    <h4 className="font-semibold text-violet-400 text-xl mb-2">Velvet</h4>
+                    <p className="text-lg text-white/70 font-medium">Warm, detailed, thoughtful analysis.</p>
                   </div>
                   <div className="p-5 bg-emerald-500/10 rounded-xl border border-emerald-500/20">
-                    <h4 className="font-semibold text-emerald-400 text-lg mb-2">Verde</h4>
-                    <p className="text-base text-white/50">Fast, big-picture, clear direction.</p>
+                    <h4 className="font-semibold text-emerald-400 text-xl mb-2">Verde</h4>
+                    <p className="text-lg text-white/70 font-medium">Fast, big-picture, clear direction.</p>
                   </div>
                 </div>
               </div>
 
               {/* Plugin Assistant Chat */}
               <div className="bg-gradient-to-br from-white/[0.04] to-white/[0.01] rounded-2xl p-8 border border-white/10">
-                <h3 className="text-xl font-semibold text-white mb-6">Plugin Assistant Chat</h3>
-                <p className="text-base text-white/60 mb-6">
+                <h3 className="text-2xl font-semibold text-white mb-6">Plugin Assistant Chat</h3>
+                <p className="text-lg text-white/70 font-medium mb-6">
                   Move from "what's wrong" to "what do I do with my tools."
                 </p>
                 <div className="space-y-3">
                   {["Knows what's installed", "Recommends practical moves", "Provides reliable starting points"].map((text, i) => (
                     <div key={i} className="flex items-center gap-3">
                       <Check className="w-5 h-5 text-amber-400" />
-                      <span className="text-base text-white/60">{text}</span>
+                      <span className="text-lg text-white/70 font-medium">{text}</span>
                     </div>
                   ))}
                 </div>
               </div>
+            </div>
+          </div>
+        </section>
+
+        {/* What You Get Section */}
+        <section className="py-20 px-6 lg:px-8" id="what-you-get">
+          <div className="max-w-5xl mx-auto">
+            <div className="text-center mb-12">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/20 mb-6">
+                <Sparkles className="w-5 h-5 text-emerald-400" />
+                <span className="text-lg text-emerald-300 font-medium">What You Get</span>
+              </div>
+              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-4">
+                Free Plugin Assistant —{" "}
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400">
+                  Yours Forever
+                </span>
+              </h2>
+              <p className="text-xl text-white/70 font-medium max-w-xl mx-auto">
+                The moment you install Listen Buddy, you get:
+              </p>
+            </div>
+
+            <div className="grid sm:grid-cols-3 gap-6 mb-10">
+              {[
+                { icon: MessageCircle, title: "Real-time mixing guidance", desc: "Ask questions and get immediate, practical answers." },
+                { icon: Settings2, title: "Plugin workflow advice", desc: "Learn how your tools interact effectively." },
+                { icon: Library, title: "Complete plugin knowledgebase", desc: "Every plugin you own, searchable and explained." },
+              ].map((item, i) => (
+                <div key={i} className="bg-gradient-to-br from-white/[0.04] to-white/[0.01] rounded-2xl p-8 border border-white/10 hover:border-emerald-500/30 transition-all duration-300">
+                  <div className="w-14 h-14 rounded-xl bg-emerald-600/20 flex items-center justify-center mb-5">
+                    <item.icon className="w-7 h-7 text-emerald-400" />
+                  </div>
+                  <h3 className="text-2xl font-semibold text-white mb-3">{item.title}</h3>
+                  <p className="text-lg text-white/70 font-medium leading-relaxed">{item.desc}</p>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex flex-wrap justify-center gap-6 text-lg">
+              {["No subscription required", "No credit card", "Just install and use"].map((text, i) => (
+                <div key={i} className="flex items-center gap-2 text-white/70 font-medium">
+                  <Check className="w-5 h-5 text-emerald-400" />
+                  <span>{text}</span>
+                </div>
+              ))}
             </div>
           </div>
         </section>
@@ -491,13 +653,13 @@ export default function ListenBuddyPage() {
               <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-6">
                 Real mix moves, not vague advice.
               </h2>
-              <p className="text-lg text-white/50">Example feedback from Listen Buddy:</p>
+              <p className="text-xl text-white/70 font-medium">Example feedback from Listen Buddy:</p>
             </div>
 
             <div className="space-y-5">
               {exampleInsights.map((insight, i) => (
                 <div key={i} className="bg-gradient-to-br from-white/[0.04] to-white/[0.01] rounded-xl p-6 border border-white/10">
-                  <p className="text-base text-white/70 italic leading-relaxed">"{insight}"</p>
+                  <p className="text-lg text-white/70 italic leading-relaxed">"{insight}"</p>
                 </div>
               ))}
             </div>
@@ -514,7 +676,7 @@ export default function ListenBuddyPage() {
                   listening level
                 </span>
               </h2>
-              <p className="text-lg text-white/50">
+              <p className="text-xl text-white/70 font-medium">
                 The assistant is always free. Upgrade for more listening time.
               </p>
             </div>
@@ -543,17 +705,17 @@ export default function ListenBuddyPage() {
                       </div>
                     )}
                     <div className="text-center mb-6">
-                      <h3 className={`text-base font-semibold uppercase tracking-wider mb-4 ${colors.accent}`}>
+                      <h3 className={`text-lg font-semibold uppercase tracking-wider mb-4 ${colors.accent}`}>
                         {plan.name}
                       </h3>
-                      <div className="text-4xl font-bold text-white">${plan.price.toFixed(2)}<span className="text-base text-white/40">/mo</span></div>
+                      <div className="text-4xl font-bold text-white">${plan.price.toFixed(2)}<span className="text-lg text-white/60 font-medium">/mo</span></div>
                     </div>
 
                     <div className="space-y-3 mb-6">
                       {plan.features.map((feature, i) => (
                         <div key={i} className="flex items-center gap-3">
                           <Check className={`w-5 h-5 ${colors.accent}`} />
-                          <span className="text-sm text-white/60">{feature}</span>
+                          <span className="text-lg text-white/70 font-medium">{feature}</span>
                         </div>
                       ))}
                     </div>
@@ -602,10 +764,10 @@ export default function ListenBuddyPage() {
         {/* About Footer Note */}
         <section className="py-10 px-6 lg:px-8 border-t border-white/5">
           <div className="max-w-4xl mx-auto text-center">
-            <p className="text-white/40 text-base">
-              Listen Buddy is developed by <span className="text-white/60 font-medium">Zenphony</span>.
+            <p className="text-white/70 text-lg font-medium">
+              Listen Buddy is developed by <span className="text-white/80 font-semibold">Zenphony</span>.
             </p>
-            <p className="text-white/30 text-sm mt-2">
+            <p className="text-white/60 text-lg mt-2">
               We build tools for people who care about how music actually sounds.
             </p>
           </div>

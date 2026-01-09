@@ -5,6 +5,7 @@ import localFont from "next/font/local"
 import { Analytics } from "@vercel/analytics/next"
 import { PageTransition } from "@/components/page-transition"
 import { AuthProvider } from "@/contexts/auth-context"
+import { Navigation } from "@/components/navigation"
 import "./globals.css"
 
 const sakana = localFont({
@@ -104,6 +105,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${spaceGrotesk.variable} ${syne.variable} ${bebasNeue.variable} ${orbitron.variable} ${sakana.variable} ${grandover.variable} ${alphacorsa.variable} ${milker.variable} ${montserrat.variable} ${inter.variable} font-sans antialiased`}>
         <AuthProvider>
+          <Navigation />
           <PageTransition>{children}</PageTransition>
         </AuthProvider>
         <Analytics />

@@ -1,6 +1,5 @@
 "use client"
 
-import { Navigation } from "@/components/navigation"
 import { Footer } from "@/components/footer"
 import { ColorBends } from "@/components/color-bends"
 import { Heart, Target, Lightbulb, Users, Zap } from "lucide-react"
@@ -34,7 +33,6 @@ export default function AboutPage() {
       />
 
       <div className="relative z-10">
-        <Navigation />
 
         {/* Hero Section with Waveform */}
         <section className="relative pt-32 pb-20 px-6 lg:px-8">
