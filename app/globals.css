@@ -199,6 +199,59 @@
   }
 }
 
+/* Float animations with rotation for scattered decorative elements */
+@keyframes float-tilt-left {
+  0%, 100% {
+    transform: translateY(0px) rotate(-12deg);
+  }
+  50% {
+    transform: translateY(-15px) rotate(-10deg);
+  }
+}
+
+@keyframes float-tilt-right {
+  0%, 100% {
+    transform: translateY(0px) rotate(8deg);
+  }
+  50% {
+    transform: translateY(-12px) rotate(10deg);
+  }
+}
+
+@keyframes float-tilt-slight-right {
+  0%, 100% {
+    transform: translateY(0px) rotate(6deg);
+  }
+  50% {
+    transform: translateY(-18px) rotate(4deg);
+  }
+}
+
+@keyframes float-tilt-slight-left {
+  0%, 100% {
+    transform: translateY(0px) rotate(-8deg);
+  }
+  50% {
+    transform: translateY(-14px) rotate(-6deg);
+  }
+}
+
+.animate-float-tilt-left {
+  animation: float-tilt-left 6s ease-in-out infinite;
+}
+
+.animate-float-tilt-right {
+  animation: float-tilt-right 5s ease-in-out infinite;
+}
+
+.animate-float-tilt-slight-right {
+  animation: float-tilt-slight-right 7s ease-in-out infinite;
+}
+
+.animate-float-tilt-slight-left {
+  animation: float-tilt-slight-left 6s ease-in-out infinite;
+}
+
 @keyframes pulse-glow {
   0%,
   100% {

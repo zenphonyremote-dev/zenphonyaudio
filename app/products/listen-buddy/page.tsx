@@ -182,10 +182,10 @@ export default function ListenBuddyPage() {
 
             {/* Product Gallery Carousel */}
             <div className="relative max-w-6xl mx-auto px-16">
-              {/* Floating Decorative Elements Around Carousel */}
+              {/* Scattered Floating Decorative Elements - Far from carousel */}
 
-              {/* Top Left - Mode Indicator */}
-              <div className="absolute -top-6 left-8 z-30 p-3 sm:p-4 rounded-2xl bg-black/70 backdrop-blur-xl border border-white/10 shadow-xl shadow-violet-500/20">
+              {/* Top Left - Mode Indicator - Floaty & Tilted */}
+              <div className="absolute -top-24 -left-20 z-30 p-3 sm:p-4 rounded-2xl bg-black/70 backdrop-blur-xl border border-white/10 shadow-xl shadow-violet-500/20 animate-float-tilt-left">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center">
                     <Waves className="w-5 h-5 text-white" />
@@ -197,14 +197,14 @@ export default function ListenBuddyPage() {
                 </div>
               </div>
 
-              {/* Top Right - AI Badge */}
-              <div className="absolute -top-4 right-8 z-30 flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-600 shadow-lg shadow-violet-500/40">
+              {/* Top Right - AI Badge - Floaty & Tilted */}
+              <div className="absolute -top-20 -right-16 z-30 flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-600 shadow-lg shadow-violet-500/40 animate-float-tilt-right">
                 <Sparkles className="w-4 h-4 text-white animate-pulse" />
                 <span className="text-sm font-semibold text-white">AI Powered</span>
               </div>
 
-              {/* Bottom Left - Stats */}
-              <div className="absolute -bottom-8 left-4 z-30 p-4 rounded-2xl bg-black/70 backdrop-blur-xl border border-white/10 shadow-xl">
+              {/* Bottom Left - Stats - Floaty & Tilted */}
+              <div className="absolute -bottom-28 -left-24 z-30 p-4 rounded-2xl bg-black/70 backdrop-blur-xl border border-white/10 shadow-xl animate-float-tilt-slight-right" style={{ animationDelay: '1s' }}>
                 <div className="flex items-center gap-5">
                   <div className="text-center">
                     <p className="text-2xl font-bold text-violet-400">6</p>
@@ -223,8 +223,8 @@ export default function ListenBuddyPage() {
                 </div>
               </div>
 
-              {/* Bottom Right - Waveform Card */}
-              <div className="absolute -bottom-6 right-4 z-30 p-4 rounded-2xl bg-black/70 backdrop-blur-xl border border-white/10 shadow-xl">
+              {/* Bottom Right - Waveform Card - Floaty & Tilted */}
+              <div className="absolute -bottom-24 -right-20 z-30 p-4 rounded-2xl bg-black/70 backdrop-blur-xl border border-white/10 shadow-xl animate-float-tilt-slight-left" style={{ animationDelay: '1.5s' }}>
                 <div className="flex items-center gap-3">
                   <div className="flex items-end gap-0.5 h-10">
                     <div className="w-2 bg-gradient-to-t from-violet-500 to-fuchsia-500 rounded-full animate-pulse" style={{ height: '50%' }} />
@@ -241,11 +241,13 @@ export default function ListenBuddyPage() {
                 </div>
               </div>
 
-              {/* Orbiting Decorative Dots */}
-              <div className="absolute top-1/2 -left-4 w-3 h-3 rounded-full bg-violet-500 blur-[2px] animate-pulse" />
-              <div className="absolute top-1/4 -right-2 w-2 h-2 rounded-full bg-fuchsia-500 blur-[1px] animate-pulse" style={{ animationDelay: '0.5s' }} />
-              <div className="absolute bottom-1/3 -left-3 w-2 h-2 rounded-full bg-cyan-500 blur-[1px] animate-pulse" style={{ animationDelay: '1s' }} />
-              <div className="absolute top-1/3 -right-3 w-3 h-3 rounded-full bg-indigo-500 blur-[2px] animate-pulse" style={{ animationDelay: '1.5s' }} />
+              {/* Scattered Orbiting Decorative Dots - Further out */}
+              <div className="absolute top-1/2 -left-16 w-4 h-4 rounded-full bg-violet-500 blur-[3px] animate-float" style={{ animationDuration: '4s' }} />
+              <div className="absolute -top-8 right-1/4 w-3 h-3 rounded-full bg-fuchsia-500 blur-[2px] animate-float" style={{ animationDuration: '5s', animationDelay: '0.5s' }} />
+              <div className="absolute bottom-1/4 -left-12 w-3 h-3 rounded-full bg-cyan-500 blur-[2px] animate-float" style={{ animationDuration: '6s', animationDelay: '1s' }} />
+              <div className="absolute -top-12 left-1/3 w-4 h-4 rounded-full bg-indigo-500 blur-[3px] animate-float" style={{ animationDuration: '4.5s', animationDelay: '1.5s' }} />
+              <div className="absolute bottom-1/3 -right-14 w-3 h-3 rounded-full bg-pink-500 blur-[2px] animate-float" style={{ animationDuration: '5.5s', animationDelay: '2s' }} />
+              <div className="absolute -bottom-10 left-1/4 w-2 h-2 rounded-full bg-emerald-500 blur-[1px] animate-float" style={{ animationDuration: '7s', animationDelay: '0.8s' }} />
 
               {/* Large Glow Effects */}
               <div className="absolute -inset-8 bg-gradient-to-r from-violet-600/30 via-fuchsia-500/20 to-indigo-600/30 rounded-[3rem] blur-3xl animate-pulse pointer-events-none" />

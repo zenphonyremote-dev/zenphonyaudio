@@ -24,6 +24,12 @@ export function Navigation() {
     return () => window.removeEventListener("scroll", handleScroll)
   }, [])
 
+  // Hide navigation on login, signup, and forgot-password pages
+  const hiddenRoutes = ['/login', '/signup', '/forgot-password']
+  if (hiddenRoutes.includes(pathname)) {
+    return null
+  }
+
   const navItems = [
     { name: "Listen Buddy", href: "/products/listen-buddy" },
     { name: "Pricing", href: "/products/listen-buddy#pricing" },
