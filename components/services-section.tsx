@@ -8,25 +8,25 @@ import Image from "next/image"
 export function ServicesSection() {
 
   return (
-    <section className="relative py-24 lg:py-32 px-4 sm:px-6 lg:px-8 overflow-hidden">
-      <div className="max-w-[1400px] mx-auto relative z-10 px-4 sm:px-8 lg:px-12">
+    <section className="relative py-16 sm:py-20 lg:py-24 xl:py-32 px-4 sm:px-6 lg:px-8 overflow-hidden">
+      <div className="max-w-[1400px] mx-auto relative z-10 px-2 sm:px-4 lg:px-8 xl:px-12">
         {/* Split Layout - Editorial Style */}
-        <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 xl:gap-24 items-center">
+        <div className="grid lg:grid-cols-2 gap-8 sm:gap-10 lg:gap-16 xl:gap-24 items-center">
 
           {/* Left Content Block */}
-          <div className="space-y-8 lg:pr-8 text-center lg:text-left">
+          <div className="space-y-5 sm:space-y-6 lg:space-y-8 lg:pr-8 text-center lg:text-left">
             {/* Eyebrow Label */}
-            <div className="flex items-center justify-center lg:justify-start gap-3">
-              <div className="h-px w-8 bg-gradient-to-r from-violet-500 to-transparent" />
-              <span className="text-xs font-semibold uppercase tracking-[0.25em] text-violet-400">
+            <div className="flex items-center justify-center lg:justify-start gap-2 sm:gap-3">
+              <div className="h-px w-6 sm:w-8 bg-gradient-to-r from-violet-500 to-transparent" />
+              <span className="text-xs font-semibold uppercase tracking-[0.2em] sm:tracking-[0.25em] text-violet-400">
                 Audio Intelligence
               </span>
-              <div className="h-px w-8 bg-gradient-to-l from-violet-500 to-transparent lg:hidden" />
+              <div className="h-px w-6 sm:w-8 bg-gradient-to-l from-violet-500 to-transparent lg:hidden" />
             </div>
 
             {/* Large Editorial Headline */}
-            <div className="px-2 sm:px-4">
-              <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-black text-white leading-[1.05] tracking-tight">
+            <div className="px-2">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl 2xl:text-7xl font-black text-white leading-[1.05] tracking-tight">
                 <span className="block pb-1">Meet your</span>
                 <span className="block text-transparent bg-clip-text bg-gradient-to-r from-violet-400 via-fuchsia-400 to-violet-300">
                   new buddy
@@ -35,16 +35,16 @@ export function ServicesSection() {
             </div>
 
             {/* Supporting Copy */}
-            <p className="text-lg lg:text-xl text-white/50 leading-relaxed max-w-lg mx-auto lg:mx-0">
+            <p className="text-base sm:text-lg lg:text-xl text-white/50 leading-relaxed max-w-lg mx-auto lg:mx-0 px-2">
               AI-powered mix feedback engineered by Zenphony DSP Lab. Real-time spectral intelligence that elevates your sound.
             </p>
 
             {/* CTAs */}
-            <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4 pt-4">
-              <Link href="/products/listen-buddy">
+            <div className="flex flex-col sm:flex-row flex-wrap items-center justify-center lg:justify-start gap-3 sm:gap-4 pt-2 sm:pt-4 px-2">
+              <Link href="/products/listen-buddy" className="w-full sm:w-auto">
                 <Button
                   size="lg"
-                  className="rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white font-semibold px-8 py-6 text-base shadow-[0_8px_32px_rgba(139,92,246,0.4)] hover:shadow-[0_8px_40px_rgba(139,92,246,0.6)] transition-all duration-300 border-0"
+                  className="w-full sm:w-auto rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white font-semibold px-6 sm:px-8 py-4 sm:py-5 lg:py-6 text-sm sm:text-base shadow-[0_8px_32px_rgba(139,92,246,0.4)] hover:shadow-[0_8px_40px_rgba(139,92,246,0.6)] transition-all duration-300 border-0"
                 >
                   Explore Listen Buddy
                   <ArrowUpRight className="w-4 h-4 ml-2" />
@@ -60,14 +60,14 @@ export function ServicesSection() {
             </div>
 
             {/* Subtle Stats */}
-            <div className="flex items-center justify-center lg:justify-start gap-8 pt-6 border-t border-white/10">
+            <div className="flex items-center justify-center lg:justify-start gap-6 sm:gap-8 pt-4 sm:pt-6 border-t border-white/10">
               <div>
-                <p className="text-2xl font-black text-white">Real-time</p>
+                <p className="text-lg sm:text-xl lg:text-2xl font-black text-white">Real-time</p>
                 <p className="text-xs text-white/40 uppercase tracking-wider">Processing</p>
               </div>
-              <div className="w-px h-10 bg-white/10" />
+              <div className="w-px h-8 sm:h-10 bg-white/10" />
               <div>
-                <p className="text-2xl font-black text-white">VST3/AU</p>
+                <p className="text-lg sm:text-xl lg:text-2xl font-black text-white">VST3/AU</p>
                 <p className="text-xs text-white/40 uppercase tracking-wider">Compatible</p>
               </div>
             </div>
@@ -76,64 +76,64 @@ export function ServicesSection() {
           {/* Right Visual Block - Product Mockup */}
           <div className="relative w-full lg:w-[120%] lg:-mr-[20%] aspect-[4/3]">
 
-            {/* Floating Decorative Elements */}
+            {/* Floating Decorative Elements - Hidden on mobile to prevent overflow */}
             {/* Top Right - Frequency Badge */}
-            <div className="absolute -top-4 -right-2 lg:right-8 z-20 flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-600 shadow-lg shadow-violet-500/30">
+            <div className="hidden sm:flex absolute -top-4 right-2 sm:-right-2 lg:right-8 z-20 items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-600 shadow-lg shadow-violet-500/30">
               <div className="w-2 h-2 rounded-full bg-white animate-pulse" />
-              <span className="text-sm font-semibold text-white">AI Powered</span>
+              <span className="text-xs sm:text-sm font-semibold text-white">AI Powered</span>
             </div>
 
-            {/* Top Left - Floating Card */}
-            <div className="absolute -top-6 -left-4 lg:-left-8 z-20 p-4 rounded-2xl bg-black/60 backdrop-blur-xl border border-white/10 shadow-xl">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-cyan-500 flex items-center justify-center">
-                  <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            {/* Top Left - Floating Card - Hidden on small mobile */}
+            <div className="hidden md:block absolute -top-6 -left-4 lg:-left-8 z-20 p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-black/60 backdrop-blur-xl border border-white/10 shadow-xl">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-gradient-to-br from-emerald-500 to-cyan-500 flex items-center justify-center">
+                  <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
                   </svg>
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-white">Mix Analysis</p>
+                  <p className="text-xs sm:text-sm font-semibold text-white">Mix Analysis</p>
                   <p className="text-xs text-white/50">Real-time feedback</p>
                 </div>
               </div>
             </div>
 
-            {/* Bottom Left - Stats Card */}
-            <div className="absolute -bottom-4 -left-4 lg:-left-6 z-20 p-4 rounded-2xl bg-black/60 backdrop-blur-xl border border-white/10 shadow-xl">
-              <div className="flex items-center gap-4">
+            {/* Bottom Left - Stats Card - Hidden on small mobile */}
+            <div className="hidden md:block absolute -bottom-4 -left-4 lg:-left-6 z-20 p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-black/60 backdrop-blur-xl border border-white/10 shadow-xl">
+              <div className="flex items-center gap-3 sm:gap-4">
                 <div className="text-center">
-                  <p className="text-2xl font-bold text-violet-400">98%</p>
+                  <p className="text-lg sm:text-2xl font-bold text-violet-400">98%</p>
                   <p className="text-xs text-white/50">Accuracy</p>
                 </div>
-                <div className="w-px h-10 bg-white/10" />
+                <div className="w-px h-8 sm:h-10 bg-white/10" />
                 <div className="text-center">
-                  <p className="text-2xl font-bold text-emerald-400">0.1s</p>
+                  <p className="text-lg sm:text-2xl font-bold text-emerald-400">0.1s</p>
                   <p className="text-xs text-white/50">Latency</p>
                 </div>
               </div>
             </div>
 
-            {/* Bottom Right - Waveform Card */}
-            <div className="absolute -bottom-6 -right-2 lg:right-4 z-20 p-4 rounded-2xl bg-black/60 backdrop-blur-xl border border-white/10 shadow-xl">
-              <div className="flex items-center gap-3">
-                <div className="flex items-end gap-0.5 h-8">
-                  <div className="w-1.5 bg-gradient-to-t from-violet-500 to-fuchsia-500 rounded-full animate-pulse" style={{ height: '60%' }} />
-                  <div className="w-1.5 bg-gradient-to-t from-violet-500 to-fuchsia-500 rounded-full animate-pulse" style={{ height: '100%', animationDelay: '0.1s' }} />
-                  <div className="w-1.5 bg-gradient-to-t from-violet-500 to-fuchsia-500 rounded-full animate-pulse" style={{ height: '40%', animationDelay: '0.2s' }} />
-                  <div className="w-1.5 bg-gradient-to-t from-violet-500 to-fuchsia-500 rounded-full animate-pulse" style={{ height: '80%', animationDelay: '0.3s' }} />
-                  <div className="w-1.5 bg-gradient-to-t from-violet-500 to-fuchsia-500 rounded-full animate-pulse" style={{ height: '50%', animationDelay: '0.4s' }} />
+            {/* Bottom Right - Waveform Card - Hidden on small mobile */}
+            <div className="hidden md:block absolute -bottom-6 -right-2 lg:right-4 z-20 p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-black/60 backdrop-blur-xl border border-white/10 shadow-xl">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="flex items-end gap-0.5 h-6 sm:h-8">
+                  <div className="w-1 sm:w-1.5 bg-gradient-to-t from-violet-500 to-fuchsia-500 rounded-full animate-pulse" style={{ height: '60%' }} />
+                  <div className="w-1 sm:w-1.5 bg-gradient-to-t from-violet-500 to-fuchsia-500 rounded-full animate-pulse" style={{ height: '100%', animationDelay: '0.1s' }} />
+                  <div className="w-1 sm:w-1.5 bg-gradient-to-t from-violet-500 to-fuchsia-500 rounded-full animate-pulse" style={{ height: '40%', animationDelay: '0.2s' }} />
+                  <div className="w-1 sm:w-1.5 bg-gradient-to-t from-violet-500 to-fuchsia-500 rounded-full animate-pulse" style={{ height: '80%', animationDelay: '0.3s' }} />
+                  <div className="w-1 sm:w-1.5 bg-gradient-to-t from-violet-500 to-fuchsia-500 rounded-full animate-pulse" style={{ height: '50%', animationDelay: '0.4s' }} />
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-white">Spectral</p>
+                  <p className="text-xs sm:text-sm font-semibold text-white">Spectral</p>
                   <p className="text-xs text-white/50">Analysis</p>
                 </div>
               </div>
             </div>
 
-            {/* Orbiting Dots */}
-            <div className="absolute top-1/2 -left-8 w-3 h-3 rounded-full bg-violet-500 blur-[2px] animate-pulse" />
-            <div className="absolute top-1/4 -right-4 w-2 h-2 rounded-full bg-fuchsia-500 blur-[1px] animate-pulse" style={{ animationDelay: '0.5s' }} />
-            <div className="absolute bottom-1/4 -left-6 w-2 h-2 rounded-full bg-cyan-500 blur-[1px] animate-pulse" style={{ animationDelay: '1s' }} />
+            {/* Orbiting Dots - Hidden on mobile */}
+            <div className="hidden lg:block absolute top-1/2 -left-8 w-3 h-3 rounded-full bg-violet-500 blur-[2px] animate-pulse" />
+            <div className="hidden lg:block absolute top-1/4 -right-4 w-2 h-2 rounded-full bg-fuchsia-500 blur-[1px] animate-pulse" style={{ animationDelay: '0.5s' }} />
+            <div className="hidden lg:block absolute bottom-1/4 -left-6 w-2 h-2 rounded-full bg-cyan-500 blur-[1px] animate-pulse" style={{ animationDelay: '1s' }} />
 
             {/* Animated Glow Ring */}
             <div className="absolute -inset-6 bg-gradient-to-r from-violet-600/40 via-fuchsia-500/30 to-indigo-600/40 rounded-3xl blur-3xl animate-pulse" />

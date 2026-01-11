@@ -23,34 +23,34 @@ export function HeroSection() {
         </div>
 
         {/* Main Headline */}
-        <div className="pt-4 sm:pt-6 px-6 sm:px-10 lg:px-12">
-          <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-black text-white leading-[1] mb-6">
-            <span className="block text-transparent bg-clip-text bg-gradient-to-r from-violet-400 via-fuchsia-400 to-indigo-400 font-[family-name:var(--font-alphacorsa)] italic pb-3 pt-4 pl-3">
+        <div className="pt-6 sm:pt-8 lg:pt-10 px-2 sm:px-6 lg:px-12">
+          <h1 className="text-white leading-[0.9] mb-8 sm:mb-10 lg:mb-12">
+            <span className="block text-transparent bg-clip-text bg-gradient-to-r from-violet-400 via-pink-400 to-fuchsia-400 font-[family-name:var(--font-milker)] text-6xl sm:text-7xl md:text-8xl lg:text-9xl xl:text-[10rem] pb-2 sm:pb-4 animate-gradient bg-[length:200%_200%] drop-shadow-[0_0_40px_rgba(236,72,153,0.5)]">
               Intelligence
             </span>
-            <span className="block text-transparent bg-clip-text bg-gradient-to-br from-white via-violet-200 to-fuchsia-300 text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-light tracking-[0.15em] uppercase drop-shadow-[0_0_20px_rgba(139,92,246,0.5)]">
+            <span className="block text-transparent bg-clip-text bg-gradient-to-r from-violet-400 via-pink-400 to-fuchsia-400 font-[family-name:var(--font-milker)] text-5xl sm:text-6xl md:text-7xl lg:text-8xl xl:text-9xl animate-gradient bg-[length:200%_200%] drop-shadow-[0_0_40px_rgba(236,72,153,0.5)]">
               for Sound
             </span>
           </h1>
         </div>
 
         {/* Subheadline */}
-        <p className="text-lg sm:text-xl text-white/60 max-w-2xl mb-10 leading-relaxed">
+        <p className="text-base sm:text-lg lg:text-xl text-white/60 max-w-2xl mb-8 sm:mb-10 leading-relaxed px-2">
           Zenphony Audio builds intelligent tools that help humans hear more clearly, decide faster, and trust their sound.
         </p>
 
         {/* CTA Buttons */}
-        <div className="flex flex-wrap justify-center gap-4">
+        <div className="flex flex-col sm:flex-row flex-wrap justify-center gap-3 sm:gap-4 px-4">
           <a
             href="/products/listen-buddy"
-            className="inline-flex items-center gap-2 px-8 py-4 bg-violet-600 hover:bg-violet-500 text-white font-semibold rounded-full shadow-lg shadow-violet-600/25 hover:shadow-violet-500/30 transition-all duration-200"
+            className="inline-flex items-center justify-center gap-2 px-6 sm:px-8 py-3 sm:py-4 bg-violet-600 hover:bg-violet-500 text-white text-sm sm:text-base font-semibold rounded-full shadow-lg shadow-violet-600/25 hover:shadow-violet-500/30 transition-all duration-200"
           >
-            <Play className="w-5 h-5" />
+            <Play className="w-4 h-4 sm:w-5 sm:h-5" />
             Explore Listen Buddy
           </a>
           <a
             href="/about"
-            className="inline-flex items-center gap-2 px-8 py-4 border border-white/20 hover:bg-white/5 text-white font-semibold rounded-full transition-all duration-200"
+            className="inline-flex items-center justify-center gap-2 px-6 sm:px-8 py-3 sm:py-4 border border-white/20 hover:bg-white/5 text-white text-sm sm:text-base font-semibold rounded-full transition-all duration-200"
           >
             Who We Are
           </a>
