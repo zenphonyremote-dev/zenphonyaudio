@@ -107,8 +107,11 @@ export async function POST(request: NextRequest) {
         job_title,
         subscription_plan,
         subscription_status,
+        subscription_period,
         listening_minutes_used,
         listening_minutes_limit,
+        topup_minutes,
+        api_key,
         created_at
       `)
       .eq("id", authToken.user_id)
@@ -130,12 +133,10 @@ export async function POST(request: NextRequest) {
       0,
       (profile.listening_minutes_limit || 0) - (profile.listening_minutes_used || 0)
     )
-    // topup_minutes column may not exist, default to 0
-    const topupMinutes = (profile as any).topup_minutes || 0
+    const topupMinutes = profile.topup_minutes || 0
     const totalAvailable = subscriptionRemaining + topupMinutes
 
     // Return user data for the plugin
-    // Note: Some columns (subscription_period, topup_minutes, api_key) may not exist in all schemas
     return NextResponse.json({
       success: true,
       user: {
@@ -150,7 +151,7 @@ export async function POST(request: NextRequest) {
       subscription: {
         plan: profile.subscription_plan,
         status: profile.subscription_status,
-        period: (profile as any).subscription_period || 'monthly',
+        period: profile.subscription_period || 'monthly',
       },
       minutes: {
         subscription_limit: profile.listening_minutes_limit || 0,
@@ -159,7 +160,7 @@ export async function POST(request: NextRequest) {
         topup_balance: topupMinutes,
         total_available: totalAvailable,
       },
-      api_key: (profile as any).api_key || null,
+      api_key: profile.api_key || null,
     }, { headers: corsHeaders })
   } catch (error) {
     console.error("Exchange token error:", error)
