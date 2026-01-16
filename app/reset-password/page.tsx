@@ -47,8 +47,18 @@ export default function ResetPasswordPage() {
       }
     )
 
-    return () => subscription.unsubscribe()
-  }, [])
+    // Timeout to prevent infinite loading - if no session after 5 seconds, show invalid
+    const timeout = setTimeout(() => {
+      if (isValidSession === null) {
+        setIsValidSession(false)
+      }
+    }, 5000)
+
+    return () => {
+      subscription.unsubscribe()
+      clearTimeout(timeout)
+    }
+  }, [isValidSession])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

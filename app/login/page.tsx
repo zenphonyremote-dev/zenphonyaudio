@@ -1,6 +1,7 @@
 "use client"
 
 import type React from "react"
+import { Suspense } from "react"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft, Activity, Mail, Lock, Eye, EyeOff, Loader2 } from "lucide-react"
 import Link from "next/link"
@@ -11,8 +12,8 @@ import { Aurora } from "@/components/aurora"
 import { useAuth } from "@/contexts/auth-context"
 import Image from "next/image"
 
-export default function LoginPage() {
-  const { signIn, user, loading: authLoading, signOut } = useAuth()
+function LoginForm() {
+  const { signIn, signInWithGoogle, user, loading: authLoading, signOut } = useAuth()
   const router = useRouter()
   const searchParams = useSearchParams()
   const redirectTo = searchParams.get("redirect") || "/profile"
@@ -85,18 +86,18 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     // Validate inputs before submitting
     if (!email || !password) {
       setError("Please enter both email and password")
       return
     }
-    
+
     setError(null)
     setLoading(true)
 
     console.log('[Login] Attempting sign in with:', { email })
-    
+
     try {
       const { error } = await signIn(email, password)
       console.log('[Login] Sign in result:', { error })
@@ -252,6 +253,16 @@ export default function LoginPage() {
             <Button
               variant="outline"
               className="border-border/30 text-foreground hover:bg-violet/10 hover:border-violet/30 bg-transparent rounded-full w-full"
+              onClick={async () => {
+                setLoading(true)
+                setError(null)
+                const { error } = await signInWithGoogle()
+                if (error) {
+                  setError(error.message || "Failed to sign in with Google")
+                  setLoading(false)
+                }
+              }}
+              disabled={loading}
             >
               <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
                 <path
@@ -285,5 +296,21 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+function LoginLoading() {
+  return (
+    <div className="min-h-screen bg-background flex items-center justify-center">
+      <Loader2 className="w-8 h-8 animate-spin text-violet-500" />
+    </div>
+  )
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<LoginLoading />}>
+      <LoginForm />
+    </Suspense>
   )
 }

@@ -24,8 +24,8 @@ export function Navigation() {
     return () => window.removeEventListener("scroll", handleScroll)
   }, [])
 
-  // Hide navigation on login, signup, and forgot-password pages
-  const hiddenRoutes = ['/login', '/signup', '/forgot-password']
+  // Hide navigation on auth pages
+  const hiddenRoutes = ['/login', '/signup', '/signup/success', '/forgot-password', '/reset-password']
   if (hiddenRoutes.includes(pathname)) {
     return null
   }
@@ -233,7 +233,7 @@ export function Navigation() {
                         Log in
                       </Button>
                     </Link>
-                    <Link href="/get-started" onClick={() => setMobileMenuOpen(false)}>
+                    <Link href="/signup" onClick={() => setMobileMenuOpen(false)}>
                       <Button
                         className="w-full rounded-xl bg-violet-600 hover:bg-violet-500 text-white font-semibold py-3 transition-all duration-200"
                       >

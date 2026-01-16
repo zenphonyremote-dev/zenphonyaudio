@@ -313,6 +313,29 @@ export default function SignupPage() {
             <Button
               variant="outline"
               className="border-border/30 text-foreground hover:bg-fuchsia/10 hover:border-fuchsia/30 bg-transparent rounded-full w-full"
+              onClick={async () => {
+                setLoading(true)
+                setError("")
+                try {
+                  const supabase = createClient()
+                  const redirectUrl = `${process.env.NEXT_PUBLIC_BASE_URL || window.location.origin}/auth/callback`
+                  const { error } = await supabase.auth.signInWithOAuth({
+                    provider: 'google',
+                    options: {
+                      redirectTo: redirectUrl,
+                    },
+                  })
+                  if (error) {
+                    setError(error.message || "Failed to sign up with Google")
+                    setLoading(false)
+                  }
+                } catch (err) {
+                  console.error('Google sign-up error:', err)
+                  setError("Failed to sign up with Google")
+                  setLoading(false)
+                }
+              }}
+              disabled={loading}
             >
               <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
                 <path
