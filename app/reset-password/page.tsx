@@ -4,7 +4,7 @@ import type React from "react"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft, Lock, Eye, EyeOff, Loader2, CheckCircle2 } from "lucide-react"
 import Link from "next/link"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { ZenphonyLogo } from "@/components/zenphony-logo"
 import { Aurora } from "@/components/aurora"
@@ -22,54 +22,42 @@ function ResetPasswordForm() {
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
   const [isValidSession, setIsValidSession] = useState<boolean | null>(null)
+  const sessionResolvedRef = useRef(false)
+
+  // Wrapper that tracks when session validity is determined
+  const markSessionValid = () => {
+    sessionResolvedRef.current = true
+    setIsValidSession(true)
+  }
+  const markSessionInvalid = () => {
+    sessionResolvedRef.current = true
+    setIsValidSession(false)
+  }
 
   useEffect(() => {
+    const supabase = createClient()
+
     const verifyAndSetupSession = async () => {
-      // Debug: Check if environment variables are available
-      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-      const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-
-      console.log('[ResetPassword] Environment check:', {
-        hasUrl: !!supabaseUrl,
-        urlValue: supabaseUrl,
-        hasKey: !!supabaseKey,
-        keyLength: supabaseKey?.length
-      })
-
-      if (!supabaseUrl || !supabaseKey) {
-        console.error('[ResetPassword] Missing Supabase environment variables!')
-        setError('Configuration error: Missing Supabase credentials')
-        setIsValidSession(false)
-        return
-      }
-
-      const supabase = createClient()
-      console.log('[ResetPassword] Supabase client created')
-
-      // Check for token parameters in URL (Supabase adds these)
       const code = searchParams.get('code')
       const tokenHash = searchParams.get('token_hash')
       const type = searchParams.get('type')
       const errorParam = searchParams.get('error')
       const errorDescription = searchParams.get('error_description')
 
-      console.log('[ResetPassword] Full URL:', window.location.href)
       console.log('[ResetPassword] URL params:', { code: !!code, tokenHash: !!tokenHash, type, error: errorParam })
 
       // Handle error from Supabase
       if (errorParam) {
         console.error('[ResetPassword] Error from URL:', errorDescription || errorParam)
         setError(errorDescription || errorParam)
-        setIsValidSession(false)
+        markSessionInvalid()
         return
       }
 
-      // FIRST: Check if we already have a valid session (code may have already been exchanged)
-      console.log('[ResetPassword] Checking for existing session first...')
+      // Check if we already have a valid session (code may have already been exchanged)
       const { data: { session: existingSession } } = await supabase.auth.getSession()
 
       if (existingSession) {
-        // Check if this session is from a recovery flow
         const amr = existingSession.user?.amr || []
         const isRecoverySession = amr.some((a: { method: string }) => a.method === 'recovery' || a.method === 'otp')
         const recentRecovery = existingSession.user?.recovery_sent_at &&
@@ -79,71 +67,64 @@ function ResetPasswordForm() {
           email: existingSession.user?.email,
           isRecoverySession,
           recentRecovery,
-          amr
         })
 
         if (isRecoverySession || recentRecovery) {
-          console.log('[ResetPassword] Valid recovery session exists, skipping code exchange')
-          setIsValidSession(true)
+          console.log('[ResetPassword] Valid recovery session exists')
+          markSessionValid()
           return
         }
       }
 
-      // If we have a code (PKCE flow), exchange it for a session
+      // If we have a code (PKCE flow), exchange it with a timeout
       if (code) {
         console.log('[ResetPassword] Exchanging code for session...')
-        console.log('[ResetPassword] Code value:', code.substring(0, 20) + '...')
-        console.log('[ResetPassword] Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL)
-        console.log('[ResetPassword] About to call exchangeCodeForSession...')
-
-        // Check for PKCE verifier cookie - this is required for the exchange
-        const cookies = document.cookie
-        const hasPkceVerifier = cookies.includes('sb-') && cookies.includes('-auth-token-code-verifier')
-        console.log('[ResetPassword] Cookies:', cookies)
-        console.log('[ResetPassword] Has PKCE verifier cookie:', hasPkceVerifier)
-
-        if (!hasPkceVerifier) {
-          console.warn('[ResetPassword] WARNING: No PKCE verifier cookie found!')
-          console.warn('[ResetPassword] This usually happens when the password reset was requested from a different domain (localhost vs ngrok)')
-          console.warn('[ResetPassword] The user should request the password reset from the same domain they will use to reset')
-        }
 
         try {
-          // Log before the call
-          console.log('[ResetPassword] Starting exchange NOW - check Network tab')
+          // Race the exchange against a 10-second timeout
+          // exchangeCodeForSession can hang indefinitely when PKCE verifier is missing
+          const exchangePromise = supabase.auth.exchangeCodeForSession(code)
+          const timeoutPromise = new Promise<never>((_, reject) =>
+            setTimeout(() => reject(new Error('timeout')), 10000)
+          )
 
-          // No timeout - let it complete naturally (ngrok can be very slow)
-          const result = await supabase.auth.exchangeCodeForSession(code)
+          const result = await Promise.race([exchangePromise, timeoutPromise])
           const { data, error: exchangeError } = result
 
-          console.log('[ResetPassword] Exchange completed:', { hasData: !!data, hasError: !!exchangeError })
-
           if (exchangeError) {
-            console.error('[ResetPassword] Code exchange error:', {
-              message: exchangeError.message,
-              status: exchangeError.status,
-              code: exchangeError.code,
-              details: exchangeError
-            })
-            setError(exchangeError.message)
-            setIsValidSession(false)
+            console.error('[ResetPassword] Code exchange error:', exchangeError.message)
+            // Don't mark invalid yet — onAuthStateChange may have already fired SIGNED_IN
+            if (!sessionResolvedRef.current) {
+              setError(exchangeError.message)
+              markSessionInvalid()
+            }
             return
           }
 
           console.log('[ResetPassword] Code exchanged successfully, user:', data.user?.email)
-          setIsValidSession(true)
+          markSessionValid()
           return
         } catch (err: any) {
-          console.error('[ResetPassword] Code exchange exception:', err?.message || err)
-          setError(err?.message || 'Failed to verify reset code')
-          setIsValidSession(false)
+          console.warn('[ResetPassword] Code exchange timed out or failed:', err?.message)
+          // If onAuthStateChange already set the session valid, don't override
+          if (sessionResolvedRef.current) {
+            console.log('[ResetPassword] Session already resolved via auth state change, ignoring exchange failure')
+            return
+          }
+          // Wait a beat — onAuthStateChange may fire right after
+          await new Promise(r => setTimeout(r, 1000))
+          if (sessionResolvedRef.current) {
+            console.log('[ResetPassword] Session resolved via auth state change after wait')
+            return
+          }
+          setError('Failed to verify reset code. Please request a new link.')
+          markSessionInvalid()
           return
         }
       }
 
       // If we have a token_hash (magic link flow), verify it
       if (tokenHash && type) {
-        console.log('[ResetPassword] Verifying token_hash...')
         const { error: verifyError } = await supabase.auth.verifyOtp({
           type: type as any,
           token_hash: tokenHash,
@@ -152,46 +133,41 @@ function ResetPasswordForm() {
         if (verifyError) {
           console.error('[ResetPassword] Token verification error:', verifyError)
           setError(verifyError.message)
-          setIsValidSession(false)
+          markSessionInvalid()
           return
         }
 
-        console.log('[ResetPassword] Token verified successfully')
-        setIsValidSession(true)
+        markSessionValid()
         return
       }
 
-      // Check for existing session (user might have come from auth callback)
-      console.log('[ResetPassword] Checking for existing session...')
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-      console.log('[ResetPassword] Session check result:', { hasSession: !!session, error: sessionError?.message })
-
+      // Final fallback: check session one more time
+      const { data: { session } } = await supabase.auth.getSession()
       if (session) {
-        console.log('[ResetPassword] Existing session found for:', session.user?.email)
-        setIsValidSession(true)
+        markSessionValid()
         return
       }
 
-      // No valid auth method found
       console.log('[ResetPassword] No valid auth method found')
-      setIsValidSession(false)
+      markSessionInvalid()
     }
 
-    // Set a timeout to prevent infinite loading (5 minutes - ngrok can be very slow)
+    // Safety-net timeout — only fires if nothing else resolved the session
     const timeout = setTimeout(() => {
-      console.log('[ResetPassword] Timeout reached after 5 minutes, setting invalid session')
-      setIsValidSession(false)
-    }, 300000)
+      if (!sessionResolvedRef.current) {
+        console.log('[ResetPassword] Safety timeout reached, marking invalid')
+        markSessionInvalid()
+      }
+    }, 30000)
 
     verifyAndSetupSession()
 
-    // Listen for auth state changes (only for session validation, not password updates)
-    const supabase = createClient()
+    // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (event, session) => {
         console.log('[ResetPassword] Auth state change:', event)
         if (event === 'PASSWORD_RECOVERY' || event === 'SIGNED_IN') {
-          setIsValidSession(true)
+          markSessionValid()
         }
       }
     )
