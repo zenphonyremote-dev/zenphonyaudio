@@ -198,34 +198,51 @@ function ResetPasswordForm() {
       const supabase = createClient()
 
       // Refresh the session to ensure we have a valid access token
-      const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession()
+      console.log('[ResetPassword] Refreshing session...')
+      const refreshResult = await Promise.race([
+        supabase.auth.refreshSession(),
+        new Promise<{ data: { session: null }; error: { message: string } }>((resolve) =>
+          setTimeout(() => resolve({ data: { session: null }, error: { message: 'Session refresh timed out' } }), 8000)
+        ),
+      ])
+
+      const { data: refreshData, error: refreshError } = refreshResult
       console.log('[ResetPassword] Session refresh:', {
         hasSession: !!refreshData.session,
-        email: refreshData.session?.user?.email,
-        error: refreshError?.message
+        error: refreshError?.message,
       })
 
       if (refreshError || !refreshData.session) {
-        setError("Your session has expired. Please request a new password reset link.")
-        setLoading(false)
-        return
+        // Fallback: try getSession in case refresh hangs but session exists
+        const { data: { session: fallbackSession } } = await supabase.auth.getSession()
+        if (!fallbackSession) {
+          setError("Your session has expired. Please request a new password reset link.")
+          setLoading(false)
+          return
+        }
+        console.log('[ResetPassword] Using fallback session')
       }
 
       console.log('[ResetPassword] Updating password...')
 
-      const { data, error: updateError } = await supabase.auth.updateUser({ password })
+      // updateUser can also hang — race it against a timeout
+      const updateResult = await Promise.race([
+        supabase.auth.updateUser({ password }),
+        new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error('timeout')), 10000)
+        ),
+      ])
 
       console.log('[ResetPassword] Password update result:', {
-        hasData: !!data,
-        error: updateError?.message
+        hasData: !!updateResult.data,
+        error: updateResult.error?.message,
       })
 
-      if (updateError) {
-        setError(updateError.message)
+      if (updateResult.error) {
+        setError(updateResult.error.message)
         setLoading(false)
       } else {
         console.log('[ResetPassword] Password updated successfully!')
-        // Sign out so user logs in fresh with new password
         await supabase.auth.signOut().catch(() => {})
         setSuccess(true)
         setLoading(false)
@@ -234,9 +251,42 @@ function ResetPasswordForm() {
         }, 3000)
       }
     } catch (err: any) {
-      console.error('Error resetting password:', err)
-      setError(err?.message || "An unexpected error occurred. Please try again.")
-      setLoading(false)
+      console.error('[ResetPassword] Error:', err?.message)
+
+      if (err?.message === 'timeout') {
+        // updateUser hung — try to verify if it actually worked by signing in
+        console.log('[ResetPassword] updateUser timed out, verifying via sign-in...')
+        try {
+          const supabase = createClient()
+          const { data: { session: currentSession } } = await supabase.auth.getSession()
+          const email = currentSession?.user?.email
+
+          if (email) {
+            await supabase.auth.signOut().catch(() => {})
+            const { error: signInError } = await supabase.auth.signInWithPassword({
+              email,
+              password,
+            })
+
+            if (!signInError) {
+              console.log('[ResetPassword] Verification sign-in succeeded — password was updated')
+              await supabase.auth.signOut().catch(() => {})
+              setSuccess(true)
+              setLoading(false)
+              setTimeout(() => router.push("/login"), 3000)
+              return
+            }
+          }
+        } catch {
+          // Verification failed, fall through to error
+        }
+
+        setError("Password update timed out. Please try again or request a new reset link.")
+        setLoading(false)
+      } else {
+        setError(err?.message || "An unexpected error occurred. Please try again.")
+        setLoading(false)
+      }
     }
   }
 
