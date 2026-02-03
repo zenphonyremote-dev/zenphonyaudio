@@ -23,6 +23,7 @@ function ResetPasswordForm() {
   const [success, setSuccess] = useState(false)
   const [isValidSession, setIsValidSession] = useState<boolean | null>(null)
   const sessionResolvedRef = useRef(false)
+  const supabaseRef = useRef(createClient())
 
   // Wrapper that tracks when session validity is determined
   const markSessionValid = () => {
@@ -35,7 +36,7 @@ function ResetPasswordForm() {
   }
 
   useEffect(() => {
-    const supabase = createClient()
+    const supabase = supabaseRef.current
 
     const verifyAndSetupSession = async () => {
       const code = searchParams.get('code')
@@ -195,7 +196,7 @@ function ResetPasswordForm() {
     setLoading(true)
 
     try {
-      const supabase = createClient()
+      const supabase = supabaseRef.current
 
       // Refresh the session to ensure we have a valid access token
       console.log('[ResetPassword] Refreshing session...')
@@ -257,7 +258,7 @@ function ResetPasswordForm() {
         // updateUser hung — try to verify if it actually worked by signing in
         console.log('[ResetPassword] updateUser timed out, verifying via sign-in...')
         try {
-          const supabase = createClient()
+          const supabase = supabaseRef.current
           const { data: { session: currentSession } } = await supabase.auth.getSession()
           const email = currentSession?.user?.email
 
