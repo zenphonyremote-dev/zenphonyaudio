@@ -41,6 +41,14 @@ export default function ProfilePage() {
   const [company, setCompany] = useState("")
   const [jobTitle, setJobTitle] = useState("")
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
+  const [loadingTimedOut, setLoadingTimedOut] = useState(false)
+
+  // If auth loading takes too long, show retry instead of infinite spinner
+  useEffect(() => {
+    if (!authLoading && user) return
+    const timer = setTimeout(() => setLoadingTimedOut(true), 8000)
+    return () => clearTimeout(timer)
+  }, [authLoading, user])
 
 
 
@@ -131,7 +139,19 @@ export default function ProfilePage() {
   if (authLoading || !user) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-violet-500" />
+        {loadingTimedOut ? (
+          <div className="text-center space-y-4">
+            <p className="text-white/50 text-sm">Taking longer than expected</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="px-6 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-sm font-semibold transition-colors"
+            >
+              Refresh Page
+            </button>
+          </div>
+        ) : (
+          <Loader2 className="w-8 h-8 animate-spin text-violet-500" />
+        )}
       </div>
     )
   }
