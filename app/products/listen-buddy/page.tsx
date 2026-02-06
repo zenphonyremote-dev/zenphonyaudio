@@ -24,12 +24,42 @@ const galleryImages = [
 ]
 
 const listeningModes = [
-  { icon: Music, label: "Mixing", desc: "Balance, clarity, and translation" },
-  { icon: AudioWaveform, label: "Production", desc: "Instrumentation and Arrangement" },
-  { icon: Crown, label: "Mastering", desc: "Final polish and consistency" },
-  { icon: Mic, label: "Podcast", desc: "Clarity and presence" },
-  { icon: Film, label: "Film", desc: "Dialogue and cinematic balance" },
-  { icon: Megaphone, label: "Commercial", desc: "Attention-focused sound" },
+  {
+    icon: Music,
+    label: "Mixing",
+    desc: "Balance, clarity, and translation",
+    detail: "Optimized for tracking down frequency conflicts, stereo imbalances, and dynamic issues. Listen Buddy analyzes your mix through the lens of how it will translate across different playback systems—from studio monitors to earbuds."
+  },
+  {
+    icon: AudioWaveform,
+    label: "Production",
+    desc: "Instrumentation and Arrangement",
+    detail: "Focuses on the musical elements—arrangement density, instrument layering, and sonic texture. Get feedback on whether your production feels full or cluttered, and suggestions for creating more space or impact."
+  },
+  {
+    icon: Crown,
+    label: "Mastering",
+    desc: "Final polish and consistency",
+    detail: "Evaluates your track against release-ready standards. Analyzes loudness, dynamic range, tonal balance, and stereo width to ensure your master competes with commercial releases while maintaining musicality."
+  },
+  {
+    icon: Mic,
+    label: "Podcast",
+    desc: "Clarity and presence",
+    detail: "Tuned for spoken word content. Prioritizes voice intelligibility, background noise detection, and consistent levels. Perfect for podcasters, voiceover artists, and anyone working with dialogue-first content."
+  },
+  {
+    icon: Film,
+    label: "Film",
+    desc: "Dialogue and cinematic balance",
+    detail: "Designed for film and video post-production. Balances dialogue clarity against music and sound effects, checks for broadcast loudness compliance, and ensures your audio works across theatrical and streaming formats."
+  },
+  {
+    icon: Megaphone,
+    label: "Commercial",
+    desc: "Attention-focused sound",
+    detail: "Built for ads, jingles, and promotional content. Analyzes punch, brightness, and overall impact—because commercial audio needs to cut through and grab attention in the first few seconds."
+  },
 ]
 
 const exampleInsights = [
@@ -434,12 +464,23 @@ export default function ListenBuddyPage() {
                 <p className="text-base sm:text-lg lg:text-xl text-white/70 mb-4 sm:mb-6 font-semibold">Listening Modes</p>
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-2 gap-3 sm:gap-4 lg:gap-6">
                   {listeningModes.map((mode, i) => (
-                    <div key={i} className="bg-gradient-to-br from-white/[0.04] to-white/[0.01] rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 lg:px-10 border border-white/10 hover:border-violet-500/30 transition-all duration-300">
+                    <div key={i} className="group relative bg-gradient-to-br from-white/[0.04] to-white/[0.01] rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 lg:px-10 border border-white/10 hover:border-violet-500/30 transition-all duration-300 cursor-pointer">
                       <div className="w-10 h-10 sm:w-12 sm:h-12 lg:w-16 lg:h-16 rounded-lg sm:rounded-xl bg-violet-600/20 flex items-center justify-center mb-3 sm:mb-4 lg:mb-5">
                         <mode.icon className="w-5 h-5 sm:w-6 sm:h-6 lg:w-8 lg:h-8 text-violet-400" />
                       </div>
                       <h4 className="text-base sm:text-lg lg:text-xl xl:text-2xl text-white font-semibold mb-1 sm:mb-2 lg:mb-3">{mode.label}</h4>
                       <p className="text-xs sm:text-sm lg:text-base xl:text-lg text-white/70 font-medium">{mode.desc}</p>
+
+                      {/* Hover tooltip */}
+                      <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-3 w-72 sm:w-80 p-4 rounded-xl bg-black/90 backdrop-blur-xl border border-violet-500/30 shadow-xl shadow-violet-500/20 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50 pointer-events-none">
+                        <div className="flex items-center gap-2 mb-2">
+                          <mode.icon className="w-4 h-4 text-violet-400" />
+                          <span className="text-sm font-semibold text-violet-400">{mode.label} Mode</span>
+                        </div>
+                        <p className="text-xs sm:text-sm text-white/80 leading-relaxed">{mode.detail}</p>
+                        {/* Tooltip arrow */}
+                        <div className="absolute left-1/2 -translate-x-1/2 -bottom-2 w-4 h-4 bg-black/90 border-r border-b border-violet-500/30 rotate-45" />
+                      </div>
                     </div>
                   ))}
                 </div>
