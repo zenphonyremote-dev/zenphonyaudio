@@ -656,3 +656,136 @@
     transform: rotate(15deg);
   }
 }
+
+/* === 3D Music Orb === */
+
+/* Entrance: scale up from nothing with depth + overshoot */
+@keyframes orb-pop-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.3) translateZ(-200px);
+    filter: blur(12px);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.15) translateZ(60px);
+    filter: blur(0px);
+  }
+  80% {
+    transform: scale(0.95) translateZ(-10px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateZ(0px);
+    filter: blur(0px);
+  }
+}
+
+/* Idle: gentle 3D bob with rotation breathing */
+@keyframes orb-float-3d {
+  0%, 100% {
+    transform: translateY(0px) rotateX(0deg) rotateY(0deg) scale(1);
+  }
+  25% {
+    transform: translateY(-8px) rotateX(3deg) rotateY(-2deg) scale(1.02);
+  }
+  50% {
+    transform: translateY(-14px) rotateX(-2deg) rotateY(3deg) scale(1.04);
+  }
+  75% {
+    transform: translateY(-6px) rotateX(2deg) rotateY(-1deg) scale(1.01);
+  }
+}
+
+/* Ground shadow breathes opposite to float */
+@keyframes orb-shadow-breathe {
+  0%, 100% {
+    transform: scaleX(1) scaleY(1);
+    opacity: 0.25;
+  }
+  25% {
+    transform: scaleX(0.92) scaleY(0.92);
+    opacity: 0.18;
+  }
+  50% {
+    transform: scaleX(0.85) scaleY(0.85);
+    opacity: 0.12;
+  }
+  75% {
+    transform: scaleX(0.95) scaleY(0.95);
+    opacity: 0.2;
+  }
+}
+
+/* Ripple ring expanding outward */
+@keyframes orb-ripple {
+  0% {
+    transform: scale(0.8);
+    opacity: 0.6;
+  }
+  100% {
+    transform: scale(2.2);
+    opacity: 0;
+  }
+}
+
+/* Outer ring slow spin */
+@keyframes orb-ring-spin {
+  from { transform: translateZ(-10px) rotate(0deg); }
+  to { transform: translateZ(-10px) rotate(360deg); }
+}
+
+/* Specular highlight drift */
+@keyframes orb-specular-drift {
+  0%, 100% {
+    transform: translateZ(20px) translate(-20%, -30%) rotate(0deg);
+  }
+  50% {
+    transform: translateZ(20px) translate(-15%, -35%) rotate(8deg);
+  }
+}
+
+/* Waveform bar bounce for orb */
+@keyframes orb-waveform-bar {
+  0%, 100% { transform: scaleY(0.4); }
+  50% { transform: scaleY(1); }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .animate-orb-pop-in {
+    animation: orb-pop-in 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  }
+  .animate-orb-float-3d {
+    animation: orb-float-3d 6s ease-in-out infinite;
+  }
+  .animate-orb-shadow {
+    animation: orb-shadow-breathe 6s ease-in-out infinite;
+  }
+  .animate-orb-ripple {
+    animation: orb-ripple 1.8s ease-out forwards;
+  }
+  .animate-orb-ring-spin {
+    animation: orb-ring-spin 20s linear infinite;
+  }
+  .animate-orb-specular {
+    animation: orb-specular-drift 8s ease-in-out infinite;
+  }
+}
+
+/* Reduced motion: static orb with gentle pulse */
+@media (prefers-reduced-motion: reduce) {
+  .animate-orb-pop-in {
+    animation: none;
+    opacity: 1;
+  }
+  .animate-orb-float-3d,
+  .animate-orb-shadow,
+  .animate-orb-ring-spin,
+  .animate-orb-specular {
+    animation: none;
+  }
+  .animate-orb-ripple {
+    animation: none;
+    display: none;
+  }
+}
