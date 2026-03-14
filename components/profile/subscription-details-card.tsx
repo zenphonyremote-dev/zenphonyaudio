@@ -47,6 +47,8 @@ interface SubscriptionDetailsCardProps {
   minutesLimit: number
   isUnlimited: boolean
   onPlanChange?: () => void
+  /** Bumped by auth context on every profile refresh — triggers re-fetch of Stripe data */
+  profileVersion?: number
 }
 
 export function SubscriptionDetailsCard({
@@ -56,6 +58,7 @@ export function SubscriptionDetailsCard({
   minutesLimit,
   isUnlimited,
   onPlanChange,
+  profileVersion = 0,
 }: SubscriptionDetailsCardProps) {
   const [subscription, setSubscription] = useState<SubscriptionData | null>(null)
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethodData | null>(null)
@@ -77,13 +80,17 @@ export function SubscriptionDetailsCard({
     .filter(Boolean) as { id: string; name: string; color: string; minutes: number; monthlyPrice: number }[]
 
   useEffect(() => {
-    if (!isPaid) return
+    if (!isPaid) {
+      setSubscription(null)
+      setPaymentMethod(null)
+      return
+    }
 
     async function fetchDetails() {
       setLoading(true)
       setError(null)
       try {
-        const res = await fetch("/api/subscription-details")
+        const res = await fetch("/api/subscription-details", { cache: "no-store" })
         if (!res.ok) throw new Error("Failed to fetch subscription details")
         const data = await res.json()
         setSubscription(data.subscription)
@@ -96,7 +103,7 @@ export function SubscriptionDetailsCard({
     }
 
     fetchDetails()
-  }, [isPaid])
+  }, [isPaid, currentPlan, profileVersion])
 
   const handleDowngrade = async (targetPlan: string) => {
     setDowngrading(true)
@@ -110,8 +117,7 @@ export function SubscriptionDetailsCard({
       const data = await res.json()
       if (data.success) {
         setShowDowngradeMenu(false)
-        onPlanChange?.()
-        window.location.reload()
+        await onPlanChange?.()
       } else {
         setError(data.error || "Failed to downgrade")
       }
@@ -130,8 +136,7 @@ export function SubscriptionDetailsCard({
       const data = await res.json()
       if (data.success) {
         setShowCancelConfirm(false)
-        onPlanChange?.()
-        window.location.reload()
+        await onPlanChange?.()
       } else {
         setError(data.error || "Failed to cancel")
       }

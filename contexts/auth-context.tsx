@@ -1,6 +1,6 @@
 "use client"
 
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
+import { createContext, useContext, useEffect, useState, useCallback, ReactNode } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { User, Session } from '@supabase/supabase-js'
 import { Profile } from '@/lib/supabase/database.types'
@@ -10,6 +10,8 @@ interface AuthContextType {
   profile: Profile | null
   session: Session | null
   loading: boolean
+  /** Incremented on every profile refresh — use as useEffect dependency to re-fetch related data */
+  profileVersion: number
   signUp: (email: string, password: string, name?: string) => Promise<{ error: Error | null }>
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>
   signInWithGoogle: () => Promise<{ error: Error | null }>
@@ -25,9 +27,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null)
   const [session, setSession] = useState<Session | null>(null)
   const [loading, setLoading] = useState(true)
+  const [profileVersion, setProfileVersion] = useState(0)
   const supabase = createClient()
 
-  const fetchProfile = async (userId: string) => {
+  const fetchProfile = useCallback(async (userId: string) => {
     const { data, error } = await supabase
       .from('profiles')
       .select('*')
@@ -39,7 +42,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return null
     }
     return data as Profile
-  }
+  }, [supabase])
 
   // Fetch profile whenever the user changes.
   // Decoupled from onAuthStateChange to avoid a deadlock:
@@ -50,6 +53,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (user) {
       fetchProfile(user.id).then((profileData) => {
         setProfile(profileData)
+        setProfileVersion((v) => v + 1)
       })
     } else {
       setProfile(null)
@@ -68,11 +72,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     })
 
     // Listen for auth changes — intentionally NOT async to avoid deadlock.
-    // The Supabase auth-js _notifyAllSubscribers() awaits all onAuthStateChange
-    // callbacks. If this callback were async and called fetchProfile() (which
-    // triggers getSession() internally), it would deadlock during initialization
-    // because getSession() awaits initializePromise, which can't resolve until
-    // _notifyAllSubscribers completes.
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         setSession(session)
@@ -89,93 +88,61 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signUp = async (email: string, password: string, name?: string) => {
     const redirectUrl = `${process.env.NEXT_PUBLIC_BASE_URL || window.location.origin}/auth/callback`
-    console.log('[AuthContext] signUp redirect URL:', redirectUrl)
-    
     const { error } = await supabase.auth.signUp({
       email,
       password,
       options: {
         emailRedirectTo: redirectUrl,
-        data: {
-          full_name: name,
-        },
+        data: { full_name: name },
       },
     })
     return { error }
   }
 
   const signIn = async (email: string, password: string) => {
-    console.log('[AuthContext] signIn called with:', { email })
-    console.log('[AuthContext] Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL)
-    
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     })
-    
-    console.log('[AuthContext] signIn result:', { error, hasSession: !!data?.session })
-    
-    if (error) {
-      console.error('[AuthContext] Sign in error details:', {
-        message: error.message,
-        status: error.status,
-        name: error.name
-      })
-    }
-    
     return { error }
   }
 
   const signInWithGoogle = async () => {
     try {
       const redirectUrl = `${process.env.NEXT_PUBLIC_BASE_URL || window.location.origin}/auth/callback`
-      console.log('[AuthContext] Google OAuth redirect URL:', redirectUrl)
-      
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
-        options: {
-          redirectTo: redirectUrl,
-        },
+        options: { redirectTo: redirectUrl },
       })
       return { error }
     } catch (err) {
-      console.error('Google sign-in error:', err)
       return { error: err as Error }
     }
   }
 
   const signOut = async () => {
-    console.log('[AuthContext] signOut called')
-
-    // Clear local auth state immediately so UI updates and callers can redirect
+    // Clear local auth state immediately
     setUser(null)
     setSession(null)
     setProfile(null)
 
-    // Fire signOut but don't block on it — the Supabase client can hang.
-    // Use a short timeout so we always resolve even if the SDK stalls.
     try {
       const timeout = new Promise<void>((resolve) => setTimeout(resolve, 2000))
       await Promise.race([
-        supabase.auth.signOut({ scope: 'local' }).then(() => {
-          console.log('[AuthContext] signOut successful')
-        }),
+        supabase.auth.signOut({ scope: 'local' }).then(() => {}),
         timeout,
       ])
     } catch (err) {
       console.error('[AuthContext] signOut exception:', err)
     }
 
-    // Forcefully clear all Supabase auth cookies regardless of whether signOut
-    // completed or timed out. Without this, the middleware will find valid cookies
-    // on the next request, refresh the session, and the user appears logged back in.
+    // Clear Supabase cookies
     document.cookie.split(';').forEach((cookie) => {
       const name = cookie.split('=')[0].trim()
       if (name.startsWith('sb-')) {
         document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`
       }
     })
-    console.log('[AuthContext] Supabase cookies cleared')
   }
 
   const updateProfile = async (updates: Partial<Profile>) => {
@@ -187,9 +154,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .eq('id', user.id)
 
     if (!error) {
-      // Refresh profile data
       const profileData = await fetchProfile(user.id)
       setProfile(profileData)
+      setProfileVersion((v) => v + 1)
     }
 
     return { error }
@@ -199,6 +166,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (user) {
       const profileData = await fetchProfile(user.id)
       setProfile(profileData)
+      setProfileVersion((v) => v + 1)
     }
   }
 
@@ -209,6 +177,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         profile,
         session,
         loading,
+        profileVersion,
         signUp,
         signIn,
         signInWithGoogle,

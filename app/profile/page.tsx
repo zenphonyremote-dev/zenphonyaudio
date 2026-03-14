@@ -26,7 +26,7 @@ const planDetails = {
 
 export default function ProfilePage() {
   const router = useRouter()
-  const { user, profile, loading: authLoading, signOut, updateProfile } = useAuth()
+  const { user, profile, loading: authLoading, signOut, updateProfile, refreshProfile, profileVersion } = useAuth()
   const supabase = createClient()
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -369,7 +369,10 @@ export default function ProfilePage() {
                   minutesUsed={minutesUsed}
                   minutesLimit={minutesLimit}
                   isUnlimited={isUnlimited}
-                  onPlanChange={() => window.location.reload()}
+                  profileVersion={profileVersion}
+                  onPlanChange={async () => {
+                    await refreshProfile()
+                  }}
                 />
 
                 {/* Open Plugin Link */}
