@@ -369,6 +369,7 @@ export default function ProfilePage() {
                   minutesUsed={minutesUsed}
                   minutesLimit={minutesLimit}
                   isUnlimited={isUnlimited}
+                  onPlanChange={() => window.location.reload()}
                 />
 
                 {/* Open Plugin Link */}
