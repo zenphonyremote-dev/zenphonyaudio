@@ -140,16 +140,20 @@ export async function POST(request: NextRequest) {
         ? Math.round(target.monthlyPrice * 10 * 100)
         : Math.round(target.monthlyPrice * 100)
 
+      // Create a new price (prices.create supports product_data; subscriptions.update does not)
+      const newPrice = await stripe.prices.create({
+        currency: 'usd',
+        unit_amount: unitAmount,
+        recurring: { interval: billingInterval },
+        product_data: { name: `Listen Buddy ${target.name}` },
+      })
+
+      // Update Stripe subscription with the new price
       await stripe.subscriptions.update(profile.stripe_subscription_id, {
         items: [
           {
             id: currentItem.id,
-            price_data: {
-              currency: 'usd',
-              product_data: { name: `Listen Buddy ${target.name}` },
-              unit_amount: unitAmount,
-              recurring: { interval: billingInterval },
-            },
+            price: newPrice.id,
           },
         ],
         proration_behavior: 'create_prorations',
