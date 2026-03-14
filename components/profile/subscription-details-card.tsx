@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Crown, CreditCard, Clock, Zap, Loader2, AlertCircle } from "lucide-react"
+import { Crown, CreditCard, Clock, Zap, Loader2, AlertCircle, XCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 
@@ -44,6 +44,7 @@ interface SubscriptionDetailsCardProps {
   minutesUsed: number
   minutesLimit: number
   isUnlimited: boolean
+  onPlanChange?: () => void
 }
 
 export function SubscriptionDetailsCard({
@@ -52,11 +53,14 @@ export function SubscriptionDetailsCard({
   minutesUsed,
   minutesLimit,
   isUnlimited,
+  onPlanChange,
 }: SubscriptionDetailsCardProps) {
   const [subscription, setSubscription] = useState<SubscriptionData | null>(null)
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethodData | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [cancelling, setCancelling] = useState(false)
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false)
 
   const plan = planDetails[currentPlan] || planDetails.free
   const isPaid = currentPlan !== "free"
@@ -237,6 +241,60 @@ export function SubscriptionDetailsCard({
                 Upgrade Plan
               </Button>
             </Link>
+          </div>
+        )}
+
+        {/* Cancel Subscription */}
+        {isPaid && !showCancelConfirm && (
+          <button
+            onClick={() => setShowCancelConfirm(true)}
+            className="mt-3 w-full text-center text-xs text-white/30 hover:text-red-400 transition-colors cursor-pointer"
+          >
+            Cancel subscription
+          </button>
+        )}
+
+        {isPaid && showCancelConfirm && (
+          <div className="mt-4 p-4 rounded-xl bg-red-500/10 border border-red-500/20">
+            <div className="flex items-center gap-2 mb-2">
+              <XCircle className="w-4 h-4 text-red-400" />
+              <span className="text-sm font-medium text-red-400">Cancel subscription?</span>
+            </div>
+            <p className="text-xs text-white/40 mb-3">
+              You'll be downgraded to the Free plan (5 min/month). This takes effect immediately.
+            </p>
+            <div className="flex gap-2">
+              <button
+                onClick={async () => {
+                  setCancelling(true)
+                  try {
+                    const res = await fetch("/api/subscription/cancel", { method: "POST" })
+                    const data = await res.json()
+                    if (data.success) {
+                      setShowCancelConfirm(false)
+                      onPlanChange?.()
+                      window.location.reload()
+                    } else {
+                      setError(data.error || "Failed to cancel")
+                    }
+                  } catch {
+                    setError("Failed to cancel subscription")
+                  } finally {
+                    setCancelling(false)
+                  }
+                }}
+                disabled={cancelling}
+                className="flex-1 px-3 py-2 rounded-lg bg-red-500/20 text-red-400 text-xs font-semibold hover:bg-red-500/30 transition-colors disabled:opacity-50"
+              >
+                {cancelling ? "Cancelling..." : "Yes, cancel"}
+              </button>
+              <button
+                onClick={() => setShowCancelConfirm(false)}
+                className="flex-1 px-3 py-2 rounded-lg bg-white/5 text-white/50 text-xs font-semibold hover:bg-white/10 transition-colors"
+              >
+                Keep plan
+              </button>
+            </div>
           </div>
         )}
       </div>
