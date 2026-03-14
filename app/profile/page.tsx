@@ -59,6 +59,22 @@ export default function ProfilePage() {
     }
   }, [user, authLoading, router])
 
+  // Always refresh profile from Supabase when this page mounts or becomes visible
+  // This ensures we show fresh data after checkout, plan changes, etc.
+  useEffect(() => {
+    if (user && !authLoading) {
+      refreshProfile()
+    }
+
+    const handleVisibility = () => {
+      if (document.visibilityState === "visible" && user) {
+        refreshProfile()
+      }
+    }
+    document.addEventListener("visibilitychange", handleVisibility)
+    return () => document.removeEventListener("visibilitychange", handleVisibility)
+  }, [user, authLoading])
+
   // Populate form with profile data
   useEffect(() => {
     if (profile) {

@@ -111,7 +111,12 @@ export async function POST(request: NextRequest) {
           subscription_status: 'active',
           subscription_period: billingPeriod,
           listening_minutes_limit: minutesMap[planId] || 5,
-          listening_minutes_used: 0, // Reset usage on new subscription
+          listening_minutes_used: 0,
+          monthly_minutes: minutesMap[planId] || 5,
+          stripe_customer_id: session.customer as string || undefined,
+          stripe_subscription_id: session.subscription as string || undefined,
+          subscription_started_at: new Date().toISOString(),
+          chat_tokens_limit: -1, // Paid plans get unlimited chat
         })
         .eq('id', user.id)
 

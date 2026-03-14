@@ -38,8 +38,14 @@ function SuccessContent() {
         .then(async (data) => {
           if (data.success) {
             setVerifyStatus("success")
-            // Refresh the auth context profile so navigating to /profile shows updated plan
+            // Refresh profile and poll until the plan actually updates in Supabase
+            // (webhook may take a few seconds to fire after checkout)
             await refreshProfile()
+            // Poll up to 5 times (1s apart) to catch webhook delay
+            for (let i = 0; i < 5; i++) {
+              await new Promise((r) => setTimeout(r, 1500))
+              await refreshProfile()
+            }
             if (data.type === "subscription") {
               setVerifyMessage(`Successfully upgraded to ${data.plan} plan!`)
             } else {
