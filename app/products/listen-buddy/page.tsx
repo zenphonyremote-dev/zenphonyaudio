@@ -109,7 +109,7 @@ const plans = [
     id: "max",
     name: "Max",
     price: 69.99,
-    yearlyPrice: 830,
+    yearlyPrice: 780,
     color: "amber",
     minutes: 350,
     pricePerMin: 0.200,

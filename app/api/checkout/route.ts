@@ -17,7 +17,7 @@ const plans: Record<string, {
   free: { name: 'Free', monthlyPrice: 0, yearlyPrice: 0, minutes: 5 },
   basic: { name: 'Basic', monthlyPrice: 7.99, yearlyPrice: 85, minutes: 30 },
   pro: { name: 'Pro', monthlyPrice: 29.99, yearlyPrice: 320, minutes: 120 },
-  max: { name: 'Max', monthlyPrice: 69.99, yearlyPrice: 830, minutes: 350 },
+  max: { name: 'Max', monthlyPrice: 69.99, yearlyPrice: 780, minutes: 350 },
 }
 
 // Top-up pricing configuration
