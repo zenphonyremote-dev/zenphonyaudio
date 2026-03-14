@@ -37,9 +37,9 @@ function getSupabaseAdmin() {
 }
 
 const planConfig: Record<string, { name: string; monthlyPrice: number; minutes: number }> = {
-  basic: { name: 'Basic', monthlyPrice: 7.99, minutes: 30 },
-  pro: { name: 'Pro', monthlyPrice: 29.99, minutes: 120 },
-  max: { name: 'Max', monthlyPrice: 69.99, minutes: 350 },
+  basic: { name: 'Basic', monthlyPrice: 7.99, minutes: 60 },
+  pro: { name: 'Pro', monthlyPrice: 29.99, minutes: 240 },
+  max: { name: 'Max', monthlyPrice: 69.99, minutes: 700 },
 }
 
 const planOrder = ['free', 'basic', 'pro', 'max']
@@ -95,9 +95,9 @@ export async function POST(request: NextRequest) {
         .update({
           subscription_plan: 'free',
           subscription_status: 'cancelled',
-          listening_minutes_limit: 5,
+          listening_minutes_limit: 10,
           listening_minutes_used: 0,
-          monthly_minutes: 5,
+          monthly_minutes: 10,
           stripe_subscription_id: null,
           chat_tokens_limit: 50000,
         })

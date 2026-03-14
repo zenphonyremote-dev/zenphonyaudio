@@ -5,11 +5,11 @@ import { Crown, CreditCard, Clock, Zap, Loader2, AlertCircle, XCircle, ChevronDo
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 
-const planDetails: Record<string, { name: string; color: string; minutes: number; monthlyPrice: number }> = {
-  free: { name: "Free", color: "cyan", minutes: 5, monthlyPrice: 0 },
-  basic: { name: "Basic", color: "emerald", minutes: 30, monthlyPrice: 7.99 },
-  pro: { name: "Pro", color: "violet", minutes: 120, monthlyPrice: 29.99 },
-  max: { name: "Max", color: "amber", minutes: 350, monthlyPrice: 69.99 },
+const planDetails: Record<string, { name: string; color: string; minutes: number; cloudMinutes: number; monthlyPrice: number }> = {
+  free: { name: "Free", color: "cyan", minutes: 10, cloudMinutes: 5, monthlyPrice: 0 },
+  basic: { name: "Basic", color: "emerald", minutes: 60, cloudMinutes: 30, monthlyPrice: 7.99 },
+  pro: { name: "Pro", color: "violet", minutes: 240, cloudMinutes: 120, monthlyPrice: 29.99 },
+  max: { name: "Max", color: "amber", minutes: 700, cloudMinutes: 350, monthlyPrice: 69.99 },
 }
 
 const planOrder = ["free", "basic", "pro", "max"]
@@ -77,7 +77,7 @@ export function SubscriptionDetailsCard({
   const downgradeOptions = planOrder
     .filter((p, i) => i > 0 && i < currentIndex)
     .map((p) => planDetails[p] && { id: p, ...planDetails[p] })
-    .filter(Boolean) as { id: string; name: string; color: string; minutes: number; monthlyPrice: number }[]
+    .filter(Boolean) as { id: string; name: string; color: string; minutes: number; cloudMinutes: number; monthlyPrice: number }[]
 
   useEffect(() => {
     if (!isPaid) {
@@ -277,17 +277,19 @@ export function SubscriptionDetailsCard({
           <>
             <div className="flex items-baseline gap-1 mb-2">
               <span className="text-2xl font-black text-white">{minutesUsed}</span>
-              <span className="text-white/40 text-sm">/ {minutesLimit} min</span>
+              <span className="text-white/40 text-sm">/ {minutesLimit} min used</span>
             </div>
-            <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden mb-1">
+            <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden mb-1 relative">
               <div
                 className="h-full bg-gradient-to-r from-violet-500 to-fuchsia-500 rounded-full transition-all"
                 style={{ width: `${Math.min((minutesUsed / minutesLimit) * 100, 100)}%` }}
               />
+              {/* Cloud cutoff marker at 50% */}
+              <div className="absolute top-[-2px] bottom-[-2px] w-[2px] bg-blue-400/80 rounded-sm" style={{ left: '50%' }} />
             </div>
             <div className="flex items-center justify-between">
               <p className="text-white/40 text-xs">
-                {Math.max(minutesLimit - minutesUsed, 0)} minutes remaining
+                Cloud: {Math.max(Math.floor(minutesLimit / 2) - minutesUsed, 0)} min · Local: {Math.max(minutesLimit - minutesUsed, 0)} min
               </p>
               <p className="text-white/30 text-xs">
                 {Math.round((minutesUsed / minutesLimit) * 100)}%
@@ -332,7 +334,7 @@ export function SubscriptionDetailsCard({
                     <div className="flex items-center gap-2">
                       <div className={`w-2 h-2 rounded-full bg-${opt.color}-400`} />
                       <span className="text-white text-sm font-medium">{opt.name}</span>
-                      <span className="text-white/30 text-xs">{opt.minutes} min/mo</span>
+                      <span className="text-white/30 text-xs">{opt.minutes} min/mo ({opt.cloudMinutes} cloud)</span>
                     </div>
                     <span className="text-white/50 text-xs font-mono">${opt.monthlyPrice}/mo</span>
                   </button>
@@ -367,7 +369,7 @@ export function SubscriptionDetailsCard({
               <span className="text-sm font-medium text-red-400">Cancel subscription?</span>
             </div>
             <p className="text-xs text-white/40 mb-3">
-              You&apos;ll be downgraded to the Free plan (5 min/month). This takes effect immediately.
+              You&apos;ll be downgraded to the Free plan (10 min/month, 5 min cloud). This takes effect immediately.
             </p>
             <div className="flex gap-2">
               <button

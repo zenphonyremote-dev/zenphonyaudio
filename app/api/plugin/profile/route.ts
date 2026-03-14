@@ -87,11 +87,16 @@ export async function GET(request: NextRequest) {
     }
 
     // Calculate total available minutes
-    const subscriptionMinutesRemaining = Math.max(
-      0,
-      (profile.listening_minutes_limit || 0) - (profile.listening_minutes_used || 0)
-    )
-    const totalMinutesAvailable = subscriptionMinutesRemaining + (profile.topup_minutes || 0)
+    const subscriptionLimit = profile.listening_minutes_limit || 0
+    const subscriptionUsed = profile.listening_minutes_used || 0
+    const subscriptionMinutesRemaining = Math.max(0, subscriptionLimit - subscriptionUsed)
+    const topupBalance = profile.topup_minutes || 0
+    const totalMinutesAvailable = subscriptionMinutesRemaining + topupBalance
+
+    // Cloud engines (Velvet/Verde) are cut off at half the total pool
+    const cloudLimit = Math.floor(subscriptionLimit / 2)
+    const cloudRemaining = Math.max(0, cloudLimit - subscriptionUsed)
+    const cloudAvailable = cloudRemaining + topupBalance
 
     // Return user profile for DAW plugin
     return json({
@@ -108,11 +113,14 @@ export async function GET(request: NextRequest) {
         period: profile.subscription_period,
       },
       minutes: {
-        subscription_limit: profile.listening_minutes_limit,
-        subscription_used: profile.listening_minutes_used,
+        subscription_limit: subscriptionLimit,
+        subscription_used: subscriptionUsed,
         subscription_remaining: subscriptionMinutesRemaining,
-        topup_balance: profile.topup_minutes || 0,
+        topup_balance: topupBalance,
         total_available: totalMinutesAvailable,
+        cloud_limit: cloudLimit,
+        cloud_remaining: cloudRemaining,
+        cloud_available: cloudAvailable,
       },
       chat_tokens: {
         used: profile.chat_tokens_used || 0,

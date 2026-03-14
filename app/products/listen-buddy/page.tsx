@@ -80,7 +80,8 @@ const plans = [
     price: 0,
     yearlyPrice: 0,
     color: "cyan",
-    minutes: 5,
+    minutes: 10,
+    cloudMinutes: 5,
     pricePerMin: null, // Free tier
     features: ["All listening modes", "Limited plugin chat"],
   },
@@ -90,8 +91,9 @@ const plans = [
     price: 7.99,
     yearlyPrice: 85,
     color: "emerald",
-    minutes: 30,
-    pricePerMin: 0.266,
+    minutes: 60,
+    cloudMinutes: 30,
+    pricePerMin: 0.133,
     features: ["All listening modes", "Unlimited plugin chat"],
   },
   {
@@ -101,8 +103,9 @@ const plans = [
     yearlyPrice: 320,
     popular: true,
     color: "violet",
-    minutes: 120,
-    pricePerMin: 0.250,
+    minutes: 240,
+    cloudMinutes: 120,
+    pricePerMin: 0.125,
     features: ["All listening modes", "Unlimited plugin chat"],
   },
   {
@@ -111,8 +114,9 @@ const plans = [
     price: 69.99,
     yearlyPrice: 780,
     color: "amber",
-    minutes: 350,
-    pricePerMin: 0.200,
+    minutes: 700,
+    cloudMinutes: 350,
+    pricePerMin: 0.100,
     features: ["All listening modes", "Unlimited plugin chat"],
   },
 ]
@@ -424,7 +428,7 @@ export default function ListenBuddyPage() {
 
                 <div className="p-4 sm:p-6 bg-violet-500/10 rounded-lg sm:rounded-xl border border-violet-500/20">
                   <p className="text-base sm:text-lg lg:text-xl text-white/70 font-medium">
-                    Try <Link href="/checkout?plan=free" className="text-violet-400 font-semibold hover:text-violet-300 underline underline-offset-2 transition-colors">5 minutes</Link> of listening completely free.
+                    Try <Link href="/checkout?plan=free" className="text-violet-400 font-semibold hover:text-violet-300 underline underline-offset-2 transition-colors">10 minutes</Link> of listening completely free.
                   </p>
                 </div>
               </div>
@@ -863,7 +867,7 @@ export default function ListenBuddyPage() {
                       <div className="flex items-center gap-1.5">
                         <Check className={`w-3 h-3 sm:w-3.5 sm:h-3.5 ${colors.accent} shrink-0`} />
                         <span className={`text-[11px] sm:text-xs lg:text-sm ${colors.accent}`}>
-                          <span className="font-bold">{plan.minutes}</span> <span className="font-bold">min/month</span>
+                          <span className="font-bold">{plan.minutes}</span> <span className="font-bold">min/mo local</span> · <span className="font-bold">{plan.cloudMinutes}</span> <span className="font-bold">min/mo cloud</span>
                         </span>
                       </div>
                       {plan.features.map((feature, i) => (

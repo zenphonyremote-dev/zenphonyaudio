@@ -15,9 +15,9 @@ const planConfig: Record<string, {
   minutes: number
   chatTokensLimit: number
 }> = {
-  basic: { name: 'Basic', monthlyPrice: 7.99, minutes: 30, chatTokensLimit: -1 },
-  pro: { name: 'Pro', monthlyPrice: 29.99, minutes: 120, chatTokensLimit: -1 },
-  max: { name: 'Max', monthlyPrice: 69.99, minutes: 350, chatTokensLimit: -1 },
+  basic: { name: 'Basic', monthlyPrice: 7.99, minutes: 60, chatTokensLimit: -1 },
+  pro: { name: 'Pro', monthlyPrice: 29.99, minutes: 240, chatTokensLimit: -1 },
+  max: { name: 'Max', monthlyPrice: 69.99, minutes: 700, chatTokensLimit: -1 },
 }
 
 const planOrder = ['free', 'basic', 'pro', 'max']

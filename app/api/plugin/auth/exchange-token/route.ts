@@ -138,12 +138,16 @@ export async function POST(request: NextRequest) {
     }
 
     // Calculate minutes info
-    const subscriptionRemaining = Math.max(
-      0,
-      (profile.listening_minutes_limit || 0) - (profile.listening_minutes_used || 0)
-    )
+    const subscriptionLimit = profile.listening_minutes_limit || 0
+    const subscriptionUsed = profile.listening_minutes_used || 0
+    const subscriptionRemaining = Math.max(0, subscriptionLimit - subscriptionUsed)
     const topupMinutes = profile.topup_minutes || 0
     const totalAvailable = subscriptionRemaining + topupMinutes
+
+    // Cloud engines (Velvet/Verde) are cut off at half the total pool
+    const cloudLimit = Math.floor(subscriptionLimit / 2)
+    const cloudRemaining = Math.max(0, cloudLimit - subscriptionUsed)
+    const cloudAvailable = cloudRemaining + topupMinutes
 
     console.log("[exchange-token] Auth handoff successful for user:", profile.email, "| Plan:", profile.subscription_plan)
 
@@ -165,11 +169,14 @@ export async function POST(request: NextRequest) {
         period: profile.subscription_period || 'monthly',
       },
       minutes: {
-        subscription_limit: profile.listening_minutes_limit || 0,
-        subscription_used: profile.listening_minutes_used || 0,
+        subscription_limit: subscriptionLimit,
+        subscription_used: subscriptionUsed,
         subscription_remaining: subscriptionRemaining,
         topup_balance: topupMinutes,
         total_available: totalAvailable,
+        cloud_limit: cloudLimit,
+        cloud_remaining: cloudRemaining,
+        cloud_available: cloudAvailable,
       },
       api_key: profile.api_key || null,
     }, { headers: corsHeaders })

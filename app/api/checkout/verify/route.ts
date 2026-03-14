@@ -98,10 +98,10 @@ export async function POST(request: NextRequest) {
 
       // Map plan to minutes limit
       const minutesMap: Record<string, number> = {
-        free: 5,
-        basic: 30,
-        pro: 120,
-        max: 350,
+        free: 10,
+        basic: 60,
+        pro: 240,
+        max: 700,
       }
 
       const { error: updateError } = await supabase
