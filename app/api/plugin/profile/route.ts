@@ -55,7 +55,10 @@ export async function GET(request: NextRequest) {
         subscription_period,
         listening_minutes_used,
         listening_minutes_limit,
-        topup_minutes
+        topup_minutes,
+        chat_tokens_used,
+        chat_tokens_limit,
+        chat_tokens_reset_at
       `)
       .eq("api_key", apiKey)
       .single()
@@ -94,6 +97,14 @@ export async function GET(request: NextRequest) {
         subscription_remaining: subscriptionMinutesRemaining,
         topup_balance: profile.topup_minutes || 0,
         total_available: totalMinutesAvailable,
+      },
+      chat_tokens: {
+        used: profile.chat_tokens_used || 0,
+        limit: profile.chat_tokens_limit ?? 50000,
+        remaining: (profile.chat_tokens_limit ?? 50000) === -1
+          ? -1
+          : Math.max(0, (profile.chat_tokens_limit ?? 50000) - (profile.chat_tokens_used || 0)),
+        reset_at: profile.chat_tokens_reset_at,
       },
     })
   } catch (error) {

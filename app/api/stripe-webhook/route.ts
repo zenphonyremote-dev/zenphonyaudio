@@ -145,6 +145,7 @@ export async function POST(request: NextRequest) {
             stripe_customer_id: session.customer as string,
             stripe_subscription_id: session.subscription as string,
             subscription_started_at: new Date().toISOString(),
+            chat_tokens_limit: -1, // Paid plans get unlimited chat
           })
           .eq('id', user.id)
 
@@ -256,6 +257,7 @@ export async function POST(request: NextRequest) {
           subscription_plan: 'free',
           monthly_minutes: 5, // Free plan minutes
           stripe_subscription_id: null,
+          chat_tokens_limit: 50000, // Free plan: 50K token limit
         })
         .eq('id', profile.id)
 

@@ -12,6 +12,9 @@ export interface Profile {
   listening_minutes_used: number
   listening_minutes_limit: number
   topup_minutes: number
+  chat_tokens_used: number
+  chat_tokens_limit: number
+  chat_tokens_reset_at: string | null
   stripe_customer_id: string | null
   stripe_subscription_id: string | null
   created_at: string
