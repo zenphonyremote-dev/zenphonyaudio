@@ -85,6 +85,12 @@ export async function POST(request: NextRequest) {
       ? Math.round(target.monthlyPrice * 10 * 100) // yearly discount approximation
       : Math.round(target.monthlyPrice * 100)
 
+    // Ensure the product is active (Stripe rejects price_data on inactive products)
+    const productId = typeof currentItem.price.product === 'string'
+      ? currentItem.price.product
+      : currentItem.price.product.id
+    await stripe.products.update(productId, { active: true })
+
     // Update Stripe subscription with new price (prorate)
     const updatedSub = await stripe.subscriptions.update(profile.stripe_subscription_id, {
       items: [
@@ -92,9 +98,7 @@ export async function POST(request: NextRequest) {
           id: currentItem.id,
           price_data: {
             currency: 'usd',
-            product: typeof currentItem.price.product === 'string'
-              ? currentItem.price.product
-              : currentItem.price.product.id,
+            product: productId,
             unit_amount: unitAmount,
             recurring: { interval: billingInterval },
           },
