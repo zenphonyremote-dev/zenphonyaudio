@@ -103,7 +103,7 @@ export function SubscriptionDetailsCard({
     }
 
     fetchDetails()
-  }, [isPaid, currentPlan, profileVersion])
+  }, [isPaid, currentPlan, subscriptionStatus])
 
   const handleDowngrade = async (targetPlan: string) => {
     setDowngrading(true)

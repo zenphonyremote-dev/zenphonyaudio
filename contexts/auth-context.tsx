@@ -1,6 +1,6 @@
 "use client"
 
-import { createContext, useContext, useEffect, useState, useCallback, ReactNode } from 'react'
+import { createContext, useContext, useEffect, useState, useCallback, useRef, useMemo, ReactNode } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { User, Session } from '@supabase/supabase-js'
 import { Profile } from '@/lib/supabase/database.types'
@@ -22,13 +22,19 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
+// Minimum seconds between consecutive refreshProfile() calls
+const REFRESH_COOLDOWN_MS = 5000
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [profile, setProfile] = useState<Profile | null>(null)
   const [session, setSession] = useState<Session | null>(null)
   const [loading, setLoading] = useState(true)
   const [profileVersion, setProfileVersion] = useState(0)
-  const supabase = createClient()
+  const lastRefreshRef = useRef<number>(0)
+  const refreshingRef = useRef(false)
+
+  const supabase = useMemo(() => createClient(), [])
 
   const fetchProfile = useCallback(async (userId: string) => {
     const { data, error } = await supabase
@@ -53,12 +59,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (user) {
       fetchProfile(user.id).then((profileData) => {
         setProfile(profileData)
+        lastRefreshRef.current = Date.now()
         setProfileVersion((v) => v + 1)
       })
     } else {
       setProfile(null)
     }
-  }, [user?.id])
+  }, [user?.id, fetchProfile])
 
   useEffect(() => {
     // Get initial session
@@ -84,7 +91,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     )
 
     return () => subscription.unsubscribe()
-  }, [])
+  }, [supabase])
 
   const signUp = async (email: string, password: string, name?: string) => {
     const redirectUrl = `${process.env.NEXT_PUBLIC_BASE_URL || window.location.origin}/auth/callback`
@@ -145,7 +152,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     })
   }
 
-  const updateProfile = async (updates: Partial<Profile>) => {
+  const updateProfile = useCallback(async (updates: Partial<Profile>) => {
     if (!user) return { error: new Error('No user logged in') }
 
     const { error } = await supabase
@@ -156,19 +163,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!error) {
       const profileData = await fetchProfile(user.id)
       setProfile(profileData)
+      lastRefreshRef.current = Date.now()
       setProfileVersion((v) => v + 1)
     }
 
     return { error }
-  }
+  }, [user, supabase, fetchProfile])
 
-  const refreshProfile = async () => {
-    if (user) {
+  const refreshProfile = useCallback(async () => {
+    if (!user) return
+
+    // Debounce: skip if called within cooldown or already in-flight
+    const now = Date.now()
+    if (now - lastRefreshRef.current < REFRESH_COOLDOWN_MS) return
+    if (refreshingRef.current) return
+
+    refreshingRef.current = true
+    try {
       const profileData = await fetchProfile(user.id)
       setProfile(profileData)
+      lastRefreshRef.current = Date.now()
       setProfileVersion((v) => v + 1)
+    } finally {
+      refreshingRef.current = false
     }
-  }
+  }, [user, fetchProfile])
 
   return (
     <AuthContext.Provider

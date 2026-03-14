@@ -70,9 +70,10 @@ export function ProfileCharts({ currentPlan, minutesLimit }: ProfileChartsProps)
     fetchUsage()
   }, [usageRange])
 
-  // Fetch billing data every time tab is selected (no stale cache)
+  // Fetch billing data when tab is selected (skip if already loaded)
   useEffect(() => {
     if (activeTab !== "billing") return
+    if (billingData.length > 0) return
 
     async function fetchBilling() {
       setLoadingBilling(true)
@@ -88,11 +89,12 @@ export function ProfileCharts({ currentPlan, minutesLimit }: ProfileChartsProps)
       }
     }
     fetchBilling()
-  }, [activeTab])
+  }, [activeTab, billingData.length])
 
-  // Fetch recommendation every time tab is selected
+  // Fetch recommendation when tab is selected (skip if already loaded)
   useEffect(() => {
     if (activeTab !== "plans") return
+    if (recommendation) return
 
     async function fetchRec() {
       setLoadingRec(true)
@@ -108,7 +110,7 @@ export function ProfileCharts({ currentPlan, minutesLimit }: ProfileChartsProps)
       }
     }
     fetchRec()
-  }, [activeTab])
+  }, [activeTab, recommendation])
 
   // Calculate avg usage for plan comparison
   const avgUsage =
