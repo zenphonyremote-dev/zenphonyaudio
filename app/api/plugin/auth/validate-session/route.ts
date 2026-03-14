@@ -1,6 +1,22 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient as createAdminClient, SupabaseClient } from "@supabase/supabase-js"
 
+// CORS headers for cross-origin requests from the plugin WebView
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization",
+}
+
+function json(body: any, init?: { status?: number }) {
+  return NextResponse.json(body, { ...init, headers: corsHeaders })
+}
+
+// Handle preflight requests
+export async function OPTIONS() {
+  return NextResponse.json({}, { headers: corsHeaders })
+}
+
 // Lazy initialization of admin client
 let supabaseAdmin: SupabaseClient | null = null
 
@@ -32,7 +48,7 @@ export async function POST(request: NextRequest) {
     const authHeader = request.headers.get("authorization")
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
       console.error("[validate-session] Missing or invalid authorization header")
-      return NextResponse.json(
+      return json(
         { error: "Missing or invalid authorization header", valid: false },
         { status: 401 }
       )
@@ -46,7 +62,7 @@ export async function POST(request: NextRequest) {
 
     if (!user_id) {
       console.error("[validate-session] Missing user_id in request body")
-      return NextResponse.json(
+      return json(
         { error: "Missing user_id", valid: false },
         { status: 400 }
       )
@@ -66,7 +82,7 @@ export async function POST(request: NextRequest) {
 
     if (tokenError || !tokenData) {
       console.error("[validate-session] Token lookup failed for user_id:", user_id, "| Error:", tokenError?.message || "Token not found")
-      return NextResponse.json(
+      return json(
         { error: "Invalid or expired token", valid: false },
         { status: 401 }
       )
@@ -79,7 +95,7 @@ export async function POST(request: NextRequest) {
       await admin.from("auth_tokens").delete().eq("token", token)
 
       console.error("[validate-session] Token expired at:", expiresAt.toISOString(), "for user_id:", user_id)
-      return NextResponse.json(
+      return json(
         { error: "Token expired", valid: false },
         { status: 401 }
       )
@@ -94,7 +110,7 @@ export async function POST(request: NextRequest) {
 
     if (profileError) {
       console.error("[validate-session] Profile not found for user_id:", user_id, "| Error:", profileError.message)
-      return NextResponse.json(
+      return json(
         { error: "User not found", valid: false },
         { status: 404 }
       )
@@ -105,7 +121,7 @@ export async function POST(request: NextRequest) {
 
     if (userError || !user) {
       console.error("[validate-session] Auth user not found for user_id:", user_id, "| Error:", userError?.message)
-      return NextResponse.json(
+      return json(
         { error: "User not found", valid: false },
         { status: 404 }
       )
@@ -113,7 +129,7 @@ export async function POST(request: NextRequest) {
 
     console.log("[validate-session] Session valid for user:", user.email)
 
-    return NextResponse.json({
+    return json({
       valid: true,
       user: {
         id: user.id,
@@ -126,7 +142,7 @@ export async function POST(request: NextRequest) {
     })
   } catch (error) {
     console.error("Validate session error:", error)
-    return NextResponse.json(
+    return json(
       { error: "Internal server error", valid: false },
       { status: 500 }
     )

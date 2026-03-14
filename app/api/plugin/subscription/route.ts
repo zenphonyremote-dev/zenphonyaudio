@@ -2,6 +2,22 @@ import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { createClient, SupabaseClient } from '@supabase/supabase-js'
 
+// CORS headers for cross-origin requests from the plugin WebView
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+}
+
+function json(body: any, init?: { status?: number }) {
+  return NextResponse.json(body, { ...init, headers: corsHeaders })
+}
+
+// Handle preflight requests
+export async function OPTIONS() {
+  return NextResponse.json({}, { headers: corsHeaders })
+}
+
 const stripe = process.env.STRIPE_SECRET_KEY
   ? new Stripe(process.env.STRIPE_SECRET_KEY, {
       apiVersion: '2024-11-20.acacia',
@@ -46,13 +62,13 @@ export async function POST(request: NextRequest) {
   try {
     const authHeader = request.headers.get('Authorization')
     if (!authHeader?.startsWith('Bearer ')) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const apiKey = authHeader.replace('Bearer ', '').trim()
     const profile = await getProfileByApiKey(apiKey)
     if (!profile) {
-      return NextResponse.json({ error: 'Invalid API key' }, { status: 401 })
+      return json({ error: 'Invalid API key' }, { status: 401 })
     }
 
     const { action, targetPlan } = await request.json()
@@ -61,7 +77,7 @@ export async function POST(request: NextRequest) {
     // ── CANCEL ──
     if (action === 'cancel') {
       if (profile.subscription_plan === 'free') {
-        return NextResponse.json({ error: 'Already on free plan' }, { status: 400 })
+        return json({ error: 'Already on free plan' }, { status: 400 })
       }
 
       // Cancel Stripe subscription
@@ -87,7 +103,7 @@ export async function POST(request: NextRequest) {
         })
         .eq('id', profile.id)
 
-      return NextResponse.json({
+      return json({
         success: true,
         message: 'Subscription cancelled. You are now on the Free plan.',
         newPlan: 'free',
@@ -97,18 +113,18 @@ export async function POST(request: NextRequest) {
     // ── DOWNGRADE ──
     if (action === 'downgrade') {
       if (!targetPlan || !planConfig[targetPlan]) {
-        return NextResponse.json({ error: 'Invalid target plan' }, { status: 400 })
+        return json({ error: 'Invalid target plan' }, { status: 400 })
       }
 
       const currentIndex = planOrder.indexOf(profile.subscription_plan || 'free')
       const targetIndex = planOrder.indexOf(targetPlan)
 
       if (targetIndex >= currentIndex) {
-        return NextResponse.json({ error: 'Target plan must be lower than current plan' }, { status: 400 })
+        return json({ error: 'Target plan must be lower than current plan' }, { status: 400 })
       }
 
       if (!stripe || !profile.stripe_subscription_id) {
-        return NextResponse.json({ error: 'No active Stripe subscription' }, { status: 400 })
+        return json({ error: 'No active Stripe subscription' }, { status: 400 })
       }
 
       const target = planConfig[targetPlan]
@@ -116,7 +132,7 @@ export async function POST(request: NextRequest) {
       const currentItem = currentSub.items.data[0]
 
       if (!currentItem) {
-        return NextResponse.json({ error: 'No subscription item found' }, { status: 400 })
+        return json({ error: 'No subscription item found' }, { status: 400 })
       }
 
       const billingInterval = profile.subscription_period === 'yearly' ? 'year' : 'month'
@@ -152,16 +168,16 @@ export async function POST(request: NextRequest) {
         })
         .eq('id', profile.id)
 
-      return NextResponse.json({
+      return json({
         success: true,
         message: `Downgraded to ${target.name} plan.`,
         newPlan: targetPlan,
       })
     }
 
-    return NextResponse.json({ error: 'Invalid action. Use "cancel" or "downgrade".' }, { status: 400 })
+    return json({ error: 'Invalid action. Use "cancel" or "downgrade".' }, { status: 400 })
   } catch (error: any) {
     console.error('Plugin subscription action error:', error)
-    return NextResponse.json({ error: error.message || 'Internal server error' }, { status: 500 })
+    return json({ error: error.message || 'Internal server error' }, { status: 500 })
   }
 }
