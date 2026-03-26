@@ -68,17 +68,17 @@ export async function POST(request: NextRequest) {
       // Get current profile
       const { data: profile } = await supabase
         .from('profiles')
-        .select('extra_minutes')
+        .select('topup_minutes')
         .eq('id', user.id)
         .single()
 
-      const currentMinutes = profile?.extra_minutes || 0
+      const currentMinutes = profile?.topup_minutes || 0
       const newMinutes = currentMinutes + minutes
 
       const { error: updateError } = await supabase
         .from('profiles')
         .update({
-          extra_minutes: newMinutes,
+          topup_minutes: newMinutes,
         })
         .eq('id', user.id)
 
@@ -102,10 +102,10 @@ export async function POST(request: NextRequest) {
 
       // Map plan to minutes limit
       const minutesMap: Record<string, number> = {
-        free: 5,
-        basic: 30,
-        pro: 120,
-        max: 350,
+        free: 10,
+        basic: 60,
+        pro: 240,
+        max: 700,
       }
 
       const { error: updateError } = await supabase
@@ -115,7 +115,12 @@ export async function POST(request: NextRequest) {
           subscription_status: 'active',
           subscription_period: billingPeriod,
           listening_minutes_limit: minutesMap[planId] || 5,
-          listening_minutes_used: 0, // Reset usage on new subscription
+          listening_minutes_used: 0,
+          monthly_minutes: minutesMap[planId] || 5,
+          stripe_customer_id: session.customer as string || undefined,
+          stripe_subscription_id: session.subscription as string || undefined,
+          subscription_started_at: new Date().toISOString(),
+          chat_tokens_limit: -1, // Paid plans get unlimited chat
         })
         .eq('id', user.id)
 

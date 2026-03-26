@@ -57,7 +57,7 @@ export function ProfileCharts({ currentPlan, minutesLimit }: ProfileChartsProps)
     async function fetchUsage() {
       setLoadingUsage(true)
       try {
-        const res = await fetch(`/api/usage-history?range=${usageRange}`)
+        const res = await fetch(`/api/usage-history?range=${usageRange}`, { cache: "no-store" })
         if (!res.ok) throw new Error("Failed to fetch usage data")
         const json = await res.json()
         setUsageData(json.data)
@@ -70,14 +70,15 @@ export function ProfileCharts({ currentPlan, minutesLimit }: ProfileChartsProps)
     fetchUsage()
   }, [usageRange])
 
-  // Fetch billing data on tab switch
+  // Fetch billing data when tab is selected (skip if already loaded)
   useEffect(() => {
-    if (activeTab !== "billing" || billingData.length > 0) return
+    if (activeTab !== "billing") return
+    if (billingData.length > 0) return
 
     async function fetchBilling() {
       setLoadingBilling(true)
       try {
-        const res = await fetch("/api/billing-history")
+        const res = await fetch("/api/billing-history", { cache: "no-store" })
         if (!res.ok) throw new Error("Failed to fetch billing data")
         const json = await res.json()
         setBillingData(json.data)
@@ -90,14 +91,15 @@ export function ProfileCharts({ currentPlan, minutesLimit }: ProfileChartsProps)
     fetchBilling()
   }, [activeTab, billingData.length])
 
-  // Fetch recommendation on tab switch
+  // Fetch recommendation when tab is selected (skip if already loaded)
   useEffect(() => {
-    if (activeTab !== "plans" || recommendation) return
+    if (activeTab !== "plans") return
+    if (recommendation) return
 
     async function fetchRec() {
       setLoadingRec(true)
       try {
-        const res = await fetch("/api/plan-recommendation")
+        const res = await fetch("/api/plan-recommendation", { cache: "no-store" })
         if (!res.ok) throw new Error("Failed to fetch recommendation")
         const json = await res.json()
         setRecommendation(json)

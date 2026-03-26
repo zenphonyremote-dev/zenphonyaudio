@@ -14,11 +14,10 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    // Fetch all active profiles
+    // Fetch all profiles (including free users who may not have 'active' status)
     const { data: profiles, error } = await supabase
       .from('profiles')
       .select('id, listening_minutes_used, listening_minutes_limit, subscription_plan')
-      .in('subscription_status', ['active'])
 
     if (error) {
       console.error('Error fetching profiles:', error)

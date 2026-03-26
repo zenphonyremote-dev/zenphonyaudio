@@ -1,6 +1,6 @@
 "use client"
 
-import { createContext, useContext, useEffect, useState, useCallback, ReactNode } from "react"
+import { createContext, useContext, useEffect, useState, useCallback, useRef, useMemo, ReactNode } from "react"
 import { authClient, useSession } from "@/lib/auth-client"
 import { createClient } from "@/lib/supabase/client"
 import { Profile } from "@/lib/supabase/database.types"
@@ -10,6 +10,8 @@ interface AuthContextType {
   profile: Profile | null
   session: { token: string } | null
   loading: boolean
+  /** Incremented on every profile refresh — use as useEffect dependency to re-fetch related data */
+  profileVersion: number
   signUp: (email: string, password: string, name?: string) => Promise<{ error: Error | null }>
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>
   signInWithGoogle: () => Promise<{ error: Error | null }>
@@ -20,11 +22,18 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
+// Minimum seconds between consecutive refreshProfile() calls
+const REFRESH_COOLDOWN_MS = 5000
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const { data: sessionData, isPending } = useSession()
   const [profile, setProfile] = useState<Profile | null>(null)
   const [profileLoading, setProfileLoading] = useState(false)
-  const supabase = createClient()
+  const [profileVersion, setProfileVersion] = useState(0)
+  const lastRefreshRef = useRef<number>(0)
+  const refreshingRef = useRef(false)
+
+  const supabase = useMemo(() => createClient(), [])
 
   const user = sessionData?.user
     ? {
@@ -55,17 +64,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Fetch profile whenever user changes
   useEffect(() => {
-    if (user?.id && !profile) {
+    if (user?.id) {
       setProfileLoading(true)
       fetchProfile(user.id).then((p) => {
         setProfile(p)
         setProfileLoading(false)
+        lastRefreshRef.current = Date.now()
+        setProfileVersion((v) => v + 1)
       })
     }
     if (!user) {
       setProfile(null)
     }
-  }, [user?.id])
+  }, [user?.id, fetchProfile])
 
   const handleSignUp = async (email: string, password: string, name?: string) => {
     const { error } = await authClient.signUp.email({
@@ -100,7 +111,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await authClient.signOut()
   }
 
-  const handleUpdateProfile = async (updates: Partial<Profile>) => {
+  const updateProfile = useCallback(async (updates: Partial<Profile>) => {
     if (!user) return { error: new Error("No user logged in") }
 
     const { error } = await supabase
@@ -111,17 +122,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!error) {
       const profileData = await fetchProfile(user.id)
       setProfile(profileData)
+      lastRefreshRef.current = Date.now()
+      setProfileVersion((v) => v + 1)
     }
 
     return { error: error ? new Error(error.message) : null }
-  }
+  }, [user, supabase, fetchProfile])
 
-  const handleRefreshProfile = async () => {
-    if (user?.id) {
+  const refreshProfile = useCallback(async () => {
+    if (!user) return
+
+    // Debounce: skip if called within cooldown or already in-flight
+    const now = Date.now()
+    if (now - lastRefreshRef.current < REFRESH_COOLDOWN_MS) return
+    if (refreshingRef.current) return
+
+    refreshingRef.current = true
+    try {
       const profileData = await fetchProfile(user.id)
       setProfile(profileData)
+      lastRefreshRef.current = Date.now()
+      setProfileVersion((v) => v + 1)
+    } finally {
+      refreshingRef.current = false
     }
-  }
+  }, [user, fetchProfile])
 
   return (
     <AuthContext.Provider
@@ -130,12 +155,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         profile,
         session,
         loading: isPending || profileLoading,
+        profileVersion,
         signUp: handleSignUp,
         signIn: handleSignIn,
         signInWithGoogle: handleSignInWithGoogle,
         signOut: handleSignOut,
-        updateProfile: handleUpdateProfile,
-        refreshProfile: handleRefreshProfile,
+        updateProfile,
+        refreshProfile,
       }}
     >
       {children}

@@ -63,6 +63,7 @@ export async function GET() {
     let paymentMethod = null
     if (profile.stripe_customer_id) {
       try {
+        // Try 1: Get default payment method from customer's invoice settings
         const customer = await stripe.customers.retrieve(profile.stripe_customer_id, {
           expand: ['invoice_settings.default_payment_method'],
         }) as Stripe.Customer
@@ -76,8 +77,29 @@ export async function GET() {
             expMonth: defaultPM.card.exp_month,
             expYear: defaultPM.card.exp_year,
           }
-        } else if (customer.default_source) {
-          // Fallback to default_source (legacy cards)
+        }
+
+        // Try 2: List payment methods directly (most reliable for Checkout-created customers)
+        if (!paymentMethod) {
+          const paymentMethods = await stripe.paymentMethods.list({
+            customer: profile.stripe_customer_id,
+            type: 'card',
+            limit: 1,
+          })
+
+          const pm = paymentMethods.data[0]
+          if (pm?.card) {
+            paymentMethod = {
+              brand: pm.card.brand,
+              last4: pm.card.last4,
+              expMonth: pm.card.exp_month,
+              expYear: pm.card.exp_year,
+            }
+          }
+        }
+
+        // Try 3: Fallback to default_source (legacy cards)
+        if (!paymentMethod && customer.default_source) {
           const source = typeof customer.default_source === 'string'
             ? await stripe.customers.retrieveSource(profile.stripe_customer_id, customer.default_source)
             : customer.default_source

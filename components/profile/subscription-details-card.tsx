@@ -1,16 +1,18 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Crown, CreditCard, Clock, Zap, Loader2, AlertCircle } from "lucide-react"
+import { Crown, CreditCard, Clock, Zap, Loader2, AlertCircle, XCircle, ChevronDown, ArrowDown } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 
-const planDetails: Record<string, { name: string; color: string; minutes: number }> = {
-  free: { name: "Free", color: "cyan", minutes: 5 },
-  basic: { name: "Basic", color: "emerald", minutes: 30 },
-  pro: { name: "Pro", color: "violet", minutes: 120 },
-  max: { name: "Max", color: "amber", minutes: 350 },
+const planDetails: Record<string, { name: string; color: string; minutes: number; cloudMinutes: number; monthlyPrice: number }> = {
+  free: { name: "Free", color: "cyan", minutes: 10, cloudMinutes: 5, monthlyPrice: 0 },
+  basic: { name: "Basic", color: "emerald", minutes: 60, cloudMinutes: 30, monthlyPrice: 7.99 },
+  pro: { name: "Pro", color: "violet", minutes: 240, cloudMinutes: 120, monthlyPrice: 29.99 },
+  max: { name: "Max", color: "amber", minutes: 700, cloudMinutes: 350, monthlyPrice: 69.99 },
 }
+
+const planOrder = ["free", "basic", "pro", "max"]
 
 const brandIcons: Record<string, string> = {
   visa: "Visa",
@@ -44,6 +46,9 @@ interface SubscriptionDetailsCardProps {
   minutesUsed: number
   minutesLimit: number
   isUnlimited: boolean
+  onPlanChange?: () => void
+  /** Bumped by auth context on every profile refresh — triggers re-fetch of Stripe data */
+  profileVersion?: number
 }
 
 export function SubscriptionDetailsCard({
@@ -52,23 +57,40 @@ export function SubscriptionDetailsCard({
   minutesUsed,
   minutesLimit,
   isUnlimited,
+  onPlanChange,
+  profileVersion = 0,
 }: SubscriptionDetailsCardProps) {
   const [subscription, setSubscription] = useState<SubscriptionData | null>(null)
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethodData | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [cancelling, setCancelling] = useState(false)
+  const [downgrading, setDowngrading] = useState(false)
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false)
+  const [showDowngradeMenu, setShowDowngradeMenu] = useState(false)
 
   const plan = planDetails[currentPlan] || planDetails.free
   const isPaid = currentPlan !== "free"
+  const currentIndex = planOrder.indexOf(currentPlan)
+
+  // Plans user can downgrade to (lower paid plans only — cancel handles free)
+  const downgradeOptions = planOrder
+    .filter((p, i) => i > 0 && i < currentIndex)
+    .map((p) => planDetails[p] && { id: p, ...planDetails[p] })
+    .filter(Boolean) as { id: string; name: string; color: string; minutes: number; cloudMinutes: number; monthlyPrice: number }[]
 
   useEffect(() => {
-    if (!isPaid) return
+    if (!isPaid) {
+      setSubscription(null)
+      setPaymentMethod(null)
+      return
+    }
 
     async function fetchDetails() {
       setLoading(true)
       setError(null)
       try {
-        const res = await fetch("/api/subscription-details")
+        const res = await fetch("/api/subscription-details", { cache: "no-store" })
         if (!res.ok) throw new Error("Failed to fetch subscription details")
         const data = await res.json()
         setSubscription(data.subscription)
@@ -81,7 +103,49 @@ export function SubscriptionDetailsCard({
     }
 
     fetchDetails()
-  }, [isPaid])
+  }, [isPaid, currentPlan, subscriptionStatus])
+
+  const handleDowngrade = async (targetPlan: string) => {
+    setDowngrading(true)
+    setError(null)
+    try {
+      const res = await fetch("/api/subscription/downgrade", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ targetPlan }),
+      })
+      const data = await res.json()
+      if (data.success) {
+        setShowDowngradeMenu(false)
+        await onPlanChange?.()
+      } else {
+        setError(data.error || "Failed to downgrade")
+      }
+    } catch {
+      setError("Failed to downgrade subscription")
+    } finally {
+      setDowngrading(false)
+    }
+  }
+
+  const handleCancel = async () => {
+    setCancelling(true)
+    setError(null)
+    try {
+      const res = await fetch("/api/subscription/cancel", { method: "POST" })
+      const data = await res.json()
+      if (data.success) {
+        setShowCancelConfirm(false)
+        await onPlanChange?.()
+      } else {
+        setError(data.error || "Failed to cancel")
+      }
+    } catch {
+      setError("Failed to cancel subscription")
+    } finally {
+      setCancelling(false)
+    }
+  }
 
   const statusColor =
     subscriptionStatus === "active"
@@ -128,17 +192,20 @@ export function SubscriptionDetailsCard({
           )}
         </div>
 
+        {/* Error Display */}
+        {error && (
+          <div className="flex items-center gap-2 py-2 px-3 mb-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-xs">
+            <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
+            <span>{error}</span>
+          </div>
+        )}
+
         {/* Billing Info - Only for paid users */}
         {isPaid && (
           <>
             {loading ? (
               <div className="flex items-center justify-center py-4">
                 <Loader2 className="w-5 h-5 animate-spin text-white/30" />
-              </div>
-            ) : error ? (
-              <div className="flex items-center gap-2 py-3 text-white/40 text-sm">
-                <AlertCircle className="w-4 h-4" />
-                <span>Could not load billing details</span>
               </div>
             ) : subscription ? (
               <div className="space-y-2 mb-4">
@@ -210,17 +277,19 @@ export function SubscriptionDetailsCard({
           <>
             <div className="flex items-baseline gap-1 mb-2">
               <span className="text-2xl font-black text-white">{minutesUsed}</span>
-              <span className="text-white/40 text-sm">/ {minutesLimit} min</span>
+              <span className="text-white/40 text-sm">/ {minutesLimit} min used</span>
             </div>
-            <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden mb-1">
+            <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden mb-1 relative">
               <div
                 className="h-full bg-gradient-to-r from-violet-500 to-fuchsia-500 rounded-full transition-all"
                 style={{ width: `${Math.min((minutesUsed / minutesLimit) * 100, 100)}%` }}
               />
+              {/* Cloud cutoff marker at 50% */}
+              <div className="absolute top-[-2px] bottom-[-2px] w-[2px] bg-blue-400/80 rounded-sm" style={{ left: '50%' }} />
             </div>
             <div className="flex items-center justify-between">
               <p className="text-white/40 text-xs">
-                {Math.max(minutesLimit - minutesUsed, 0)} minutes remaining
+                Cloud: {Math.max(Math.floor(minutesLimit / 2) - minutesUsed, 0)} min · Local: {Math.max(minutesLimit - minutesUsed, 0)} min
               </p>
               <p className="text-white/30 text-xs">
                 {Math.round((minutesUsed / minutesLimit) * 100)}%
@@ -237,6 +306,86 @@ export function SubscriptionDetailsCard({
                 Upgrade Plan
               </Button>
             </Link>
+          </div>
+        )}
+
+        {/* Downgrade Option — only show if there are lower paid plans */}
+        {isPaid && downgradeOptions.length > 0 && !showCancelConfirm && (
+          <div className="mt-3 relative">
+            <button
+              onClick={() => setShowDowngradeMenu(!showDowngradeMenu)}
+              className="w-full flex items-center justify-center gap-1.5 text-xs text-white/40 hover:text-white/60 transition-colors cursor-pointer"
+            >
+              <ArrowDown className="w-3 h-3" />
+              Downgrade plan
+              <ChevronDown className={`w-3 h-3 transition-transform ${showDowngradeMenu ? "rotate-180" : ""}`} />
+            </button>
+
+            {showDowngradeMenu && (
+              <div className="mt-2 p-3 rounded-xl bg-white/[0.05] border border-white/[0.1] space-y-2">
+                <p className="text-white/40 text-xs mb-2">Switch to a lower plan:</p>
+                {downgradeOptions.map((opt) => (
+                  <button
+                    key={opt.id}
+                    onClick={() => handleDowngrade(opt.id)}
+                    disabled={downgrading}
+                    className="w-full flex items-center justify-between px-3 py-2.5 rounded-lg bg-white/[0.03] hover:bg-white/[0.08] border border-white/[0.06] transition-colors disabled:opacity-50"
+                  >
+                    <div className="flex items-center gap-2">
+                      <div className={`w-2 h-2 rounded-full bg-${opt.color}-400`} />
+                      <span className="text-white text-sm font-medium">{opt.name}</span>
+                      <span className="text-white/30 text-xs">{opt.minutes} min/mo ({opt.cloudMinutes} cloud)</span>
+                    </div>
+                    <span className="text-white/50 text-xs font-mono">${opt.monthlyPrice}/mo</span>
+                  </button>
+                ))}
+                {downgrading && (
+                  <div className="flex items-center justify-center py-1">
+                    <Loader2 className="w-4 h-4 animate-spin text-white/30" />
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Cancel Subscription */}
+        {isPaid && !showCancelConfirm && (
+          <button
+            onClick={() => {
+              setShowDowngradeMenu(false)
+              setShowCancelConfirm(true)
+            }}
+            className="mt-3 w-full text-center text-xs text-white/30 hover:text-red-400 transition-colors cursor-pointer"
+          >
+            Cancel subscription
+          </button>
+        )}
+
+        {isPaid && showCancelConfirm && (
+          <div className="mt-4 p-4 rounded-xl bg-red-500/10 border border-red-500/20">
+            <div className="flex items-center gap-2 mb-2">
+              <XCircle className="w-4 h-4 text-red-400" />
+              <span className="text-sm font-medium text-red-400">Cancel subscription?</span>
+            </div>
+            <p className="text-xs text-white/40 mb-3">
+              You&apos;ll be downgraded to the Free plan (10 min/month, 5 min cloud). This takes effect immediately.
+            </p>
+            <div className="flex gap-2">
+              <button
+                onClick={handleCancel}
+                disabled={cancelling}
+                className="flex-1 px-3 py-2 rounded-lg bg-red-500/20 text-red-400 text-xs font-semibold hover:bg-red-500/30 transition-colors disabled:opacity-50"
+              >
+                {cancelling ? "Cancelling..." : "Yes, cancel"}
+              </button>
+              <button
+                onClick={() => setShowCancelConfirm(false)}
+                className="flex-1 px-3 py-2 rounded-lg bg-white/5 text-white/50 text-xs font-semibold hover:bg-white/10 transition-colors"
+              >
+                Keep plan
+              </button>
+            </div>
           </div>
         )}
       </div>

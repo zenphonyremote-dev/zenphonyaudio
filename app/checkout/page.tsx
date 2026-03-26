@@ -45,7 +45,7 @@ const plans = [
     id: "max",
     name: "Max",
     price: 69.99,
-    yearlyPrice: 830,
+    yearlyPrice: 780,
     color: "amber",
     minutes: 350,
     features: ["350 analysis minutes/month", "All listening modes", "Plugin chat (unlimited)", "Dedicated support"],

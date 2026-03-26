@@ -26,7 +26,7 @@ const planDetails = {
 
 export default function ProfilePage() {
   const router = useRouter()
-  const { user, profile, loading: authLoading, signOut, updateProfile } = useAuth()
+  const { user, profile, loading: authLoading, signOut, updateProfile, refreshProfile, profileVersion } = useAuth()
   const supabase = createClient()
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -58,6 +58,22 @@ export default function ProfilePage() {
       router.push("/login")
     }
   }, [user, authLoading, router])
+
+  // Always refresh profile from Supabase when this page mounts or becomes visible
+  // This ensures we show fresh data after checkout, plan changes, etc.
+  useEffect(() => {
+    if (user && !authLoading) {
+      refreshProfile()
+    }
+
+    const handleVisibility = () => {
+      if (document.visibilityState === "visible" && user) {
+        refreshProfile()
+      }
+    }
+    document.addEventListener("visibilitychange", handleVisibility)
+    return () => document.removeEventListener("visibilitychange", handleVisibility)
+  }, [user, authLoading])
 
   // Populate form with profile data
   useEffect(() => {
@@ -159,7 +175,8 @@ export default function ProfilePage() {
   const currentPlan = profile?.subscription_plan || "free"
   const plan = planDetails[currentPlan as keyof typeof planDetails]
   const minutesUsed = profile?.listening_minutes_used || 0
-  const minutesLimit = profile?.listening_minutes_limit || 5
+  const topupMinutes = profile?.topup_minutes || 0
+  const minutesLimit = (profile?.listening_minutes_limit || 5) + topupMinutes
   const isUnlimited = minutesLimit === -1
 
   return (
@@ -368,6 +385,10 @@ export default function ProfilePage() {
                   minutesUsed={minutesUsed}
                   minutesLimit={minutesLimit}
                   isUnlimited={isUnlimited}
+                  profileVersion={profileVersion}
+                  onPlanChange={async () => {
+                    await refreshProfile()
+                  }}
                 />
 
                 {/* Open Plugin Link */}

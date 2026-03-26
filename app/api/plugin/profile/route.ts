@@ -1,6 +1,22 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient, SupabaseClient } from "@supabase/supabase-js"
 
+// CORS headers for cross-origin requests from the plugin WebView
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization",
+}
+
+function json(body: any, init?: { status?: number }) {
+  return NextResponse.json(body, { ...init, headers: corsHeaders })
+}
+
+// Handle preflight requests
+export async function OPTIONS() {
+  return NextResponse.json({}, { headers: corsHeaders })
+}
+
 // Lazy initialization of admin client
 let supabaseAdmin: SupabaseClient | null = null
 
@@ -24,7 +40,7 @@ export async function GET(request: NextRequest) {
     const authHeader = request.headers.get("Authorization")
 
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return NextResponse.json(
+      return json(
         { error: "Missing or invalid Authorization header. Use: Bearer lb_your_api_key" },
         { status: 401 }
       )
@@ -34,7 +50,7 @@ export async function GET(request: NextRequest) {
 
     // Validate API key format
     if (!apiKey.startsWith("lb_") || apiKey.length !== 35) {
-      return NextResponse.json(
+      return json(
         { error: "Invalid API key format" },
         { status: 401 }
       )
@@ -55,27 +71,35 @@ export async function GET(request: NextRequest) {
         subscription_period,
         listening_minutes_used,
         listening_minutes_limit,
-        topup_minutes
+        topup_minutes,
+        chat_tokens_used,
+        chat_tokens_limit,
+        chat_tokens_reset_at
       `)
       .eq("api_key", apiKey)
       .single()
 
     if (error || !profile) {
-      return NextResponse.json(
+      return json(
         { error: "Invalid API key" },
         { status: 401 }
       )
     }
 
     // Calculate total available minutes
-    const subscriptionMinutesRemaining = Math.max(
-      0,
-      (profile.listening_minutes_limit || 0) - (profile.listening_minutes_used || 0)
-    )
-    const totalMinutesAvailable = subscriptionMinutesRemaining + (profile.topup_minutes || 0)
+    const subscriptionLimit = profile.listening_minutes_limit || 0
+    const subscriptionUsed = profile.listening_minutes_used || 0
+    const subscriptionMinutesRemaining = Math.max(0, subscriptionLimit - subscriptionUsed)
+    const topupBalance = profile.topup_minutes || 0
+    const totalMinutesAvailable = subscriptionMinutesRemaining + topupBalance
+
+    // Cloud engines (Velvet/Verde) are cut off at half the total pool
+    const cloudLimit = Math.floor(subscriptionLimit / 2)
+    const cloudRemaining = Math.max(0, cloudLimit - subscriptionUsed)
+    const cloudAvailable = cloudRemaining + topupBalance
 
     // Return user profile for DAW plugin
-    return NextResponse.json({
+    return json({
       success: true,
       user: {
         id: profile.id,
@@ -89,16 +113,27 @@ export async function GET(request: NextRequest) {
         period: profile.subscription_period,
       },
       minutes: {
-        subscription_limit: profile.listening_minutes_limit,
-        subscription_used: profile.listening_minutes_used,
+        subscription_limit: subscriptionLimit,
+        subscription_used: subscriptionUsed,
         subscription_remaining: subscriptionMinutesRemaining,
-        topup_balance: profile.topup_minutes || 0,
+        topup_balance: topupBalance,
         total_available: totalMinutesAvailable,
+        cloud_limit: cloudLimit,
+        cloud_remaining: cloudRemaining,
+        cloud_available: cloudAvailable,
+      },
+      chat_tokens: {
+        used: profile.chat_tokens_used || 0,
+        limit: profile.chat_tokens_limit ?? 50000,
+        remaining: (profile.chat_tokens_limit ?? 50000) === -1
+          ? -1
+          : Math.max(0, (profile.chat_tokens_limit ?? 50000) - (profile.chat_tokens_used || 0)),
+        reset_at: profile.chat_tokens_reset_at,
       },
     })
   } catch (error) {
     console.error("Plugin profile API error:", error)
-    return NextResponse.json(
+    return json(
       { error: "Internal server error" },
       { status: 500 }
     )
@@ -111,7 +146,7 @@ export async function POST(request: NextRequest) {
     const authHeader = request.headers.get("Authorization")
 
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return NextResponse.json(
+      return json(
         { error: "Missing or invalid Authorization header" },
         { status: 401 }
       )
@@ -120,7 +155,7 @@ export async function POST(request: NextRequest) {
     const apiKey = authHeader.replace("Bearer ", "").trim()
 
     if (!apiKey.startsWith("lb_") || apiKey.length !== 35) {
-      return NextResponse.json(
+      return json(
         { error: "Invalid API key format" },
         { status: 401 }
       )
@@ -131,7 +166,7 @@ export async function POST(request: NextRequest) {
     const { minutes_used } = body
 
     if (typeof minutes_used !== "number" || minutes_used <= 0) {
-      return NextResponse.json(
+      return json(
         { error: "Invalid minutes_used value" },
         { status: 400 }
       )
@@ -147,7 +182,7 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (lookupError || !profile) {
-      return NextResponse.json(
+      return json(
         { error: "Invalid API key" },
         { status: 401 }
       )
@@ -162,13 +197,13 @@ export async function POST(request: NextRequest) {
     const totalAvailable = subscriptionMinutesRemaining + topupMinutes
 
     if (minutes_used > totalAvailable) {
-      return NextResponse.json(
+      return json(
         {
           error: "Insufficient minutes",
           available: totalAvailable,
           requested: minutes_used
         },
-        { status: 402 } // Payment Required
+        { status: 402 }
       )
     }
 
@@ -201,7 +236,7 @@ export async function POST(request: NextRequest) {
 
     if (updateError) {
       console.error("Failed to update minutes:", updateError)
-      return NextResponse.json(
+      return json(
         { error: "Failed to update minutes" },
         { status: 500 }
       )
@@ -213,7 +248,7 @@ export async function POST(request: NextRequest) {
       (profile.listening_minutes_limit || 0) - newSubscriptionUsed
     )
 
-    return NextResponse.json({
+    return json({
       success: true,
       minutes_deducted: minutes_used,
       minutes: {
@@ -224,7 +259,7 @@ export async function POST(request: NextRequest) {
     })
   } catch (error) {
     console.error("Plugin minutes deduction error:", error)
-    return NextResponse.json(
+    return json(
       { error: "Internal server error" },
       { status: 500 }
     )

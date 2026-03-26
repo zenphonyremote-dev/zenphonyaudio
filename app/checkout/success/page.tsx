@@ -21,6 +21,7 @@ function SuccessContent() {
   const [verifyMessage, setVerifyMessage] = useState<string>("")
 
   useEffect(() => {
+    let aborted = false
     const session = searchParams.get("session_id")
     const type = searchParams.get("type") as "subscription" | "topup"
 
@@ -38,8 +39,14 @@ function SuccessContent() {
         .then(async (data) => {
           if (data.success) {
             setVerifyStatus("success")
-            // Refresh the auth context profile so navigating to /profile shows updated plan
+            // Refresh profile — the verify endpoint already updated Supabase directly,
+            // so one refresh should be sufficient. Poll briefly as fallback.
             await refreshProfile()
+            // Poll up to 3 times (1.5s apart), stop early if plan matches
+            for (let i = 0; i < 3; i++) {
+              await new Promise((r) => setTimeout(r, 1500))
+              if (!aborted) await refreshProfile()
+            }
             if (data.type === "subscription") {
               setVerifyMessage(`Successfully upgraded to ${data.plan} plan!`)
             } else {
@@ -62,6 +69,8 @@ function SuccessContent() {
       // No session ID, redirect to pricing
       router.push("/products/listen-buddy#pricing")
     }
+
+    return () => { aborted = true }
   }, [searchParams, router])
 
   if (loading) {

@@ -104,3 +104,19 @@
 2026-01-20 00:16:18,807 - src.keyboard_controller - INFO - KeyboardController initialized
 2026-01-20 00:16:18,819 - src.screen_controller - INFO - Screenshot: mss available (will create instance per-call for thread safety)
 2026-01-20 00:16:43,092 - windows-computer-use-mcp - WARNING - System does not support hook registration. Manual hook checking required.
+2026-02-02 01:18:39,231 - windows-computer-use-mcp - INFO - Starting Windows Computer Use MCP Server...
+2026-02-02 01:18:39,231 - windows-computer-use-mcp - INFO - Pre-initializing system and warming up models...
+2026-02-02 01:18:39,239 - src.computer_use_system - INFO - Initializing ComputerUseSystem...
+2026-02-02 01:18:39,239 - src.mouse_controller - INFO - DPI Awareness: Per-Monitor V2
+2026-02-02 01:18:39,239 - src.mouse_controller - INFO - MouseController initialized
+2026-02-02 01:18:39,239 - src.keyboard_controller - INFO - KeyboardController initialized
+2026-02-02 01:18:39,255 - src.screen_controller - INFO - Screenshot: mss available (will create instance per-call for thread safety)
+2026-02-02 01:19:06,458 - windows-computer-use-mcp - WARNING - System does not support hook registration. Manual hook checking required.
+2026-02-02 03:17:53,289 - windows-computer-use-mcp - INFO - Starting Windows Computer Use MCP Server...
+2026-02-02 03:17:53,289 - windows-computer-use-mcp - INFO - Pre-initializing system and warming up models...
+2026-02-02 03:17:53,289 - src.computer_use_system - INFO - Initializing ComputerUseSystem...
+2026-02-02 03:17:53,289 - src.mouse_controller - INFO - DPI Awareness: Per-Monitor V2
+2026-02-02 03:17:53,289 - src.mouse_controller - INFO - MouseController initialized
+2026-02-02 03:17:53,289 - src.keyboard_controller - INFO - KeyboardController initialized
+2026-02-02 03:17:53,308 - src.screen_controller - INFO - Screenshot: mss available (will create instance per-call for thread safety)
+2026-02-02 03:18:09,130 - windows-computer-use-mcp - WARNING - System does not support hook registration. Manual hook checking required.
