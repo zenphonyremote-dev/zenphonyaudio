@@ -100,10 +100,14 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Get user from auth
-    const { data: { user }, error: userError } = await admin.auth.admin.getUserById(user_id)
+    // Get user from Better Auth user table
+    const { data: authUser, error: userError } = await admin
+      .from("user")
+      .select("id, email")
+      .eq("id", user_id)
+      .single()
 
-    if (userError || !user) {
+    if (userError || !authUser) {
       console.error("[validate-session] Auth user not found for user_id:", user_id, "| Error:", userError?.message)
       return NextResponse.json(
         { error: "User not found", valid: false },
@@ -111,13 +115,13 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    console.log("[validate-session] Session valid for user:", user.email)
+    console.log("[validate-session] Session valid for user:", authUser.email)
 
     return NextResponse.json({
       valid: true,
       user: {
-        id: user.id,
-        email: user.email,
+        id: authUser.id,
+        email: authUser.email,
         full_name: profile?.full_name || null,
         avatar_url: profile?.avatar_url || null,
         subscription_tier: profile?.subscription_tier || "free",

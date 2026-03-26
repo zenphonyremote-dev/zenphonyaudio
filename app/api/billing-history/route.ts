@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import Stripe from 'stripe'
-import { createClient } from '@/lib/supabase/server'
+import { getAuthUser } from '@/lib/auth-helpers'
 import { createClient as createAdminClient } from '@supabase/supabase-js'
 
 const stripe = process.env.STRIPE_SECRET_KEY
@@ -11,16 +11,16 @@ const stripe = process.env.STRIPE_SECRET_KEY
 
 export async function GET() {
   try {
-    const supabase = await createClient()
-
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser()
+    const { user, error: authError } = await getAuthUser()
 
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
+
+    const supabase = createAdminClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    )
 
     // Check for existing billing events
     const { data: events, error: eventsError } = await supabase

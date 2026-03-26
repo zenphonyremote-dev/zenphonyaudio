@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { createClient } from "@/lib/supabase/server"
+import { auth } from "@/lib/auth"
 import { createClient as createAdminClient, SupabaseClient } from "@supabase/supabase-js"
 import crypto from "crypto"
 
@@ -22,17 +22,20 @@ function getSupabaseAdmin() {
 
 export async function POST(request: NextRequest) {
   try {
-    // Get the logged-in user from session
-    const supabase = await createClient()
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    // Get the logged-in user from Better Auth session
+    const session = await auth.api.getSession({
+      headers: request.headers,
+    })
 
-    if (authError || !user) {
-      console.error("[generate-token] Auth failed:", authError?.message || "No user session")
+    if (!session?.user) {
+      console.error("[generate-token] Auth failed: No user session")
       return NextResponse.json(
         { error: "Not authenticated. Please log in first." },
         { status: 401 }
       )
     }
+
+    const user = session.user
 
     console.log("[generate-token] Generating token for user:", user.id, user.email)
 

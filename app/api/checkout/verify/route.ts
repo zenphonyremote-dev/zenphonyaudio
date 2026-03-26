@@ -43,15 +43,19 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'No email found in session' }, { status: 400 })
     }
 
-    // Find user by email
-    const { data: { users }, error: listError } = await supabase.auth.admin.listUsers()
+    // Find user by email in Better Auth user table
+    const { data: users, error: listError } = await supabase
+      .from('user')
+      .select('id, email')
+      .eq('email', email)
+      .limit(1)
 
     if (listError) {
-      console.error('Error listing users:', listError)
+      console.error('Error finding user:', listError)
       return NextResponse.json({ error: 'Failed to find user' }, { status: 500 })
     }
 
-    const user = users.find(u => u.email === email)
+    const user = users?.[0]
 
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 })

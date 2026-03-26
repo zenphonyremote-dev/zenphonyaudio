@@ -4,11 +4,11 @@ import type React from "react"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft, Lock, Eye, EyeOff, Loader2, CheckCircle2 } from "lucide-react"
 import Link from "next/link"
-import { useState, useEffect, useRef } from "react"
+import { useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { ZenphonyLogo } from "@/components/zenphony-logo"
 import { Aurora } from "@/components/aurora"
-import { createClient } from "@/lib/supabase/client"
+import { authClient } from "@/lib/auth-client"
 import { Suspense } from "react"
 
 function ResetPasswordForm() {
@@ -21,163 +21,9 @@ function ResetPasswordForm() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
-  const [isValidSession, setIsValidSession] = useState<boolean | null>(null)
-  const sessionResolvedRef = useRef(false)
-  const supabaseRef = useRef(createClient())
 
-  // Wrapper that tracks when session validity is determined
-  const markSessionValid = () => {
-    sessionResolvedRef.current = true
-    setIsValidSession(true)
-  }
-  const markSessionInvalid = () => {
-    sessionResolvedRef.current = true
-    setIsValidSession(false)
-  }
-
-  useEffect(() => {
-    const supabase = supabaseRef.current
-
-    const verifyAndSetupSession = async () => {
-      const code = searchParams.get('code')
-      const tokenHash = searchParams.get('token_hash')
-      const type = searchParams.get('type')
-      const errorParam = searchParams.get('error')
-      const errorDescription = searchParams.get('error_description')
-
-      console.log('[ResetPassword] URL params:', { code: !!code, tokenHash: !!tokenHash, type, error: errorParam })
-
-      // Handle error from Supabase
-      if (errorParam) {
-        console.error('[ResetPassword] Error from URL:', errorDescription || errorParam)
-        setError(errorDescription || errorParam)
-        markSessionInvalid()
-        return
-      }
-
-      // Check if we already have a valid session (code may have already been exchanged)
-      const { data: { session: existingSession } } = await supabase.auth.getSession()
-
-      if (existingSession) {
-        const amr = existingSession.user?.amr || []
-        const isRecoverySession = amr.some((a: { method: string }) => a.method === 'recovery' || a.method === 'otp')
-        const recentRecovery = existingSession.user?.recovery_sent_at &&
-          (new Date().getTime() - new Date(existingSession.user.recovery_sent_at).getTime()) < 10 * 60 * 1000
-
-        console.log('[ResetPassword] Found existing session:', {
-          email: existingSession.user?.email,
-          isRecoverySession,
-          recentRecovery,
-        })
-
-        if (isRecoverySession || recentRecovery) {
-          console.log('[ResetPassword] Valid recovery session exists')
-          markSessionValid()
-          return
-        }
-      }
-
-      // If we have a code (PKCE flow), exchange it with a timeout
-      if (code) {
-        console.log('[ResetPassword] Exchanging code for session...')
-
-        try {
-          // Race the exchange against a 10-second timeout
-          // exchangeCodeForSession can hang indefinitely when PKCE verifier is missing
-          const exchangePromise = supabase.auth.exchangeCodeForSession(code)
-          const timeoutPromise = new Promise<never>((_, reject) =>
-            setTimeout(() => reject(new Error('timeout')), 10000)
-          )
-
-          const result = await Promise.race([exchangePromise, timeoutPromise])
-          const { data, error: exchangeError } = result
-
-          if (exchangeError) {
-            console.error('[ResetPassword] Code exchange error:', exchangeError.message)
-            // Don't mark invalid yet — onAuthStateChange may have already fired SIGNED_IN
-            if (!sessionResolvedRef.current) {
-              setError(exchangeError.message)
-              markSessionInvalid()
-            }
-            return
-          }
-
-          console.log('[ResetPassword] Code exchanged successfully, user:', data.user?.email)
-          markSessionValid()
-          return
-        } catch (err: any) {
-          console.warn('[ResetPassword] Code exchange timed out or failed:', err?.message)
-          // If onAuthStateChange already set the session valid, don't override
-          if (sessionResolvedRef.current) {
-            console.log('[ResetPassword] Session already resolved via auth state change, ignoring exchange failure')
-            return
-          }
-          // Wait a beat — onAuthStateChange may fire right after
-          await new Promise(r => setTimeout(r, 1000))
-          if (sessionResolvedRef.current) {
-            console.log('[ResetPassword] Session resolved via auth state change after wait')
-            return
-          }
-          setError('Failed to verify reset code. Please request a new link.')
-          markSessionInvalid()
-          return
-        }
-      }
-
-      // If we have a token_hash (magic link flow), verify it
-      if (tokenHash && type) {
-        const { error: verifyError } = await supabase.auth.verifyOtp({
-          type: type as any,
-          token_hash: tokenHash,
-        })
-
-        if (verifyError) {
-          console.error('[ResetPassword] Token verification error:', verifyError)
-          setError(verifyError.message)
-          markSessionInvalid()
-          return
-        }
-
-        markSessionValid()
-        return
-      }
-
-      // Final fallback: check session one more time
-      const { data: { session } } = await supabase.auth.getSession()
-      if (session) {
-        markSessionValid()
-        return
-      }
-
-      console.log('[ResetPassword] No valid auth method found')
-      markSessionInvalid()
-    }
-
-    // Safety-net timeout — only fires if nothing else resolved the session
-    const timeout = setTimeout(() => {
-      if (!sessionResolvedRef.current) {
-        console.log('[ResetPassword] Safety timeout reached, marking invalid')
-        markSessionInvalid()
-      }
-    }, 30000)
-
-    verifyAndSetupSession()
-
-    // Listen for auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        console.log('[ResetPassword] Auth state change:', event)
-        if (event === 'PASSWORD_RECOVERY' || event === 'SIGNED_IN') {
-          markSessionValid()
-        }
-      }
-    )
-
-    return () => {
-      subscription.unsubscribe()
-      clearTimeout(timeout)
-    }
-  }, [searchParams])
+  // Better Auth passes the token in the URL
+  const token = searchParams.get("token")
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -192,57 +38,32 @@ function ResetPasswordForm() {
       return
     }
 
+    if (!token) {
+      setError("Invalid or missing reset token. Please request a new link.")
+      return
+    }
+
     setError(null)
     setLoading(true)
 
     try {
-      const supabase = supabaseRef.current
-
-      // Get the current session's access token
-      const { data: { session } } = await supabase.auth.getSession()
-      console.log('[ResetPassword] Session for update:', {
-        hasSession: !!session,
-        email: session?.user?.email,
+      const { error } = await authClient.resetPassword({
+        newPassword: password,
+        token,
       })
 
-      if (!session?.access_token) {
-        setError("Your session has expired. Please request a new password reset link.")
+      if (error) {
+        setError(error.message || "Failed to reset password")
         setLoading(false)
         return
       }
 
-      // Bypass the SDK's updateUser which hangs with PKCE sessions.
-      // Call the Supabase Auth REST API directly.
-      console.log('[ResetPassword] Updating password via REST API...')
-      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-      const res = await fetch(`${supabaseUrl}/auth/v1/user`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`,
-          'apikey': process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-        },
-        body: JSON.stringify({ password }),
-      })
-
-      const data = await res.json()
-      console.log('[ResetPassword] REST API response:', { status: res.status, hasId: !!data?.id })
-
-      if (!res.ok) {
-        setError(data?.message || data?.msg || 'Failed to update password')
-        setLoading(false)
-        return
-      }
-
-      console.log('[ResetPassword] Password updated successfully!')
-      await supabase.auth.signOut().catch(() => {})
       setSuccess(true)
       setLoading(false)
       setTimeout(() => {
         router.push("/login")
       }, 3000)
     } catch (err: any) {
-      console.error('[ResetPassword] Error:', err?.message)
       setError(err?.message || "An unexpected error occurred. Please try again.")
       setLoading(false)
     }
@@ -291,8 +112,8 @@ function ResetPasswordForm() {
     )
   }
 
-  // Invalid session state
-  if (isValidSession === false) {
+  // No token = invalid link
+  if (!token) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center px-4 sm:px-6 lg:px-8 relative overflow-hidden">
         <Aurora />
@@ -344,18 +165,6 @@ function ResetPasswordForm() {
               </Link>
             </div>
           </div>
-        </div>
-      </div>
-    )
-  }
-
-  // Loading state while checking session
-  if (isValidSession === null) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center px-4 sm:px-6 lg:px-8 relative overflow-hidden">
-        <Aurora />
-        <div className="relative z-10">
-          <Loader2 className="w-8 h-8 animate-spin text-violet" />
         </div>
       </div>
     )

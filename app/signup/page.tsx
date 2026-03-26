@@ -7,7 +7,7 @@ import Link from "next/link"
 import { useState, useEffect } from "react"
 import { ZenphonyLogo } from "@/components/zenphony-logo"
 import { Aurora } from "@/components/aurora"
-import { createClient } from "@/lib/supabase/client"
+import { authClient } from "@/lib/auth-client"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
 
@@ -65,46 +65,24 @@ export default function SignupPage() {
     setLoading(true)
 
     try {
-      const supabase = createClient()
-      console.log('[Signup] Attempting to sign up with:', { email, name })
-      
-      const redirectUrl = `${process.env.NEXT_PUBLIC_BASE_URL || window.location.origin}/auth/callback`
-      console.log('[Signup] Using redirect URL:', redirectUrl)
-      
-      const { data, error } = await supabase.auth.signUp({
+      const { error } = await authClient.signUp.email({
         email,
         password,
-        options: {
-          emailRedirectTo: redirectUrl,
-          data: {
-            full_name: name,
-          },
-        },
+        name: name || email.split("@")[0],
       })
 
-      console.log('[Signup] Sign up result:', { data, error })
-
       if (error) {
-        console.error('[Signup] Sign up error:', error)
-        
-        // Check if email is already registered
-        if (error.message.includes("already been registered") ||
-            error.message.includes("already registered") ||
-            error.message.includes("User already registered")) {
+        const msg = error.message || ""
+        if (msg.includes("already") || msg.includes("exists")) {
           setError("Email is already registered. Please sign in instead.")
-        } else if (error.message.includes("Email rate limit") || error.message.includes("rate limit")) {
-          setError("Too many sign-up attempts. Please wait a few minutes and try again.")
-        } else if (error.message.includes("Email not confirmed")) {
-          setError("Please check your email for a confirmation link to activate your account.")
         } else {
-          setError(error.message || "An error occurred during sign up. Please try again.")
+          setError(msg || "An error occurred during sign up. Please try again.")
         }
         return
       }
 
-      console.log('[Signup] Sign up successful, redirecting to success page')
-      // Success - redirect to check email page
-      router.push("/signup/success")
+      // Success - redirect to profile (user is auto-signed in)
+      router.push("/profile")
     } catch (err) {
       console.error('[Signup] Unexpected error:', err)
       setError("An unexpected error occurred. Please try again.")
@@ -317,13 +295,9 @@ export default function SignupPage() {
                 setLoading(true)
                 setError("")
                 try {
-                  const supabase = createClient()
-                  const redirectUrl = `${process.env.NEXT_PUBLIC_BASE_URL || window.location.origin}/auth/callback`
-                  const { error } = await supabase.auth.signInWithOAuth({
-                    provider: 'google',
-                    options: {
-                      redirectTo: redirectUrl,
-                    },
+                  const { error } = await authClient.signIn.social({
+                    provider: "google",
+                    callbackURL: "/profile",
                   })
                   if (error) {
                     setError(error.message || "Failed to sign up with Google")

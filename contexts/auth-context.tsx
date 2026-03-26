@@ -1,14 +1,14 @@
 "use client"
 
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
-import { createClient } from '@/lib/supabase/client'
-import { User, Session } from '@supabase/supabase-js'
-import { Profile } from '@/lib/supabase/database.types'
+import { createContext, useContext, useEffect, useState, useCallback, ReactNode } from "react"
+import { authClient, useSession } from "@/lib/auth-client"
+import { createClient } from "@/lib/supabase/client"
+import { Profile } from "@/lib/supabase/database.types"
 
 interface AuthContextType {
-  user: User | null
+  user: { id: string; email: string; name: string; image: string | null } | null
   profile: Profile | null
-  session: Session | null
+  session: { token: string } | null
   loading: boolean
   signUp: (email: string, password: string, name?: string) => Promise<{ error: Error | null }>
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>
@@ -21,182 +21,103 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null)
+  const { data: sessionData, isPending } = useSession()
   const [profile, setProfile] = useState<Profile | null>(null)
-  const [session, setSession] = useState<Session | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [profileLoading, setProfileLoading] = useState(false)
   const supabase = createClient()
 
-  const fetchProfile = async (userId: string) => {
+  const user = sessionData?.user
+    ? {
+        id: sessionData.user.id,
+        email: sessionData.user.email,
+        name: sessionData.user.name,
+        image: sessionData.user.image ?? null,
+      }
+    : null
+
+  const session = sessionData?.session
+    ? { token: sessionData.session.token }
+    : null
+
+  const fetchProfile = useCallback(async (userId: string) => {
     const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', userId)
+      .from("profiles")
+      .select("*")
+      .eq("id", userId)
       .single()
 
     if (error) {
-      console.error('Error fetching profile:', error)
+      console.error("Error fetching profile:", error)
       return null
     }
     return data as Profile
-  }
+  }, [supabase])
 
-  // Fetch profile whenever the user changes.
-  // Decoupled from onAuthStateChange to avoid a deadlock:
-  // _notifyAllSubscribers awaits all callbacks, and if the callback calls
-  // supabase.from().select() (which internally calls getSession() →
-  // await initializePromise), it deadlocks when triggered during initialization.
+  // Fetch profile whenever user changes
   useEffect(() => {
-    if (user) {
-      fetchProfile(user.id).then((profileData) => {
-        setProfile(profileData)
+    if (user?.id && !profile) {
+      setProfileLoading(true)
+      fetchProfile(user.id).then((p) => {
+        setProfile(p)
+        setProfileLoading(false)
       })
-    } else {
+    }
+    if (!user) {
       setProfile(null)
     }
   }, [user?.id])
 
-  useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session)
-      setUser(session?.user ?? null)
-      setLoading(false)
-    }).catch((err) => {
-      console.error('[AuthContext] Error getting session:', err)
-      setLoading(false)
-    })
-
-    // Listen for auth changes — intentionally NOT async to avoid deadlock.
-    // The Supabase auth-js _notifyAllSubscribers() awaits all onAuthStateChange
-    // callbacks. If this callback were async and called fetchProfile() (which
-    // triggers getSession() internally), it would deadlock during initialization
-    // because getSession() awaits initializePromise, which can't resolve until
-    // _notifyAllSubscribers completes.
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setSession(session)
-        setUser(session?.user ?? null)
-        if (!session?.user) {
-          setProfile(null)
-        }
-        setLoading(false)
-      }
-    )
-
-    return () => subscription.unsubscribe()
-  }, [])
-
-  const signUp = async (email: string, password: string, name?: string) => {
-    const redirectUrl = `${process.env.NEXT_PUBLIC_BASE_URL || window.location.origin}/auth/callback`
-    console.log('[AuthContext] signUp redirect URL:', redirectUrl)
-    
-    const { error } = await supabase.auth.signUp({
+  const handleSignUp = async (email: string, password: string, name?: string) => {
+    const { error } = await authClient.signUp.email({
       email,
       password,
-      options: {
-        emailRedirectTo: redirectUrl,
-        data: {
-          full_name: name,
-        },
-      },
+      name: name || email.split("@")[0],
     })
-    return { error }
+    if (error) return { error: new Error(error.message ?? "Sign up failed") }
+    return { error: null }
   }
 
-  const signIn = async (email: string, password: string) => {
-    console.log('[AuthContext] signIn called with:', { email })
-    console.log('[AuthContext] Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL)
-    
-    const { data, error } = await supabase.auth.signInWithPassword({
+  const handleSignIn = async (email: string, password: string) => {
+    const { error } = await authClient.signIn.email({
       email,
       password,
     })
-    
-    console.log('[AuthContext] signIn result:', { error, hasSession: !!data?.session })
-    
-    if (error) {
-      console.error('[AuthContext] Sign in error details:', {
-        message: error.message,
-        status: error.status,
-        name: error.name
-      })
-    }
-    
-    return { error }
+    if (error) return { error: new Error(error.message ?? "Sign in failed") }
+    return { error: null }
   }
 
-  const signInWithGoogle = async () => {
-    try {
-      const redirectUrl = `${process.env.NEXT_PUBLIC_BASE_URL || window.location.origin}/auth/callback`
-      console.log('[AuthContext] Google OAuth redirect URL:', redirectUrl)
-      
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: redirectUrl,
-        },
-      })
-      return { error }
-    } catch (err) {
-      console.error('Google sign-in error:', err)
-      return { error: err as Error }
-    }
+  const handleSignInWithGoogle = async () => {
+    const { error } = await authClient.signIn.social({
+      provider: "google",
+      callbackURL: "/profile",
+    })
+    if (error) return { error: new Error(error.message ?? "Google sign in failed") }
+    return { error: null }
   }
 
-  const signOut = async () => {
-    console.log('[AuthContext] signOut called')
-
-    // Clear local auth state immediately so UI updates and callers can redirect
-    setUser(null)
-    setSession(null)
+  const handleSignOut = async () => {
     setProfile(null)
-
-    // Fire signOut but don't block on it — the Supabase client can hang.
-    // Use a short timeout so we always resolve even if the SDK stalls.
-    try {
-      const timeout = new Promise<void>((resolve) => setTimeout(resolve, 2000))
-      await Promise.race([
-        supabase.auth.signOut({ scope: 'local' }).then(() => {
-          console.log('[AuthContext] signOut successful')
-        }),
-        timeout,
-      ])
-    } catch (err) {
-      console.error('[AuthContext] signOut exception:', err)
-    }
-
-    // Forcefully clear all Supabase auth cookies regardless of whether signOut
-    // completed or timed out. Without this, the middleware will find valid cookies
-    // on the next request, refresh the session, and the user appears logged back in.
-    document.cookie.split(';').forEach((cookie) => {
-      const name = cookie.split('=')[0].trim()
-      if (name.startsWith('sb-')) {
-        document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`
-      }
-    })
-    console.log('[AuthContext] Supabase cookies cleared')
+    await authClient.signOut()
   }
 
-  const updateProfile = async (updates: Partial<Profile>) => {
-    if (!user) return { error: new Error('No user logged in') }
+  const handleUpdateProfile = async (updates: Partial<Profile>) => {
+    if (!user) return { error: new Error("No user logged in") }
 
     const { error } = await supabase
-      .from('profiles')
+      .from("profiles")
       .update(updates)
-      .eq('id', user.id)
+      .eq("id", user.id)
 
     if (!error) {
-      // Refresh profile data
       const profileData = await fetchProfile(user.id)
       setProfile(profileData)
     }
 
-    return { error }
+    return { error: error ? new Error(error.message) : null }
   }
 
-  const refreshProfile = async () => {
-    if (user) {
+  const handleRefreshProfile = async () => {
+    if (user?.id) {
       const profileData = await fetchProfile(user.id)
       setProfile(profileData)
     }
@@ -208,13 +129,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         user,
         profile,
         session,
-        loading,
-        signUp,
-        signIn,
-        signInWithGoogle,
-        signOut,
-        updateProfile,
-        refreshProfile,
+        loading: isPending || profileLoading,
+        signUp: handleSignUp,
+        signIn: handleSignIn,
+        signInWithGoogle: handleSignInWithGoogle,
+        signOut: handleSignOut,
+        updateProfile: handleUpdateProfile,
+        refreshProfile: handleRefreshProfile,
       }}
     >
       {children}
@@ -225,7 +146,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 export function useAuth() {
   const context = useContext(AuthContext)
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider')
+    throw new Error("useAuth must be used within an AuthProvider")
   }
   return context
 }

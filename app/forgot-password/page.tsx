@@ -7,7 +7,7 @@ import Link from "next/link"
 import { useState, useEffect } from "react"
 import { ZenphonyLogo } from "@/components/zenphony-logo"
 import { Aurora } from "@/components/aurora"
-import { createClient } from "@/lib/supabase/client"
+import { authClient } from "@/lib/auth-client"
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("")
@@ -45,33 +45,21 @@ export default function ForgotPasswordPage() {
     setLoading(true)
 
     try {
-      const supabase = createClient()
-      // Redirect directly to reset-password - it will handle the code exchange
-      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || window.location.origin
-      const redirectUrl = `${baseUrl}/reset-password`
-
-      console.log('[ForgotPassword] Sending reset email with redirect:', redirectUrl)
-
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: redirectUrl,
+      const { error } = await authClient.forgetPassword({
+        email,
+        redirectTo: "/reset-password",
       })
 
       if (error) {
-        console.log('[ForgotPassword] Error:', error.message, error)
-
-        // Check for rate limit error
-        const errorMsg = error.message?.toLowerCase() || ''
+        const errorMsg = (error.message || "").toLowerCase()
         const isRateLimit = errorMsg.includes('rate limit') ||
-                           errorMsg.includes('rate_limit') ||
-                           errorMsg.includes('too many') ||
-                           errorMsg.includes('exceeded') ||
-                           error.status === 429
+                           errorMsg.includes('too many')
 
         if (isRateLimit) {
           setError("Email rate limit exceeded. Please wait before trying again.")
-          setRateLimitCountdown(60) // Supabase default: 60 seconds between emails
+          setRateLimitCountdown(60)
         } else {
-          setError(error.message)
+          setError(error.message || "Failed to send reset email")
         }
       } else {
         setSuccess(true)

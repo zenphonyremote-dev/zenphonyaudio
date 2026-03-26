@@ -61,15 +61,19 @@ export async function POST(request: NextRequest) {
         break
       }
 
-      // Find user by email
-      const { data: { users }, error: listError } = await supabase.auth.admin.listUsers()
+      // Find user by email in Better Auth user table
+      const { data: users, error: listError } = await supabase
+        .from('user')
+        .select('id, email')
+        .eq('email', email)
+        .limit(1)
 
       if (listError) {
-        console.error('Error listing users:', listError)
+        console.error('Error finding user:', listError)
         break
       }
 
-      const user = users.find(u => u.email === email)
+      const user = users?.[0]
 
       if (!user) {
         console.error('User not found for email:', email)
