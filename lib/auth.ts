@@ -1,6 +1,5 @@
 import { betterAuth } from "better-auth"
 import { nextCookies } from "better-auth/next-js"
-import { dash } from "@better-auth/infra"
 import { Pool } from "pg"
 import { Resend } from "resend"
 
@@ -53,12 +52,16 @@ export const auth = betterAuth({
     },
   },
 
-  socialProviders: {
-    google: {
-      clientId: process.env.GOOGLE_CLIENT_ID!,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-    },
-  },
+  ...(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET
+    ? {
+        socialProviders: {
+          google: {
+            clientId: process.env.GOOGLE_CLIENT_ID,
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+          },
+        },
+      }
+    : {}),
 
   session: {
     expiresIn: 60 * 60 * 24 * 30, // 30 days
@@ -73,7 +76,7 @@ export const auth = betterAuth({
     process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3005",
   ],
 
-  plugins: [nextCookies(), dash()],
+  plugins: [nextCookies()],
 })
 
 export type Session = typeof auth.$Infer.Session

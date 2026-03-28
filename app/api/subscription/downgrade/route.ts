@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
-import { createClient } from '@/lib/supabase/server'
+import { getAuthUser } from '@/lib/auth-helpers'
 import { createClient as createAdminClient } from '@supabase/supabase-js'
 
 const stripe = process.env.STRIPE_SECRET_KEY
@@ -34,11 +34,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid target plan' }, { status: 400 })
     }
 
-    const supabase = await createClient()
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser()
+    const { user, error: authError } = await getAuthUser()
 
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
