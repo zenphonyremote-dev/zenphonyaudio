@@ -5,13 +5,9 @@ import { Resend } from "resend"
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
-// MUST use direct connection — Supabase pooler (transaction mode) breaks pg prepared statements
-const dbUrl = process.env.DATABASE_DIRECT_URL
-if (!dbUrl) {
-  console.error("[Better Auth] FATAL: DATABASE_DIRECT_URL is not set! Falling back to DATABASE_URL which will likely fail with pooler.")
-}
-const finalDbUrl = dbUrl || process.env.DATABASE_URL
-console.log("[Better Auth] DB connection using:", dbUrl ? "DATABASE_DIRECT_URL" : "DATABASE_URL (fallback)", "host:", finalDbUrl?.split("@")[1]?.split("/")[0] || "unknown")
+// Direct connection to Supabase PostgreSQL — pooler breaks pg prepared statements
+const finalDbUrl = process.env.DATABASE_DIRECT_URL
+console.log("[Better Auth] DB connection:", finalDbUrl ? "DATABASE_DIRECT_URL set" : "MISSING!", "host:", finalDbUrl?.split("@")[1]?.split("/")[0] || "unknown")
 
 export const auth = betterAuth({
   database: new Pool({
