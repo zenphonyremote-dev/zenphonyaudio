@@ -5,9 +5,9 @@ import { Resend } from "resend"
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
-// Use session mode (port 6543) for Supabase pooler — transaction mode (5432)
-// doesn't support prepared statements needed by the pg driver
-const dbUrl = (process.env.DATABASE_URL || "").replace(":5432/", ":6543/")
+// Use direct connection for Better Auth — the Supabase pooler (transaction mode)
+// doesn't work with pg driver's prepared statements
+const dbUrl = process.env.DATABASE_DIRECT_URL || process.env.DATABASE_URL
 
 export const auth = betterAuth({
   database: new Pool({
