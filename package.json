@@ -17,8 +17,6 @@
     "dev:scheduler": "cd notifications && npm run dev:scheduler"
   },
   "dependencies": {
-    "@better-auth/infra": "^0.1.13",
-    "@better-auth/sso": "^1.5.6",
     "@hookform/resolvers": "^3.10.0",
     "@libsql/client": "^0.17.0",
     "@radix-ui/react-accordion": "1.2.2",
