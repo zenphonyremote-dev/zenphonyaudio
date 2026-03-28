@@ -1,6 +1,5 @@
 import { betterAuth } from "better-auth"
 import { nextCookies } from "better-auth/next-js"
-import { dash } from "@better-auth/infra"
 import { Pool } from "pg"
 import { Resend } from "resend"
 
@@ -82,7 +81,7 @@ export const auth = betterAuth({
     process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3005",
   ],
 
-  plugins: [nextCookies(), dash()],
+  plugins: [nextCookies()],
 })
 
 export type Session = typeof auth.$Infer.Session
