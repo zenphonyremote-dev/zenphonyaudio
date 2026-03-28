@@ -4,76 +4,92 @@ import { dash } from "@better-auth/infra"
 import { Pool } from "pg"
 import { Resend } from "resend"
 
-const resend = new Resend(process.env.RESEND_API_KEY)
+let _resend: Resend | null = null
+function getResend() {
+  if (!_resend) _resend = new Resend(process.env.RESEND_API_KEY)
+  return _resend
+}
 
-export const auth = betterAuth({
-  database: new Pool({
-    connectionString: process.env.DATABASE_URL,
-  }),
+let _auth: ReturnType<typeof betterAuth> | null = null
 
-  emailAndPassword: {
-    enabled: true,
-    minPasswordLength: 8,
-    requireEmailVerification: true,
+function createAuth() {
+  return betterAuth({
+    database: new Pool({
+      connectionString: process.env.DATABASE_URL,
+    }),
 
-    sendVerificationEmail: async ({ user, url }) => {
-      await resend.emails.send({
-        from: "Zenphony Audio <onboarding@resend.dev>",
-        to: user.email,
-        subject: "Verify your email - Zenphony Audio",
-        html: `
-          <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto; padding: 40px 20px;">
-            <h2 style="color: #fff; margin-bottom: 8px;">Welcome to Zenphony Audio</h2>
-            <p style="color: #aaa; margin-bottom: 24px;">Click the button below to verify your email address.</p>
-            <a href="${url}" style="display: inline-block; background: linear-gradient(135deg, #7c3aed, #c026d3); color: #fff; padding: 14px 32px; border-radius: 12px; text-decoration: none; font-weight: 600;">
-              Verify Email
-            </a>
-            <p style="color: #666; font-size: 12px; margin-top: 32px;">If you didn't create an account, you can safely ignore this email.</p>
-          </div>
-        `,
-      })
-    },
-
-    sendResetPassword: async ({ user, url }) => {
-      await resend.emails.send({
-        from: "Zenphony Audio <onboarding@resend.dev>",
-        to: user.email,
-        subject: "Reset your password - Zenphony Audio",
-        html: `
-          <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto; padding: 40px 20px;">
-            <h2 style="color: #fff; margin-bottom: 8px;">Reset your password</h2>
-            <p style="color: #aaa; margin-bottom: 24px;">Click the button below to set a new password for your account.</p>
-            <a href="${url}" style="display: inline-block; background: linear-gradient(135deg, #7c3aed, #c026d3); color: #fff; padding: 14px 32px; border-radius: 12px; text-decoration: none; font-weight: 600;">
-              Reset Password
-            </a>
-            <p style="color: #666; font-size: 12px; margin-top: 32px;">If you didn't request this, you can safely ignore this email. The link expires in 1 hour.</p>
-          </div>
-        `,
-      })
-    },
-  },
-
-  socialProviders: {
-    google: {
-      clientId: process.env.GOOGLE_CLIENT_ID!,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-    },
-  },
-
-  session: {
-    expiresIn: 60 * 60 * 24 * 30, // 30 days
-    updateAge: 60 * 60 * 24, // refresh when < 1 day remains
-    cookieCache: {
+    emailAndPassword: {
       enabled: true,
-      maxAge: 60 * 5, // 5 min client-side cookie cache
+      minPasswordLength: 8,
+      requireEmailVerification: true,
+
+      sendVerificationEmail: async ({ user, url }) => {
+        await getResend().emails.send({
+          from: "Zenphony Audio <onboarding@resend.dev>",
+          to: user.email,
+          subject: "Verify your email - Zenphony Audio",
+          html: `
+            <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto; padding: 40px 20px;">
+              <h2 style="color: #fff; margin-bottom: 8px;">Welcome to Zenphony Audio</h2>
+              <p style="color: #aaa; margin-bottom: 24px;">Click the button below to verify your email address.</p>
+              <a href="${url}" style="display: inline-block; background: linear-gradient(135deg, #7c3aed, #c026d3); color: #fff; padding: 14px 32px; border-radius: 12px; text-decoration: none; font-weight: 600;">
+                Verify Email
+              </a>
+              <p style="color: #666; font-size: 12px; margin-top: 32px;">If you didn't create an account, you can safely ignore this email.</p>
+            </div>
+          `,
+        })
+      },
+
+      sendResetPassword: async ({ user, url }) => {
+        await getResend().emails.send({
+          from: "Zenphony Audio <onboarding@resend.dev>",
+          to: user.email,
+          subject: "Reset your password - Zenphony Audio",
+          html: `
+            <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto; padding: 40px 20px;">
+              <h2 style="color: #fff; margin-bottom: 8px;">Reset your password</h2>
+              <p style="color: #aaa; margin-bottom: 24px;">Click the button below to set a new password for your account.</p>
+              <a href="${url}" style="display: inline-block; background: linear-gradient(135deg, #7c3aed, #c026d3); color: #fff; padding: 14px 32px; border-radius: 12px; text-decoration: none; font-weight: 600;">
+                Reset Password
+              </a>
+              <p style="color: #666; font-size: 12px; margin-top: 32px;">If you didn't request this, you can safely ignore this email. The link expires in 1 hour.</p>
+            </div>
+          `,
+        })
+      },
     },
+
+    socialProviders: {
+      google: {
+        clientId: process.env.GOOGLE_CLIENT_ID || "",
+        clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
+      },
+    },
+
+    session: {
+      expiresIn: 60 * 60 * 24 * 30, // 30 days
+      updateAge: 60 * 60 * 24, // refresh when < 1 day remains
+      cookieCache: {
+        enabled: true,
+        maxAge: 60 * 5, // 5 min client-side cookie cache
+      },
+    },
+
+    trustedOrigins: [
+      process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3005",
+    ],
+
+    plugins: [nextCookies(), dash()],
+  })
+}
+
+// Lazy singleton — only initialized at runtime, not build time
+export const auth = new Proxy({} as ReturnType<typeof betterAuth>, {
+  get(_target, prop) {
+    if (!_auth) _auth = createAuth()
+    return (_auth as any)[prop]
   },
-
-  trustedOrigins: [
-    process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3005",
-  ],
-
-  plugins: [nextCookies(), dash()],
 })
 
-export type Session = typeof auth.$Infer.Session
+export type Session = ReturnType<typeof betterAuth>["$Infer"]["Session"]
