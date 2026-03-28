@@ -81,8 +81,8 @@ export default function SignupPage() {
         return
       }
 
-      // Success - redirect to profile (user is auto-signed in)
-      router.push("/profile")
+      // Success - redirect to check email page
+      router.push("/signup/success")
     } catch (err) {
       console.error('[Signup] Unexpected error:', err)
       setError("An unexpected error occurred. Please try again.")

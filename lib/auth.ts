@@ -1,5 +1,6 @@
 import { betterAuth } from "better-auth"
 import { nextCookies } from "better-auth/next-js"
+import { dash } from "@better-auth/infra"
 import { Pool } from "pg"
 import { Resend } from "resend"
 
@@ -18,7 +19,7 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
     minPasswordLength: 8,
-    requireEmailVerification: true,
+    requireEmailVerification: false, // TODO: re-enable once Resend domain is verified
 
     sendVerificationEmail: async ({ user, url }) => {
       await resend.emails.send({
@@ -81,7 +82,7 @@ export const auth = betterAuth({
     process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3005",
   ],
 
-  plugins: [nextCookies()],
+  plugins: [nextCookies(), dash()],
 })
 
 export type Session = typeof auth.$Infer.Session
