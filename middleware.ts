@@ -16,7 +16,17 @@ export async function middleware(request: NextRequest) {
   }
 
   // Check for Better Auth session cookie (lightweight, no DB call)
+  // Try both possible cookie names
   const sessionToken = request.cookies.get("better-auth.session_token")?.value
+    || request.cookies.get("__Secure-better-auth.session_token")?.value
+    || request.cookies.get("better-auth.session")?.value
+    || request.cookies.get("__Secure-better-auth.session")?.value
+
+  // Debug: log all cookie names to find the right one
+  const cookieNames = request.cookies.getAll().map(c => c.name).join(", ")
+  if (pathname === "/profile") {
+    console.log("[Middleware] /profile cookies:", cookieNames, "| session found:", !!sessionToken)
+  }
 
   const isPublicRoute = publicRoutes.some(route =>
     pathname === route || pathname.startsWith(route + "/")
