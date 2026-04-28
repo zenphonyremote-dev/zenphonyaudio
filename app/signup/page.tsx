@@ -6,7 +6,6 @@ import { ArrowLeft, Activity, Eye, EyeOff } from "lucide-react"
 import Link from "next/link"
 import { useState, useEffect } from "react"
 import { ZenphonyLogo } from "@/components/zenphony-logo"
-import { Aurora } from "@/components/aurora"
 import { authClient } from "@/lib/auth-client"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
@@ -51,7 +50,7 @@ export default function SignupPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
-    
+
     if (password !== confirmPassword) {
       setError("Passwords don't match!")
       return
@@ -92,13 +91,18 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center px-4 sm:px-6 lg:px-8 py-12 relative overflow-hidden">
-      <Aurora />
+    <div className="min-h-screen bg-background flex items-center justify-center px-4 sm:px-6 lg:px-8 py-12 relative overflow-hidden lb-aurora">
+
+      {/* Floating glow orb */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] pointer-events-none" style={{
+        background: "radial-gradient(circle, hsla(var(--hue), 90%, 65%, 0.12), transparent 60%)",
+        transform: "translate(calc(-50% + var(--atle-fx)), calc(-50% + var(--atle-fy)))"
+      }} />
 
       {/* Back Button */}
       <Link
         href="/"
-        className="absolute top-8 left-8 flex items-center gap-2 text-muted-foreground hover:text-violet transition-colors z-10"
+        className="absolute top-8 left-8 flex items-center gap-2 text-muted-foreground hover:text-[color:var(--lb-accent)] transition-colors z-10"
       >
         <ArrowLeft className="w-4 h-4" />
         <span>Back to Home</span>
@@ -111,9 +115,9 @@ export default function SignupPage() {
         </div>
 
         {/* Form Card - Glassmorphic with split layout */}
-        <div className="rounded-3xl glass-strong border-glow overflow-hidden flex flex-col md:flex-row">
+        <div className="rounded-3xl lb-glass-strong overflow-hidden flex flex-col md:flex-row">
           {/* Left Side - Image Carousel (50%) */}
-          <div className="w-full md:w-1/2 relative bg-gradient-to-br from-fuchsia-900/50 via-purple-900/30 to-background min-h-[400px] overflow-hidden">
+          <div className="w-full md:w-1/2 relative min-h-[400px] overflow-hidden" style={{ background: "linear-gradient(to bottom right, hsla(var(--hue), 60%, 20%, 0.5), hsla(var(--hue), 40%, 15%, 0.3), var(--background))" }}>
             {/* Images */}
             {signupImages.map((img, index) => (
               <div
@@ -129,15 +133,15 @@ export default function SignupPage() {
                   className="object-cover opacity-60"
                 />
                 {/* Gradient overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent to-background/80" />
+                <div className="absolute inset-0" style={{ background: "linear-gradient(to top, var(--background), color-mix(in srgb, var(--background) 60%, transparent), transparent)" }} />
+                <div className="absolute inset-0" style={{ background: "linear-gradient(to right, transparent, color-mix(in srgb, var(--background) 80%, transparent))" }} />
               </div>
             ))}
 
             {/* Quote overlay */}
             <div className="absolute bottom-0 left-0 right-0 p-8">
               <div className="space-y-3">
-                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-fuchsia-600 to-pink-600 flex items-center justify-center shadow-[0_0_30px_rgba(192,38,211,0.5)]">
+                <div className="w-12 h-12 rounded-2xl flex items-center justify-center lb-talk-btn" style={{ boxShadow: "0 0 30px var(--lb-glow)" }}>
                   <Activity className="w-7 h-7 text-white" />
                 </div>
                 <p className="text-xl font-bold text-white leading-tight">{signupImages[currentImage].quote}</p>
@@ -152,9 +156,10 @@ export default function SignupPage() {
                     onClick={() => setCurrentImage(index)}
                     className={`h-1.5 rounded-full transition-all duration-300 ${
                       index === currentImage
-                        ? "w-8 bg-gradient-to-r from-fuchsia-500 to-pink-500"
+                        ? "w-8"
                         : "w-1.5 bg-white/40 hover:bg-white/60"
                     }`}
+                    style={index === currentImage ? { background: "linear-gradient(90deg, var(--lb-primary), var(--lb-secondary))" } : undefined}
                   />
                 ))}
               </div>
@@ -164,6 +169,8 @@ export default function SignupPage() {
           {/* Right Side - Form (50%) */}
           <div className="w-full md:w-1/2 p-8 flex flex-col justify-center">
             <h1 className="text-3xl font-black text-foreground mb-2">Create Account</h1>
+            {/* Pearl bar accent */}
+            <div className="lb-pearl-bar w-16 h-1 rounded-full mb-4" />
             <p className="text-muted-foreground mb-6">Join Zenphony Audio to create with AI</p>
 
             {error && (
@@ -180,7 +187,8 @@ export default function SignupPage() {
                   id="name"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full px-4 h-14 rounded-2xl bg-white/[0.05] border-white/10 text-foreground placeholder:text-white/40 focus-visible:ring-fuchsia-500 focus-visible:border-fuchsia-500"
+                  className="w-full px-4 h-14 rounded-2xl bg-white/[0.05] border border-white/10 text-foreground placeholder:text-white/40 focus:outline-none focus:ring-2 focus:border-transparent transition-colors"
+                  style={{ ["--tw-ring-color" as string]: "var(--lb-primary)" }}
                   placeholder="Full Name"
                   required
                   disabled={loading}
@@ -194,7 +202,8 @@ export default function SignupPage() {
                   id="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-4 h-14 rounded-2xl bg-white/[0.05] border-white/10 text-foreground placeholder:text-white/40 focus-visible:ring-fuchsia-500 focus-visible:border-fuchsia-500"
+                  className="w-full px-4 h-14 rounded-2xl bg-white/[0.05] border border-white/10 text-foreground placeholder:text-white/40 focus:outline-none focus:ring-2 focus:border-transparent transition-colors"
+                  style={{ ["--tw-ring-color" as string]: "var(--lb-primary)" }}
                   placeholder="Email address"
                   required
                   disabled={loading}
@@ -209,7 +218,8 @@ export default function SignupPage() {
                     id="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full px-4 pr-12 h-14 rounded-2xl bg-white/[0.05] border-white/10 text-foreground placeholder:text-white/40 focus-visible:ring-fuchsia-500 focus-visible:border-fuchsia-500"
+                    className="w-full px-4 pr-12 h-14 rounded-2xl bg-white/[0.05] border border-white/10 text-foreground placeholder:text-white/40 focus:outline-none focus:ring-2 focus:border-transparent transition-colors"
+                    style={{ ["--tw-ring-color" as string]: "var(--lb-primary)" }}
                     placeholder="Password"
                     required
                     minLength={8}
@@ -233,7 +243,8 @@ export default function SignupPage() {
                   id="confirmPassword"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="w-full px-4 pr-12 h-14 rounded-2xl bg-white/[0.05] border-white/10 text-foreground placeholder:text-white/40 focus-visible:ring-fuchsia-500 focus-visible:border-fuchsia-500"
+                  className="w-full px-4 pr-12 h-14 rounded-2xl bg-white/[0.05] border border-white/10 text-foreground placeholder:text-white/40 focus:outline-none focus:ring-2 focus:border-transparent transition-colors"
+                  style={{ ["--tw-ring-color" as string]: "var(--lb-primary)" }}
                   placeholder="Confirm Password"
                   required
                   disabled={loading}
@@ -252,16 +263,16 @@ export default function SignupPage() {
                 <input
                   type="checkbox"
                   id="terms"
-                  className="w-4 h-4 rounded border-white/10 bg-white/[0.05] text-fuchsia focus:ring-2 focus:ring-fuchsia/50 mt-1"
+                  className="w-4 h-4 rounded border-white/10 bg-white/[0.05] mt-1 accent-[var(--lb-primary)]"
                   required
                 />
                 <label htmlFor="terms" className="ml-2 text-sm text-white/50">
                   I agree to{" "}
-                  <Link href="#" className="text-fuchsia hover:underline">
+                  <Link href="#" className="hover:underline" style={{ color: "var(--lb-secondary)" }}>
                     Terms of Service
                   </Link>{" "}
                   and{" "}
-                  <Link href="#" className="text-fuchsia hover:underline">
+                  <Link href="#" className="hover:underline" style={{ color: "var(--lb-secondary)" }}>
                     Privacy Policy
                   </Link>
                 </label>
@@ -271,7 +282,7 @@ export default function SignupPage() {
                 type="submit"
                 size="lg"
                 disabled={loading}
-                className="w-full rounded-2xl bg-gradient-to-r from-fuchsia-600 to-pink-600 hover:from-fuchsia-500 hover:to-pink-500 text-white font-bold shadow-[0_8px_32px_rgba(192,38,211,0.4)] hover:shadow-[0_8px_40px_rgba(192,38,211,0.6)] transition-all duration-300 border-0 disabled:opacity-50"
+                className="w-full rounded-2xl lb-talk-btn text-white font-bold transition-all duration-300 border-0 disabled:opacity-50"
               >
                 {loading ? "Creating account..." : "Create Account"}
               </Button>
@@ -290,7 +301,7 @@ export default function SignupPage() {
             {/* Social Signup */}
             <Button
               variant="outline"
-              className="border-border/30 text-foreground hover:bg-fuchsia/10 hover:border-fuchsia/30 bg-transparent rounded-full w-full"
+              className="border-border/30 text-foreground hover:bg-white/10 hover:border-white/20 bg-transparent rounded-full w-full"
               onClick={async () => {
                 setLoading(true)
                 setError("")
@@ -335,7 +346,7 @@ export default function SignupPage() {
             {/* Login Link */}
             <p className="text-center text-white/50 mt-6">
               Already have an account?{" "}
-              <Link href="/login" className="text-fuchsia hover:underline font-medium">
+              <Link href="/login" className="hover:underline font-medium" style={{ color: "var(--lb-secondary)" }}>
                 Sign in
               </Link>
             </p>

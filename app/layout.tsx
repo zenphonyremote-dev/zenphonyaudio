@@ -1,11 +1,12 @@
 import type React from "react"
 import type { Metadata } from "next"
-import { Space_Grotesk, Syne, Bebas_Neue, Orbitron, Montserrat, Inter } from "next/font/google"
+import { Outfit, Inter, JetBrains_Mono, Orbitron, Montserrat } from "next/font/google"
 import localFont from "next/font/local"
 import { Analytics } from "@vercel/analytics/next"
 import { PageTransition } from "@/components/page-transition"
 import { AuthProvider } from "@/contexts/auth-context"
 import { Navigation } from "@/components/navigation"
+import { AtleProvider } from "@/components/atle-provider"
 import "./globals.css"
 
 const sakana = localFont({
@@ -56,22 +57,26 @@ const milker = localFont({
   display: "swap",
 })
 
-const spaceGrotesk = Space_Grotesk({
+/* ATLE 2.5 primary fonts */
+const outfit = Outfit({
   subsets: ["latin"],
-  variable: "--font-space-grotesk",
+  variable: "--font-outfit",
+  weight: ["300", "400", "500", "600", "700", "800"],
 })
 
-const syne = Syne({
+const inter = Inter({
   subsets: ["latin"],
-  variable: "--font-syne",
+  variable: "--font-inter",
+  weight: ["400", "500", "600", "700", "800"],
 })
 
-const bebasNeue = Bebas_Neue({
-  weight: "400",
+const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
-  variable: "--font-bebas",
+  variable: "--font-jetbrains",
+  weight: ["400", "500", "700"],
 })
 
+/* Legacy fonts kept for existing product pages */
 const orbitron = Orbitron({
   subsets: ["latin"],
   variable: "--font-orbitron",
@@ -80,12 +85,6 @@ const orbitron = Orbitron({
 const montserrat = Montserrat({
   subsets: ["latin"],
   variable: "--font-montserrat",
-  weight: ["400", "500", "600", "700", "800", "900"],
-})
-
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-inter",
   weight: ["400", "500", "600", "700", "800", "900"],
 })
 
@@ -108,10 +107,21 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${spaceGrotesk.variable} ${syne.variable} ${bebasNeue.variable} ${orbitron.variable} ${sakana.variable} ${grandover.variable} ${alphacorsa.variable} ${milker.variable} ${montserrat.variable} ${inter.variable} font-sans antialiased`}>
+      <body className={`${outfit.variable} ${inter.variable} ${jetbrainsMono.variable} ${orbitron.variable} ${sakana.variable} ${grandover.variable} ${alphacorsa.variable} ${milker.variable} ${montserrat.variable} font-sans antialiased theme-radial`}>
+        {/* ATLE liquid SVG filter — apply via filter:url(#atle-liquid) on hover */}
+        <svg width="0" height="0" style={{ position: "absolute" }}>
+          <defs>
+            <filter id="atle-liquid" x="-10%" y="-10%" width="120%" height="120%">
+              <feTurbulence type="fractalNoise" baseFrequency="0.015 0.025" numOctaves={2} seed={7} />
+              <feDisplacementMap in="SourceGraphic" scale={6} />
+            </filter>
+          </defs>
+        </svg>
         <AuthProvider>
-          <Navigation />
-          <PageTransition>{children}</PageTransition>
+          <AtleProvider>
+            <Navigation />
+            <PageTransition>{children}</PageTransition>
+          </AtleProvider>
         </AuthProvider>
         <Analytics />
       </body>

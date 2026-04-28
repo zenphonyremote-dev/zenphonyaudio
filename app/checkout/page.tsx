@@ -3,7 +3,6 @@
 import { useState, useEffect, Suspense } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
 import { Footer } from "@/components/footer"
-import { ColorBends } from "@/components/color-bends"
 import { Button } from "@/components/ui/button"
 import { Loader2, ArrowLeft, Check, Crown, Sparkles, Shield, Zap, Headphones, Plus } from "lucide-react"
 import Link from "next/link"
@@ -136,7 +135,7 @@ function CheckoutContent() {
   if (authLoading || !user) {
     return (
       <div className="flex items-center justify-center py-20">
-        <Loader2 className="w-8 h-8 animate-spin text-violet-500" />
+        <Loader2 className="w-8 h-8 animate-spin" style={{ color: "var(--lb-accent)" }} />
       </div>
     )
   }
@@ -183,31 +182,39 @@ function CheckoutContent() {
   if (!selectedPlan && !selectedTopUp) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-violet-500" />
+        <Loader2 className="w-8 h-8 animate-spin" style={{ color: "var(--lb-accent)" }} />
       </div>
     )
   }
 
-  const colorMap: Record<string, { accent: string; bg: string; gradient: string }> = {
+  const colorMap: Record<string, { accent: string; accentStyle: React.CSSProperties; bg: string; bgStyle: React.CSSProperties; btnClass: string }> = {
     cyan: {
-      accent: "text-cyan-400",
-      bg: "bg-cyan-500",
-      gradient: "from-cyan-500 to-cyan-600"
+      accent: "",
+      accentStyle: { color: "var(--lb-accent)" },
+      bg: "",
+      bgStyle: { background: "var(--lb-primary)" },
+      btnClass: "lb-talk-btn",
     },
     emerald: {
-      accent: "text-emerald-400",
-      bg: "bg-emerald-500",
-      gradient: "from-emerald-500 to-emerald-600"
+      accent: "",
+      accentStyle: { color: "var(--lb-accent)" },
+      bg: "",
+      bgStyle: { background: "var(--lb-primary)" },
+      btnClass: "lb-talk-btn",
     },
     violet: {
-      accent: "text-violet-400",
-      bg: "bg-violet-500",
-      gradient: "from-violet-500 to-violet-600"
+      accent: "",
+      accentStyle: { color: "var(--lb-accent)" },
+      bg: "",
+      bgStyle: { background: "var(--lb-primary)" },
+      btnClass: "lb-talk-btn",
     },
     amber: {
-      accent: "text-amber-400",
-      bg: "bg-amber-500",
-      gradient: "from-amber-500 to-amber-600"
+      accent: "",
+      accentStyle: { color: "var(--lb-accent)" },
+      bg: "",
+      bgStyle: { background: "var(--lb-primary)" },
+      btnClass: "lb-talk-btn",
     },
   }
 
@@ -235,13 +242,13 @@ function CheckoutContent() {
             </h1>
 
             {/* Selected Top-up Card */}
-            <div className="bg-gradient-to-br from-white/[0.06] to-white/[0.02] rounded-2xl p-8 border border-white/10">
+            <div className="lb-glass rounded-2xl p-8">
               <div className="flex items-start gap-4 mb-6">
-                <div className={`w-16 h-16 rounded-xl ${colors.bg} flex items-center justify-center flex-shrink-0`}>
+                <div className="w-16 h-16 rounded-xl flex items-center justify-center flex-shrink-0" style={colors.bgStyle}>
                   <Icon className="w-8 h-8 text-white" />
                 </div>
                 <div className="flex-1">
-                  <h2 className={`text-2xl font-bold ${colors.accent} mb-1`}>
+                  <h2 className="text-2xl font-bold mb-1" style={colors.accentStyle}>
                     {selectedTopUp.name} Top-up
                   </h2>
                   <p className="text-white/50 text-sm">
@@ -264,26 +271,26 @@ function CheckoutContent() {
             </div>
 
             {/* Features List */}
-            <div className="bg-gradient-to-br from-white/[0.04] to-white/[0.01] rounded-2xl p-8 border border-white/10">
+            <div className="lb-glass rounded-2xl p-8">
               <h3 className="text-lg font-semibold text-white mb-6 flex items-center gap-2">
-                <Check className={`w-5 h-5 ${colors.accent}`} />
+                <Check className="w-5 h-5" style={colors.accentStyle} />
                 What You Get
               </h3>
               <ul className="space-y-4">
                 <li className="flex items-start gap-3">
-                  <Check className={`w-5 h-5 ${colors.accent} flex-shrink-0 mt-0.5`} />
+                  <Check className="w-5 h-5 flex-shrink-0 mt-0.5" style={colors.accentStyle} />
                   <span className="text-white/70 text-base">{selectedTopUp.minutes} extra analysis minutes</span>
                 </li>
                 <li className="flex items-start gap-3">
-                  <Check className={`w-5 h-5 ${colors.accent} flex-shrink-0 mt-0.5`} />
+                  <Check className="w-5 h-5 flex-shrink-0 mt-0.5" style={colors.accentStyle} />
                   <span className="text-white/70 text-base">Minutes never expire</span>
                 </li>
                 <li className="flex items-start gap-3">
-                  <Check className={`w-5 h-5 ${colors.accent} flex-shrink-0 mt-0.5`} />
+                  <Check className="w-5 h-5 flex-shrink-0 mt-0.5" style={colors.accentStyle} />
                   <span className="text-white/70 text-base">Use with any listening mode</span>
                 </li>
                 <li className="flex items-start gap-3">
-                  <Check className={`w-5 h-5 ${colors.accent} flex-shrink-0 mt-0.5`} />
+                  <Check className="w-5 h-5 flex-shrink-0 mt-0.5" style={colors.accentStyle} />
                   <span className="text-white/70 text-base">${selectedTopUp.pricePerMin.toFixed(3)} per minute</span>
                 </li>
               </ul>
@@ -300,9 +307,9 @@ function CheckoutContent() {
           {/* Right - Payment & Checkout */}
           <div className="space-y-6">
             {/* Secure Checkout Badge */}
-            <div className="bg-gradient-to-br from-violet-500/10 to-indigo-500/10 rounded-2xl p-6 border border-violet-500/20 text-center">
+            <div className="lb-glass rounded-2xl p-6 text-center" style={{ borderColor: "hsla(var(--hue), 90%, 65%, 0.2)" }}>
               <div className="flex justify-center mb-4">
-                <Shield className="w-12 h-12 text-violet-400" />
+                <Shield className="w-12 h-12" style={{ color: "var(--lb-accent)" }} />
               </div>
               <h3 className="text-xl font-semibold text-white mb-2">
                 Secure Checkout
@@ -313,7 +320,7 @@ function CheckoutContent() {
             </div>
 
             {/* Order Summary */}
-            <div className="bg-gradient-to-br from-white/[0.06] to-white/[0.02] rounded-2xl p-8 border border-white/10">
+            <div className="lb-glass rounded-2xl p-8">
               <h3 className="text-lg font-semibold text-white mb-6">Order Summary</h3>
 
               <div className="space-y-4 mb-6">
@@ -343,7 +350,8 @@ function CheckoutContent() {
             <Button
               onClick={handleCheckout}
               disabled={loading}
-              className={`w-full h-16 rounded-2xl text-lg font-bold shadow-lg transition-all duration-300 border-0 bg-gradient-to-r ${colors.gradient} hover:opacity-90 text-white`}
+              className="w-full h-16 rounded-2xl text-lg font-bold transition-all duration-300 border-0 lb-talk-btn text-white"
+              style={{ boxShadow: "0 8px 24px var(--lb-glow)" }}
             >
               {loading ? (
                 <>
@@ -400,13 +408,13 @@ function CheckoutContent() {
           </h1>
 
           {/* Selected Plan Card */}
-          <div className="bg-gradient-to-br from-white/[0.06] to-white/[0.02] rounded-2xl p-8 border border-white/10">
+          <div className="lb-glass rounded-2xl p-8">
             <div className="flex items-start gap-4 mb-6">
-              <div className={`w-16 h-16 rounded-xl ${colors.bg} flex items-center justify-center flex-shrink-0`}>
+              <div className="w-16 h-16 rounded-xl flex items-center justify-center flex-shrink-0" style={colors.bgStyle}>
                 <Icon className="w-8 h-8 text-white" />
               </div>
               <div className="flex-1">
-                <h2 className={`text-2xl font-bold ${colors.accent} mb-1`}>
+                <h2 className="text-2xl font-bold mb-1" style={colors.accentStyle}>
                   {selectedPlan!.name} Plan
                 </h2>
                 <p className="text-white/50 text-sm">
@@ -436,15 +444,15 @@ function CheckoutContent() {
           </div>
 
           {/* Features List */}
-          <div className="bg-gradient-to-br from-white/[0.04] to-white/[0.01] rounded-2xl p-8 border border-white/10">
+          <div className="lb-glass rounded-2xl p-8">
             <h3 className="text-lg font-semibold text-white mb-6 flex items-center gap-2">
-              <Check className={`w-5 h-5 ${colors.accent}`} />
+              <Check className="w-5 h-5" style={colors.accentStyle} />
               What's Included
             </h3>
             <ul className="space-y-4">
               {selectedPlan!.features.map((feature, i) => (
                 <li key={i} className="flex items-start gap-3">
-                  <Check className={`w-5 h-5 ${colors.accent} flex-shrink-0 mt-0.5`} />
+                  <Check className="w-5 h-5 flex-shrink-0 mt-0.5" style={colors.accentStyle} />
                   <span className="text-white/70 text-base">{feature}</span>
                 </li>
               ))}
@@ -462,9 +470,9 @@ function CheckoutContent() {
         {/* Right - Payment & Checkout */}
         <div className="space-y-6">
           {/* Secure Checkout Badge */}
-          <div className="bg-gradient-to-br from-violet-500/10 to-indigo-500/10 rounded-2xl p-6 border border-violet-500/20 text-center">
+          <div className="lb-glass rounded-2xl p-6 text-center" style={{ borderColor: "hsla(var(--hue), 90%, 65%, 0.2)" }}>
             <div className="flex justify-center mb-4">
-              <Shield className="w-12 h-12 text-violet-400" />
+              <Shield className="w-12 h-12" style={{ color: "var(--lb-accent)" }} />
             </div>
             <h3 className="text-xl font-semibold text-white mb-2">
               Secure Checkout
@@ -475,7 +483,7 @@ function CheckoutContent() {
           </div>
 
           {/* Order Summary */}
-          <div className="bg-gradient-to-br from-white/[0.06] to-white/[0.02] rounded-2xl p-8 border border-white/10">
+          <div className="lb-glass rounded-2xl p-8">
             <h3 className="text-lg font-semibold text-white mb-6">Order Summary</h3>
 
             <div className="space-y-4 mb-6">
@@ -508,11 +516,12 @@ function CheckoutContent() {
           <Button
             onClick={handleCheckout}
             disabled={loading || selectedPlan!.price === 0}
-            className={`w-full h-16 rounded-2xl text-lg font-bold shadow-lg transition-all duration-300 border-0 ${
+            className={`w-full h-16 rounded-2xl text-lg font-bold transition-all duration-300 border-0 ${
               selectedPlan!.price === 0
                 ? "bg-white/10 text-white/50 cursor-not-allowed"
-                : `bg-gradient-to-r ${colors.gradient} hover:opacity-90 text-white shadow-${selectedPlan!.color}-500/25 hover:shadow-${selectedPlan!.color}-500/40`
+                : "lb-talk-btn text-white"
             }`}
+            style={selectedPlan!.price > 0 ? { boxShadow: "0 8px 24px var(--lb-glow)" } : undefined}
           >
             {loading ? (
               <>
@@ -561,20 +570,27 @@ function CheckoutContent() {
 function CheckoutLoading() {
   return (
     <div className="flex items-center justify-center py-20">
-      <Loader2 className="w-8 h-8 animate-spin text-violet-500" />
+      <Loader2 className="w-8 h-8 animate-spin" style={{ color: "var(--lb-accent)" }} />
     </div>
   )
 }
 
 export default function CheckoutPage() {
   return (
-    <div className="min-h-screen bg-background relative overflow-hidden">
-      {/* ColorBends - Full page animated background */}
-      <ColorBends
-        colors={["#8b5cf6", "#a855f7", "#d946ef", "#7c3aed", "#6366f1"]}
-        speed={0.015}
-        blur={120}
-      />
+    <div className="min-h-screen relative overflow-hidden lb-aurora">
+      {/* Floating glow orbs */}
+      <div className="absolute pointer-events-none" style={{
+        top: "10%", left: "5%", width: "45%", height: "45%",
+        background: "radial-gradient(circle, hsla(var(--hue), 90%, 65%, 0.1), transparent 60%)",
+        transform: "translate(var(--atle-fx), var(--atle-fy))",
+        filter: "blur(40px)"
+      }} />
+      <div className="absolute pointer-events-none" style={{
+        top: "50%", right: "5%", width: "35%", height: "35%",
+        background: "radial-gradient(circle, hsla(var(--hue), 90%, 65%, 0.08), transparent 60%)",
+        transform: "translate(var(--atle-fx), var(--atle-fy))",
+        filter: "blur(50px)"
+      }} />
 
       <div className="relative z-10">
 

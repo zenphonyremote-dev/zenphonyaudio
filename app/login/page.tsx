@@ -8,7 +8,6 @@ import Link from "next/link"
 import { useState, useEffect } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { ZenphonyLogo } from "@/components/zenphony-logo"
-import { Aurora } from "@/components/aurora"
 import { useAuth } from "@/contexts/auth-context"
 import Image from "next/image"
 
@@ -33,13 +32,18 @@ function LoginForm() {
   // Show already logged in message if user is authenticated
   if (!authLoading && user) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center px-4 sm:px-6 lg:px-8 relative overflow-hidden">
-        <Aurora />
+      <div className="min-h-screen bg-background flex items-center justify-center px-4 sm:px-6 lg:px-8 relative overflow-hidden lb-aurora">
+
+        {/* Floating glow orb */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] pointer-events-none" style={{
+          background: "radial-gradient(circle, hsla(var(--hue), 90%, 65%, 0.12), transparent 60%)",
+          transform: "translate(calc(-50% + var(--atle-fx)), calc(-50% + var(--atle-fy)))"
+        }} />
 
         {/* Back Button */}
         <Link
           href="/"
-          className="absolute top-8 left-8 flex items-center gap-2 text-muted-foreground hover:text-violet transition-colors z-10"
+          className="absolute top-8 left-8 flex items-center gap-2 text-muted-foreground hover:text-[color:var(--lb-accent)] transition-colors z-10"
         >
           <ArrowLeft className="w-4 h-4" />
           <span>Back to Home</span>
@@ -47,9 +51,9 @@ function LoginForm() {
 
         {/* Already Logged In Message */}
         <div className="relative z-10 w-full max-w-md">
-          <div className="rounded-3xl glass-strong border-glow p-8 text-center">
+          <div className="rounded-3xl lb-glass-strong p-8 text-center">
             <div className="flex justify-center mb-6">
-              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-violet-600 to-fuchsia-600 flex items-center justify-center shadow-[0_0_30px_rgba(139,92,246,0.5)]">
+              <div className="w-20 h-20 rounded-full flex items-center justify-center lb-talk-btn" style={{ boxShadow: "0 0 30px var(--lb-glow)" }}>
                 <Activity className="w-10 h-10 text-white" />
               </div>
             </div>
@@ -58,7 +62,7 @@ function LoginForm() {
               You're Already Logged In
             </h1>
             <p className="text-muted-foreground mb-8">
-              You're currently signed in as <span className="text-violet font-medium">{user.email}</span>
+              You're currently signed in as <span className="font-medium" style={{ color: "var(--lb-accent)" }}>{user.email}</span>
             </p>
 
             <div className="space-y-3">
@@ -67,7 +71,7 @@ function LoginForm() {
                   await signOut()
                   router.push("/")
                 }}
-                className="w-full h-14 rounded-2xl bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white font-bold text-base shadow-[0_8px_32px_rgba(139,92,246,0.4)] hover:shadow-[0_8px_40px_rgba(139,92,246,0.6)] transition-all duration-300 border-0"
+                className="w-full h-14 rounded-2xl lb-talk-btn text-white font-bold text-base transition-all duration-300 border-0"
               >
                 Sign Out
               </button>
@@ -121,13 +125,18 @@ function LoginForm() {
   }
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center px-4 sm:px-6 lg:px-8 relative overflow-hidden">
-      <Aurora />
+    <div className="min-h-screen bg-background flex items-center justify-center px-4 sm:px-6 lg:px-8 relative overflow-hidden lb-aurora">
+
+      {/* Floating glow orb */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] pointer-events-none" style={{
+        background: "radial-gradient(circle, hsla(var(--hue), 90%, 65%, 0.12), transparent 60%)",
+        transform: "translate(calc(-50% + var(--atle-fx)), calc(-50% + var(--atle-fy)))"
+      }} />
 
       {/* Back Button */}
       <Link
         href="/"
-        className="absolute top-8 left-8 flex items-center gap-2 text-muted-foreground hover:text-violet transition-colors z-10"
+        className="absolute top-8 left-8 flex items-center gap-2 text-muted-foreground hover:text-[color:var(--lb-accent)] transition-colors z-10"
       >
         <ArrowLeft className="w-4 h-4" />
         <span>Back to Home</span>
@@ -140,9 +149,9 @@ function LoginForm() {
         </div>
 
         {/* Form Card - Glassmorphic with split layout */}
-        <div className="rounded-3xl glass-strong border-glow overflow-hidden flex flex-col md:flex-row">
+        <div className="rounded-3xl lb-glass-strong overflow-hidden flex flex-col md:flex-row">
           {/* Left Side - Single Image (50%) */}
-          <div className="w-full md:w-1/2 relative bg-gradient-to-br from-violet-900/50 via-purple-900/30 to-background min-h-[400px] overflow-hidden">
+          <div className="w-full md:w-1/2 relative min-h-[400px] overflow-hidden" style={{ background: "linear-gradient(to bottom right, hsla(var(--hue), 60%, 20%, 0.5), hsla(var(--hue), 40%, 15%, 0.3), var(--background))" }}>
             <Image
               src="/person-wearing-futuristic-headphones-purple-neon-l.jpg"
               alt="Creator"
@@ -150,13 +159,13 @@ function LoginForm() {
               className="object-cover opacity-60"
             />
             {/* Gradient overlay */}
-            <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent to-background/80" />
+            <div className="absolute inset-0" style={{ background: "linear-gradient(to top, var(--background), color-mix(in srgb, var(--background) 60%, transparent), transparent)" }} />
+            <div className="absolute inset-0" style={{ background: "linear-gradient(to right, transparent, color-mix(in srgb, var(--background) 80%, transparent))" }} />
 
             {/* Quote overlay */}
             <div className="absolute bottom-0 left-0 right-0 p-8">
               <div className="space-y-3">
-                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-violet-600 to-fuchsia-600 flex items-center justify-center shadow-[0_0_30px_rgba(139,92,246,0.5)]">
+                <div className="w-12 h-12 rounded-2xl flex items-center justify-center lb-talk-btn" style={{ boxShadow: "0 0 30px var(--lb-glow)" }}>
                   <Activity className="w-7 h-7 text-white" />
                 </div>
                 <p className="text-xl font-bold text-white leading-tight">Welcome back, creator</p>
@@ -168,6 +177,8 @@ function LoginForm() {
           {/* Right Side - Form (50%) */}
           <div className="w-full md:w-1/2 p-8 flex flex-col justify-center">
             <h1 className="text-3xl font-black text-foreground mb-2">Welcome back, creator</h1>
+            {/* Pearl bar accent */}
+            <div className="lb-pearl-bar w-16 h-1 rounded-full mb-4" />
             <p className="text-muted-foreground mb-6">Sign in to your account to continue</p>
 
             {error && (
@@ -185,7 +196,8 @@ function LoginForm() {
                   id="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full pl-12 h-14 rounded-2xl bg-white/[0.05] border-white/10 text-foreground placeholder:text-white/40 focus-visible:ring-violet-500 focus-visible:border-violet-500"
+                  className="w-full pl-12 h-14 rounded-2xl bg-white/[0.05] border border-white/10 text-foreground placeholder:text-white/40 focus:outline-none focus:ring-2 focus:border-transparent transition-colors"
+                  style={{ ["--tw-ring-color" as string]: "var(--lb-primary)" }}
                   placeholder="Email address"
                   required
                   disabled={loading}
@@ -200,7 +212,8 @@ function LoginForm() {
                   id="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-12 pr-12 h-14 rounded-2xl bg-white/[0.05] border-white/10 text-foreground placeholder:text-white/40 focus-visible:ring-violet-500 focus-visible:border-violet-500"
+                  className="w-full pl-12 pr-12 h-14 rounded-2xl bg-white/[0.05] border border-white/10 text-foreground placeholder:text-white/40 focus:outline-none focus:ring-2 focus:border-transparent transition-colors"
+                  style={{ ["--tw-ring-color" as string]: "var(--lb-primary)" }}
                   placeholder="Password"
                   required
                   disabled={loading}
@@ -218,7 +231,8 @@ function LoginForm() {
               <div className="flex justify-end">
                 <Link
                   href="/forgot-password"
-                  className="text-sm text-violet hover:text-violet/80 hover:underline transition-colors"
+                  className="text-sm hover:underline transition-colors"
+                  style={{ color: "var(--lb-accent)" }}
                 >
                   Forgot password?
                 </Link>
@@ -227,7 +241,7 @@ function LoginForm() {
               <Button
                 type="submit"
                 disabled={loading}
-                className="w-full h-14 rounded-2xl bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white font-bold text-base shadow-[0_8px_32px_rgba(139,92,246,0.4)] hover:shadow-[0_8px_40px_rgba(139,92,246,0.6)] transition-all duration-300 border-0 disabled:opacity-50"
+                className="w-full h-14 rounded-2xl lb-talk-btn text-white font-bold text-base transition-all duration-300 border-0 disabled:opacity-50"
               >
                 {loading ? (
                   <Loader2 className="w-5 h-5 animate-spin" />
@@ -252,7 +266,7 @@ function LoginForm() {
             {/* Social Login */}
             <Button
               variant="outline"
-              className="border-border/30 text-foreground hover:bg-violet/10 hover:border-violet/30 bg-transparent rounded-full w-full"
+              className="border-border/30 text-foreground hover:bg-white/10 hover:border-white/20 bg-transparent rounded-full w-full"
               onClick={async () => {
                 setLoading(true)
                 setError(null)
@@ -288,7 +302,7 @@ function LoginForm() {
             {/* Sign Up Link */}
             <p className="text-center text-white/50 mt-8">
               Don't have an account?{" "}
-              <Link href="/signup" className="text-violet hover:underline font-medium">
+              <Link href="/signup" className="hover:underline font-medium" style={{ color: "var(--lb-accent)" }}>
                 Sign up
               </Link>
             </p>
@@ -302,7 +316,7 @@ function LoginForm() {
 function LoginLoading() {
   return (
     <div className="min-h-screen bg-background flex items-center justify-center">
-      <Loader2 className="w-8 h-8 animate-spin text-violet-500" />
+      <Loader2 className="w-8 h-8 animate-spin" style={{ color: "var(--lb-primary)" }} />
     </div>
   )
 }

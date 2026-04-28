@@ -1,9 +1,6 @@
 "use client"
 
-import { Navigation } from "@/components/navigation"
 import { Footer } from "@/components/footer"
-import { ColorBends } from "@/components/color-bends"
-import { Button } from "@/components/ui/button"
 import { Check, ArrowRight, Sparkles } from "lucide-react"
 import Link from "next/link"
 import { useAuth } from "@/contexts/auth-context"
@@ -58,24 +55,30 @@ export default function PricingPage() {
   const { user } = useAuth()
 
   return (
-    <div className="min-h-screen bg-background relative overflow-hidden">
-      <ColorBends />
+    <div className="min-h-screen relative overflow-hidden lb-aurora">
       <div className="relative z-10">
-        <Navigation />
 
         {/* Hero */}
         <section className="pt-40 pb-20 px-6 lg:px-8">
           <div className="max-w-4xl mx-auto text-center">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass mb-8">
-              <Sparkles className="w-4 h-4 text-violet-400" />
-              <span className="text-sm text-white/80">Simple, transparent pricing</span>
+            <div
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-8"
+              style={{
+                background: "rgba(255, 255, 255, 0.04)",
+                border: "1px solid rgba(255, 255, 255, 0.06)",
+              }}
+            >
+              <div className="lb-soundbars" style={{ height: "12px" }}>
+                <span /><span /><span /><span /><span />
+              </div>
+              <span className="text-sm font-medium" style={{ color: "var(--lb-accent)" }}>Simple, transparent pricing</span>
             </div>
             <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black text-white mb-6 tracking-tight">
               CHOOSE YOUR
               <br />
-              <span className="text-gradient-violet">PLAN</span>
+              <span className="text-gradient-primary">PLAN</span>
             </h1>
-            <p className="text-xl text-white/60 max-w-xl mx-auto">
+            <p className="text-xl max-w-xl mx-auto" style={{ color: "var(--muted-foreground)" }}>
               Choose the plan that fits your needs. All plans include a 14-day free trial.
             </p>
           </div>
@@ -89,11 +92,21 @@ export default function PricingPage() {
                 <div
                   key={plan.name}
                   className={`relative rounded-3xl p-8 transition-all duration-300 hover:scale-[1.02] ${
-                    plan.popular ? "bg-gradient-to-br from-violet-600 via-purple-600 to-fuchsia-600" : "glass"
+                    plan.popular ? "" : "lb-glass"
                   }`}
+                  style={plan.popular ? {
+                    background: "linear-gradient(135deg, var(--lb-primary), var(--lb-primary-dim), var(--lb-secondary))",
+                    boxShadow: "0 8px 40px var(--lb-glow)",
+                  } : {}}
                 >
                   {plan.popular && (
-                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-white text-xs font-bold text-violet-600 flex items-center gap-1">
+                    <div
+                      className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full text-xs font-bold flex items-center gap-1"
+                      style={{
+                        background: "#fff",
+                        color: "var(--lb-primary-dim)",
+                      }}
+                    >
                       <Sparkles className="w-3 h-3" />
                       MOST POPULAR
                     </div>
@@ -101,7 +114,9 @@ export default function PricingPage() {
 
                   <div className="mb-6">
                     <h3 className="text-2xl font-black text-white mb-1">{plan.name}</h3>
-                    <p className={plan.popular ? "text-white/70" : "text-white/60"}>{plan.description}</p>
+                    <p className={plan.popular ? "text-white/70" : ""} style={!plan.popular ? { color: "var(--muted-foreground)" } : {}}>
+                      {plan.description}
+                    </p>
                   </div>
 
                   <div className="mb-6">
@@ -113,7 +128,12 @@ export default function PricingPage() {
                     {plan.features.map((feature, i) => (
                       <li key={i} className="flex items-center gap-3 text-white">
                         <div
-                          className={`w-5 h-5 rounded-full flex items-center justify-center ${plan.popular ? "bg-white/20" : "bg-violet-600/30"}`}
+                          className="w-5 h-5 rounded-full flex items-center justify-center"
+                          style={{
+                            background: plan.popular
+                              ? "rgba(255, 255, 255, 0.2)"
+                              : "hsla(var(--hue), 90%, 65%, 0.2)",
+                          }}
                         >
                           <Check className="w-3 h-3 text-white" />
                         </div>
@@ -129,16 +149,19 @@ export default function PricingPage() {
                         ? `/checkout?plan=${plan.name.toLowerCase()}`
                         : `/login?redirect=${encodeURIComponent(`/checkout?plan=${plan.name.toLowerCase()}`)}`
                   }>
-                    <Button
-                      className={`w-full rounded-full font-bold py-6 ${
+                    <button
+                      className={`w-full rounded-full font-bold py-4 text-center cursor-pointer transition-all duration-200 ${
                         plan.popular
-                          ? "bg-white text-violet-600 hover:bg-white/90"
-                          : "bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white hover:from-violet-500 hover:to-fuchsia-500"
+                          ? "bg-white hover:bg-white/90"
+                          : "lb-talk-btn"
                       }`}
+                      style={plan.popular ? { color: "var(--lb-primary-dim)" } : {}}
                     >
-                      {plan.price === "Custom" ? "Contact Sales" : "Get Started"}
-                      <ArrowRight className="w-4 h-4 ml-2" />
-                    </Button>
+                      <span className="inline-flex items-center gap-2">
+                        {plan.price === "Custom" ? "Contact Sales" : "Get Started"}
+                        <ArrowRight className="w-4 h-4" />
+                      </span>
+                    </button>
                   </Link>
                 </div>
               ))}
@@ -146,11 +169,11 @@ export default function PricingPage() {
 
             {/* Guarantees */}
             <div className="mt-16 text-center">
-              <p className="text-white/60 mb-4">All plans include:</p>
+              <p className="mb-4" style={{ color: "var(--muted-foreground)" }}>All plans include:</p>
               <div className="flex flex-wrap justify-center gap-4">
-                <span className="px-4 py-2 rounded-full glass text-white/80">30-day money-back guarantee</span>
-                <span className="px-4 py-2 rounded-full glass text-white/80">Cancel anytime</span>
-                <span className="px-4 py-2 rounded-full glass text-white/80">No credit card for trial</span>
+                <span className="lb-chip px-4 py-2">30-day money-back guarantee</span>
+                <span className="lb-chip px-4 py-2">Cancel anytime</span>
+                <span className="lb-chip px-4 py-2">No credit card for trial</span>
               </div>
             </div>
           </div>

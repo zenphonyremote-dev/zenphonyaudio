@@ -12,7 +12,7 @@ const navLinks = [
 
 export function Footer() {
   return (
-    <footer className="border-t border-white/5 py-12">
+    <footer className="py-12" style={{ borderTop: "1px solid rgba(255, 255, 255, 0.06)" }}>
       <div className="max-w-5xl mx-auto px-6 lg:px-8">
         <div className="flex flex-col md:flex-row items-center justify-between gap-8">
           {/* Logo */}
@@ -26,7 +26,8 @@ export function Footer() {
               <Link
                 key={link.name}
                 href={link.href}
-                className="text-sm text-white/50 hover:text-white transition-colors"
+                className="text-sm transition-colors hover:text-[var(--foreground)]"
+                style={{ color: "var(--muted-foreground)" }}
               >
                 {link.name}
               </Link>
@@ -34,9 +35,12 @@ export function Footer() {
           </nav>
         </div>
 
+        {/* Glow rule divider */}
+        <div className="mt-8 lb-glow-rule" />
+
         {/* Bottom */}
-        <div className="mt-8 pt-8 border-t border-white/5 text-center">
-          <p className="text-sm text-white/30">
+        <div className="mt-8 text-center">
+          <p className="text-sm" style={{ color: "var(--muted-foreground)" }}>
             © {new Date().getFullYear()} Zenphony Audio. All rights reserved.
           </p>
         </div>

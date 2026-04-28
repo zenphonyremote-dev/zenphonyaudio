@@ -1,9 +1,6 @@
 "use client"
 
-import { Navigation } from "@/components/navigation"
 import { Footer } from "@/components/footer"
-import { ColorBends } from "@/components/color-bends"
-import { Button } from "@/components/ui/button"
 import { Headphones, Mic, Radio, Music, Sparkles, ArrowRight, ChevronLeft, ChevronRight } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
@@ -65,14 +62,17 @@ export default function ProductsPage() {
   const [activeIndex, setActiveIndex] = useState(0)
 
   return (
-    <div className="min-h-screen bg-background relative overflow-hidden">
-      <ColorBends />
+    <div className="min-h-screen relative overflow-hidden lb-aurora">
       <div className="relative z-10">
-        <Navigation />
 
-        {/* Hero Section - SpaceShirt Style */}
-        <section className="pt-40 pb-20 px-6 lg:px-8">
-          <div className="max-w-7xl mx-auto">
+        {/* Hero Section */}
+        <section className="relative pt-40 pb-20 px-6 lg:px-8">
+          {/* Floating glow orb */}
+          <div className="absolute -inset-8 pointer-events-none" style={{
+            background: "radial-gradient(50% 50% at 50% 50%, hsla(var(--hue), 90%, 65%, 0.15), transparent 70%)",
+            transform: "translate(var(--atle-fx), var(--atle-fy))"
+          }} />
+          <div className="relative max-w-7xl mx-auto">
             <div className="grid lg:grid-cols-2 gap-12 items-center">
               {/* Left Content */}
               <div>
@@ -81,37 +81,47 @@ export default function ProductsPage() {
                   <div className="w-12 h-px bg-white/20" />
                 </div>
                 <h1 className="text-6xl sm:text-7xl lg:text-8xl font-black text-white tracking-tight mb-2">ZENPHONY</h1>
-                <h2 className="text-6xl sm:text-7xl lg:text-8xl font-black text-gradient-violet tracking-tight mb-6">
+                <h2 className="text-6xl sm:text-7xl lg:text-8xl font-black text-gradient-primary tracking-tight mb-6">
                   PRODUCTS
                 </h2>
-                <p className="text-white/60 max-w-md mb-8 leading-relaxed">
+                <p className="max-w-md mb-8 leading-relaxed" style={{ color: "var(--muted-foreground)" }}>
                   Professional audio tools created by highly skilled engineers. Excellence in each of our products.
                 </p>
                 <div className="flex gap-4">
                   <Link href="#products">
-                    <Button className="rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white font-semibold px-8">
+                    <button className="lb-talk-btn rounded-full font-semibold px-8 py-3 cursor-pointer transition-all duration-200">
                       BROWSE ALL
-                    </Button>
+                    </button>
                   </Link>
                   <Link href="/pricing">
-                    <Button
-                      variant="outline"
-                      className="rounded-full border-white/20 text-white hover:bg-white/10 bg-transparent font-semibold px-8"
-                    >
+                    <button className="lb-chip rounded-full font-semibold px-8 py-3 text-white cursor-pointer transition-all duration-200 hover:bg-white/10">
                       PRICING
-                    </Button>
+                    </button>
                   </Link>
                 </div>
               </div>
 
               {/* Right - Featured Product Card */}
               <div className="relative">
-                <div className="glass rounded-3xl p-6 relative">
-                  <div className="absolute -top-3 right-6 flex items-center gap-2 px-4 py-1.5 rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-600 text-xs font-bold text-white">
+                {/* Bloom glow behind featured card */}
+                <div
+                  className="absolute -inset-4 rounded-3xl lb-bloom pointer-events-none"
+                  style={{
+                    background: "radial-gradient(ellipse, var(--lb-glow), transparent)",
+                    opacity: 0.6,
+                  }}
+                />
+                <div className="relative lb-glass rounded-3xl p-6">
+                  <div
+                    className="absolute -top-3 right-6 flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold text-white lb-talk-btn"
+                  >
                     <Sparkles className="w-3 h-3" />
                     FEATURED
                   </div>
-                  <div className="aspect-video rounded-2xl overflow-hidden bg-gradient-to-br from-violet-900/50 to-fuchsia-900/50 mb-4">
+                  <div
+                    className="aspect-video rounded-2xl overflow-hidden mb-4"
+                    style={{ background: "hsla(var(--hue), 90%, 65%, 0.15)" }}
+                  >
                     <Image
                       src={featuredProduct.image || "/placeholder.svg"}
                       alt={featuredProduct.name}
@@ -120,13 +130,13 @@ export default function ProductsPage() {
                       className="w-full h-full object-cover"
                     />
                   </div>
-                  <p className="text-violet-400 text-sm font-medium mb-1">{featuredProduct.tagline}</p>
+                  <p className="text-sm font-medium mb-1" style={{ color: "var(--lb-accent)" }}>{featuredProduct.tagline}</p>
                   <h3 className="text-2xl font-bold text-white mb-2">{featuredProduct.name}</h3>
-                  <p className="text-white/60 text-sm">{featuredProduct.description}</p>
+                  <p className="text-sm" style={{ color: "var(--muted-foreground)" }}>{featuredProduct.description}</p>
                 </div>
 
                 {/* Decorative Star Rating */}
-                <div className="absolute -bottom-6 -left-6 glass rounded-2xl p-4">
+                <div className="absolute -bottom-6 -left-6 lb-glass rounded-2xl p-4">
                   <div className="flex items-center gap-1 mb-1">
                     {[...Array(5)].map((_, i) => (
                       <span key={i} className="text-yellow-400 text-sm">
@@ -141,15 +151,22 @@ export default function ProductsPage() {
           </div>
         </section>
 
-        {/* Product Carousel - Moon Design Style */}
-        <section className="py-20 px-6 lg:px-8 relative" id="products">
-          <div className="max-w-7xl mx-auto">
+        <div className="lb-glow-rule" />
+
+        {/* Product Carousel */}
+        <section className="relative py-20 px-6 lg:px-8" id="products">
+          {/* Floating glow orb */}
+          <div className="absolute -inset-8 pointer-events-none" style={{
+            background: "radial-gradient(50% 50% at 30% 50%, hsla(var(--hue), 90%, 65%, 0.15), transparent 70%)",
+            transform: "translate(var(--atle-fx), var(--atle-fy))"
+          }} />
+          <div className="relative max-w-7xl mx-auto">
             {/* Navigation */}
             <div className="flex items-center justify-between mb-12">
               <div className="flex items-center gap-4">
                 <button
                   onClick={() => setActiveIndex(Math.max(0, activeIndex - 1))}
-                  className="w-12 h-12 rounded-full glass flex items-center justify-center text-white/60 hover:text-white hover:bg-white/10 transition-all"
+                  className="w-12 h-12 rounded-full lb-glass flex items-center justify-center text-white/60 hover:text-white hover:bg-white/10 transition-all"
                 >
                   <ChevronLeft className="w-5 h-5" />
                 </button>
@@ -162,7 +179,7 @@ export default function ProductsPage() {
                 <span className="text-white font-bold text-lg">TOOLS</span>
                 <button
                   onClick={() => setActiveIndex(Math.min(products.length - 1, activeIndex + 1))}
-                  className="w-12 h-12 rounded-full glass flex items-center justify-center text-white/60 hover:text-white hover:bg-white/10 transition-all"
+                  className="w-12 h-12 rounded-full lb-glass flex items-center justify-center text-white/60 hover:text-white hover:bg-white/10 transition-all"
                 >
                   <ChevronRight className="w-5 h-5" />
                 </button>
@@ -181,15 +198,21 @@ export default function ProductsPage() {
                     className={`group relative transition-all duration-500 ${isActive ? "scale-105 z-10" : "scale-100"}`}
                   >
                     <div
-                      className={`glass rounded-3xl p-4 transition-all duration-300 ${isActive ? "bg-white/10 ring-2 ring-violet-500/50" : "hover:bg-white/[0.08]"}`}
+                      className={`lb-glass rounded-3xl p-4 transition-all duration-300 ${isActive ? "bg-white/10" : "hover:bg-white/[0.08]"}`}
+                      style={isActive ? { boxShadow: "0 0 0 2px hsla(var(--hue), 90%, 65%, 0.5)" } : {}}
                     >
                       {product.popular && (
-                        <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-10 h-10 rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-600 flex items-center justify-center z-10">
+                        <div
+                          className="absolute -top-2 left-1/2 -translate-x-1/2 w-10 h-10 rounded-full flex items-center justify-center z-10 lb-talk-btn"
+                        >
                           <Headphones className="w-5 h-5 text-white" />
                         </div>
                       )}
 
-                      <div className="aspect-square rounded-2xl overflow-hidden bg-gradient-to-br from-violet-900/30 to-fuchsia-900/30 mb-4">
+                      <div
+                        className="aspect-square rounded-2xl overflow-hidden mb-4"
+                        style={{ background: "hsla(var(--hue), 90%, 65%, 0.1)" }}
+                      >
                         <Image
                           src={product.image || "/placeholder.svg"}
                           alt={product.name}
@@ -212,24 +235,28 @@ export default function ProductsPage() {
 
             {/* See All Button */}
             <div className="flex justify-center mt-12">
-              <Button
-                variant="outline"
-                className="rounded-full border-white/20 text-white hover:bg-white/10 bg-transparent font-semibold px-8"
-              >
+              <button className="lb-chip rounded-full font-semibold px-8 py-3 text-white cursor-pointer transition-all duration-200 hover:bg-white/10 inline-flex items-center gap-2">
                 SEE ALL PRODUCTS
-                <ArrowRight className="w-4 h-4 ml-2" />
-              </Button>
+                <ArrowRight className="w-4 h-4" />
+              </button>
             </div>
           </div>
         </section>
 
+        <div className="lb-pearl-bar" />
+
         {/* Newest Products - Scattered Layout */}
-        <section className="py-20 px-6 lg:px-8">
-          <div className="max-w-7xl mx-auto">
+        <section className="relative py-20 px-6 lg:px-8">
+          {/* Floating glow orb */}
+          <div className="absolute -inset-8 pointer-events-none" style={{
+            background: "radial-gradient(50% 50% at 70% 40%, hsla(var(--hue), 90%, 65%, 0.15), transparent 70%)",
+            transform: "translate(var(--atle-fx), var(--atle-fy))"
+          }} />
+          <div className="relative max-w-7xl mx-auto">
             <h2 className="text-4xl sm:text-5xl font-black text-white mb-16">
               OUR NEWEST
               <br />
-              <span className="text-gradient-violet">PRODUCTS</span>
+              <span className="text-gradient-primary">PRODUCTS</span>
             </h2>
 
             <div className="grid grid-cols-2 lg:grid-cols-3 gap-8">
@@ -241,7 +268,7 @@ export default function ProductsPage() {
                     href={`/products/${product.id}`}
                     className={`group relative ${index === 1 ? "lg:translate-y-12" : ""}`}
                   >
-                    <div className="glass rounded-3xl overflow-hidden hover:bg-white/[0.08] transition-all">
+                    <div className="lb-glass rounded-3xl overflow-hidden transition-all duration-300 hover:scale-[1.02]">
                       <div className="aspect-[4/3] relative overflow-hidden">
                         <Image
                           src={product.image || "/placeholder.svg"}
@@ -257,7 +284,7 @@ export default function ProductsPage() {
                         <span className="inline-block px-3 py-1 rounded-full bg-white text-black text-xs font-bold mb-2">
                           {product.category.toUpperCase()}
                         </span>
-                        <p className="text-white/60 text-sm">{product.price}/mo</p>
+                        <p className="text-sm" style={{ color: "var(--muted-foreground)" }}>{product.price}/mo</p>
                       </div>
                     </div>
                   </Link>
@@ -267,10 +294,17 @@ export default function ProductsPage() {
           </div>
         </section>
 
+        <div className="lb-glow-rule" />
+
         {/* CTA Section */}
-        <section className="py-20 px-6 lg:px-8">
-          <div className="max-w-4xl mx-auto text-center">
-            <p className="text-violet-400 font-medium mb-4">ZENPHONY AUDIO</p>
+        <section className="relative py-20 px-6 lg:px-8">
+          {/* Floating glow orb */}
+          <div className="absolute -inset-8 pointer-events-none" style={{
+            background: "radial-gradient(50% 50% at 50% 50%, hsla(var(--hue), 90%, 65%, 0.15), transparent 70%)",
+            transform: "translate(var(--atle-fx), var(--atle-fy))"
+          }} />
+          <div className="relative max-w-4xl mx-auto text-center">
+            <p className="font-medium mb-4" style={{ color: "var(--lb-accent)" }}>ZENPHONY AUDIO</p>
             <h2 className="text-4xl sm:text-5xl lg:text-6xl font-black text-white mb-6 leading-tight">
               GET YOUR
               <br />
@@ -278,14 +312,14 @@ export default function ProductsPage() {
               <br />
               AND CREATE
               <br />
-              <span className="text-gradient-violet">WITH US</span>
+              <span className="text-gradient-primary">WITH US</span>
             </h2>
-            <p className="text-white/60 max-w-lg mx-auto mb-8">
+            <p className="max-w-lg mx-auto mb-8" style={{ color: "var(--muted-foreground)" }}>
               Professional audio tools created by highly skilled engineers. Excellence in each of our products.
             </p>
-            <Button className="rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white font-bold px-10 py-6 text-lg">
+            <button className="lb-talk-btn rounded-full font-bold px-10 py-4 text-lg cursor-pointer transition-all duration-200">
               START CREATING
-            </Button>
+            </button>
           </div>
         </section>
 

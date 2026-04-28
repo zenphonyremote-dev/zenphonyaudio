@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button"
 import { ArrowLeft, AlertCircle, RefreshCw } from "lucide-react"
 import Link from "next/link"
 import { ZenphonyLogo } from "@/components/zenphony-logo"
-import { Aurora } from "@/components/aurora"
 import { useSearchParams } from "next/navigation"
 import { Suspense } from "react"
 
@@ -25,13 +24,18 @@ function ErrorContent() {
 
 export default function AuthCodeErrorPage() {
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center px-4 sm:px-6 lg:px-8 py-12 relative overflow-hidden">
-      <Aurora />
+    <div className="min-h-screen bg-background flex items-center justify-center px-4 sm:px-6 lg:px-8 py-12 relative overflow-hidden lb-aurora">
+
+      {/* Floating glow orb */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] pointer-events-none" style={{
+        background: "radial-gradient(circle, hsla(var(--hue), 90%, 65%, 0.12), transparent 60%)",
+        transform: "translate(calc(-50% + var(--atle-fx)), calc(-50% + var(--atle-fy)))"
+      }} />
 
       {/* Back Button */}
       <Link
         href="/"
-        className="absolute top-8 left-8 flex items-center gap-2 text-muted-foreground hover:text-violet transition-colors z-10"
+        className="absolute top-8 left-8 flex items-center gap-2 text-muted-foreground hover:text-[color:var(--lb-accent)] transition-colors z-10"
       >
         <ArrowLeft className="w-4 h-4" />
         <span>Back to Home</span>
@@ -43,7 +47,7 @@ export default function AuthCodeErrorPage() {
           <ZenphonyLogo className="h-10 w-auto" variant="light" />
         </div>
 
-        <div className="rounded-3xl glass-strong border-glow p-8 text-center">
+        <div className="rounded-3xl lb-glass-strong p-8 text-center">
           {/* Error Icon */}
           <div className="flex justify-center mb-6">
             <div className="w-20 h-20 rounded-full bg-red-500/20 flex items-center justify-center">
@@ -73,7 +77,7 @@ export default function AuthCodeErrorPage() {
             <Link href="/login">
               <Button
                 variant="outline"
-                className="w-full rounded-full border-border/30 text-foreground hover:bg-violet/10 hover:border-violet/30 bg-transparent"
+                className="w-full rounded-full border-border/30 text-foreground hover:bg-white/[0.06] bg-transparent"
               >
                 Go to Sign In
               </Button>
@@ -81,7 +85,7 @@ export default function AuthCodeErrorPage() {
 
             <Link href="/signup">
               <Button
-                className="w-full rounded-full bg-gradient-to-r from-violet to-purple text-white hover:opacity-90 font-bold glow-violet"
+                className="w-full rounded-full text-white font-bold lb-talk-btn"
               >
                 Create New Account
               </Button>

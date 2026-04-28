@@ -4,7 +4,6 @@ import { useState, useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { Loader2, ExternalLink, Headphones, CheckCircle, ArrowLeft } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { ColorBends } from "@/components/color-bends"
 import { useAuth } from "@/contexts/auth-context"
 import Link from "next/link"
 import Image from "next/image"
@@ -71,19 +70,26 @@ export default function PluginConnectPage() {
   if (authLoading || !user) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-violet-500" />
+        <Loader2 className="w-8 h-8 animate-spin" style={{ color: "var(--lb-accent)" }} />
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-background relative overflow-hidden">
-      {/* ColorBends Animated Background */}
-      <ColorBends
-        colors={["#8b5cf6", "#a855f7", "#d946ef", "#7c3aed", "#6366f1"]}
-        speed={0.015}
-        blur={120}
-      />
+    <div className="min-h-screen relative overflow-hidden lb-aurora">
+      {/* Floating glow orbs */}
+      <div className="absolute pointer-events-none" style={{
+        top: "20%", left: "10%", width: "40%", height: "40%",
+        background: "radial-gradient(circle, hsla(var(--hue), 90%, 65%, 0.1), transparent 60%)",
+        transform: "translate(var(--atle-fx), var(--atle-fy))",
+        filter: "blur(40px)"
+      }} />
+      <div className="absolute pointer-events-none" style={{
+        top: "60%", right: "8%", width: "30%", height: "30%",
+        background: "radial-gradient(circle, hsla(var(--hue), 90%, 65%, 0.08), transparent 60%)",
+        transform: "translate(var(--atle-fx), var(--atle-fy))",
+        filter: "blur(50px)"
+      }} />
 
       <div className="relative z-10 min-h-screen flex flex-col items-center justify-center px-6">
         {/* Back Link */}
@@ -99,13 +105,13 @@ export default function PluginConnectPage() {
         <div className="w-full max-w-md">
           <div className="relative">
             {/* Glow Effect */}
-            <div className="absolute -inset-4 bg-violet-500/20 rounded-[2rem] blur-2xl" />
+            <div className="absolute -inset-4 rounded-[2rem] blur-2xl" style={{ background: "hsla(var(--hue), 90%, 65%, 0.15)" }} />
 
             {/* Card */}
-            <div className="relative bg-white/[0.03] backdrop-blur-2xl rounded-3xl border border-white/[0.08] p-8 sm:p-10">
+            <div className="relative lb-glass rounded-3xl p-8 sm:p-10">
               {/* Icon */}
               <div className="flex justify-center mb-6">
-                <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-violet-600 to-fuchsia-600 flex items-center justify-center shadow-lg shadow-violet-500/30">
+                <div className="w-20 h-20 rounded-2xl lb-talk-btn flex items-center justify-center" style={{ boxShadow: "0 8px 24px var(--lb-glow)" }}>
                   {openingPlugin ? (
                     <Loader2 className="w-10 h-10 text-white animate-spin" />
                   ) : (
@@ -125,7 +131,7 @@ export default function PluginConnectPage() {
               </p>
 
               {/* User Info */}
-              <div className="flex items-center gap-4 p-4 rounded-2xl bg-white/[0.03] border border-white/10 mb-6">
+              <div className="flex items-center gap-4 p-4 rounded-2xl mb-6" style={{ background: "hsla(var(--hue), 90%, 65%, 0.05)", border: "1px solid hsla(var(--hue), 90%, 65%, 0.1)" }}>
                 {profile?.avatar_url ? (
                   <Image
                     src={profile.avatar_url}
@@ -135,7 +141,7 @@ export default function PluginConnectPage() {
                     className="w-12 h-12 rounded-xl object-cover"
                   />
                 ) : (
-                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-violet-600 to-fuchsia-600 flex items-center justify-center text-white font-bold text-lg">
+                  <div className="w-12 h-12 rounded-xl lb-talk-btn flex items-center justify-center text-white font-bold text-lg">
                     {profile?.full_name?.charAt(0) || user.email?.charAt(0)?.toUpperCase()}
                   </div>
                 )}
@@ -166,7 +172,8 @@ export default function PluginConnectPage() {
               <Button
                 onClick={handleOpenPlugin}
                 disabled={openingPlugin}
-                className="w-full h-14 rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white font-semibold text-lg shadow-lg shadow-violet-500/25 transition-all"
+                className="w-full h-14 rounded-xl lb-talk-btn text-white font-semibold text-lg transition-all"
+                style={{ boxShadow: "0 8px 24px var(--lb-glow)" }}
               >
                 {openingPlugin ? (
                   <Loader2 className="w-5 h-5 animate-spin mr-2" />
@@ -204,7 +211,7 @@ export default function PluginConnectPage() {
         {/* Footer */}
         <p className="mt-8 text-white/30 text-sm">
           Part of the{" "}
-          <Link href="/" className="text-violet-400 hover:text-violet-300 transition-colors">
+          <Link href="/" className="transition-colors" style={{ color: "var(--lb-accent)" }}>
             Zenphony
           </Link>
           {" "}ecosystem
