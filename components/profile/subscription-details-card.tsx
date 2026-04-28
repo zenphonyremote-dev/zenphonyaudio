@@ -163,12 +163,12 @@ export function SubscriptionDetailsCard({
 
   return (
     <div className="relative">
-      <div className="absolute -inset-2 bg-violet-500/10 rounded-3xl blur-xl" />
+      <div className="absolute -inset-2 rounded-3xl blur-xl" style={{ background: "hsla(var(--hue), 90%, 65%, 0.1)" }} />
       <div className="relative bg-white/[0.03] backdrop-blur-2xl rounded-3xl border border-white/[0.08] p-6">
         {/* Header */}
         <div className="flex items-center gap-3 mb-5">
-          <div className="w-10 h-10 rounded-xl bg-violet-500/20 flex items-center justify-center">
-            <Zap className="w-5 h-5 text-violet-400" />
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: "hsla(var(--hue), 90%, 65%, 0.2)" }}>
+            <Zap className="w-5 h-5" style={{ color: "var(--lb-accent)" }} />
           </div>
           <h3 className="font-semibold text-white">Your Subscription</h3>
         </div>
@@ -281,7 +281,8 @@ export function SubscriptionDetailsCard({
             </div>
             <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden mb-1 relative">
               <div
-                className="h-full bg-gradient-to-r from-violet-500 to-fuchsia-500 rounded-full transition-all"
+                className="h-full rounded-full transition-all"
+                style={{ background: "linear-gradient(90deg, var(--lb-primary), var(--lb-secondary))" }}
                 style={{ width: `${Math.min((minutesUsed / minutesLimit) * 100, 100)}%` }}
               />
               {/* Cloud cutoff marker at 50% */}
@@ -302,7 +303,7 @@ export function SubscriptionDetailsCard({
         {currentPlan !== "max" && (
           <div className="mt-5">
             <Link href="/products/listen-buddy#pricing">
-              <Button className="w-full rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white font-semibold">
+              <Button className="w-full rounded-xl text-white font-semibold" style={{ background: "linear-gradient(135deg, var(--lb-primary), var(--lb-primary-dim))", boxShadow: "0 8px 24px var(--lb-glow)" }}>
                 Upgrade Plan
               </Button>
             </Link>

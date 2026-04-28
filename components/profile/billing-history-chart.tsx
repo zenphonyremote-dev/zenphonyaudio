@@ -89,7 +89,7 @@ export function BillingHistoryChart({ data }: BillingHistoryChartProps) {
         <Bar
           dataKey="subscription"
           stackId="a"
-          fill="#8b5cf6"
+          fill="hsl(var(--hue), 90%, 65%)"
           radius={[0, 0, 0, 0]}
           name="Subscription"
         />

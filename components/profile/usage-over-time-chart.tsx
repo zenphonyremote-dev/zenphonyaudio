@@ -58,7 +58,7 @@ export function UsageOverTimeChart({
             onClick={() => onRangeChange(r.key)}
             className={`px-3 py-1 rounded-lg text-xs font-medium transition-all ${
               currentRange === r.key
-                ? "bg-violet-500/20 text-violet-400"
+                ? "bg-[hsla(var(--hue),90%,65%,0.2)] text-[color:var(--lb-accent)]"
                 : "text-white/40 hover:text-white/60 hover:bg-white/5"
             }`}
           >
@@ -71,8 +71,8 @@ export function UsageOverTimeChart({
         <AreaChart data={chartData} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
           <defs>
             <linearGradient id="usageGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.3} />
-              <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0} />
+              <stop offset="5%" stopColor="hsl(var(--hue), 90%, 65%)" stopOpacity={0.3} />
+              <stop offset="95%" stopColor="hsl(var(--hue), 90%, 65%)" stopOpacity={0} />
             </linearGradient>
           </defs>
           <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
@@ -112,7 +112,7 @@ export function UsageOverTimeChart({
           <Area
             type="monotone"
             dataKey="minutes"
-            stroke="#8b5cf6"
+            stroke="hsl(var(--hue), 90%, 65%)"
             strokeWidth={2}
             fill="url(#usageGradient)"
             name="Minutes Used"

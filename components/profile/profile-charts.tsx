@@ -120,12 +120,12 @@ export function ProfileCharts({ currentPlan, minutesLimit }: ProfileChartsProps)
 
   return (
     <div className="relative">
-      <div className="absolute -inset-2 bg-violet-500/10 rounded-3xl blur-xl" />
+      <div className="absolute -inset-2 rounded-3xl blur-xl" style={{ background: "hsla(var(--hue), 90%, 65%, 0.1)" }} />
       <div className="relative bg-white/[0.03] backdrop-blur-2xl rounded-3xl border border-white/[0.08] p-6">
         {/* Header */}
         <div className="flex items-center gap-3 mb-5">
-          <div className="w-10 h-10 rounded-xl bg-violet-500/20 flex items-center justify-center">
-            <BarChart3 className="w-5 h-5 text-violet-400" />
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: "hsla(var(--hue), 90%, 65%, 0.2)" }}>
+            <BarChart3 className="w-5 h-5" style={{ color: "var(--lb-accent)" }} />
           </div>
           <h3 className="font-semibold text-white">Analytics</h3>
         </div>
@@ -138,7 +138,7 @@ export function ProfileCharts({ currentPlan, minutesLimit }: ProfileChartsProps)
               onClick={() => setActiveTab(tab.key)}
               className={`flex-1 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
                 activeTab === tab.key
-                  ? "bg-violet-500/20 text-violet-400"
+                  ? "bg-[hsla(var(--hue),90%,65%,0.2)] text-[color:var(--lb-accent)]"
                   : "text-white/40 hover:text-white/60"
               }`}
             >

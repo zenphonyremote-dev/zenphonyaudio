@@ -31,17 +31,17 @@ const testimonials = [
 export function TestimonialsSection() {
   return (
     <section className="relative py-24 px-6 lg:px-8">
-      {/* Background decorations */}
+      {/* ATLE floating glow orbs */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/3 right-1/4 w-64 h-64 bg-violet/5 rounded-full blur-[100px]" />
-        <div className="absolute bottom-1/3 left-1/4 w-48 h-48 bg-magenta/5 rounded-full blur-[80px]" />
+        <div className="absolute top-1/3 right-1/4 w-64 h-64 rounded-full blur-[100px]" style={{ background: "hsla(var(--hue), 90%, 65%, 0.05)" }} />
+        <div className="absolute bottom-1/3 left-1/4 w-48 h-48 rounded-full blur-[80px]" style={{ background: "hsla(var(--hue-sec), 85%, 55%, 0.05)" }} />
       </div>
 
       <div className="max-w-7xl mx-auto relative z-10">
         {/* Section Header */}
         <div className="text-center mb-16">
           <h2 className="text-5xl sm:text-6xl lg:text-7xl font-black text-foreground tracking-tight">
-            Our happy <span className="text-gradient-violet">Customers</span>
+            Our happy <span className="text-gradient-primary">Customers</span>
           </h2>
         </div>
 
@@ -49,10 +49,10 @@ export function TestimonialsSection() {
         <div className="grid md:grid-cols-3 gap-8">
           {testimonials.map((testimonial, index) => (
             <TiltCard key={index} tiltMax={10} scale={1.03}>
-              <div className="glass rounded-3xl p-8 card-3d h-full">
+              <div className="lb-glass rounded-3xl p-8 card-3d h-full">
                 {/* Avatar and Info */}
                 <div className="flex items-center gap-4 mb-6">
-                  <div className="relative w-14 h-14 rounded-full overflow-hidden bg-gradient-to-br from-violet to-magenta p-[2px]">
+                  <div className="relative w-14 h-14 rounded-full overflow-hidden p-[2px]" style={{ background: "linear-gradient(135deg, var(--lb-primary), var(--lb-secondary))" }}>
                     <div className="w-full h-full rounded-full overflow-hidden">
                       <Image
                         src={testimonial.avatar || "/placeholder.svg"}

@@ -24,7 +24,7 @@ export function PlanRecommendationCard({ recommendation }: PlanRecommendationCar
   return (
     <div className="bg-white/[0.03] rounded-2xl border border-white/[0.08] p-5">
       <div className="flex items-center gap-2 mb-3">
-        <TrendingUp className="w-4 h-4 text-violet-400" />
+        <TrendingUp className="w-4 h-4" style={{ color: "var(--lb-accent)" }} />
         <h4 className="text-sm font-semibold text-white">Plan Recommendation</h4>
         <span className={`text-[10px] font-medium uppercase tracking-wider ${confidenceColors[confidence]}`}>
           {confidence} confidence

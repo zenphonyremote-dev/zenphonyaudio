@@ -35,7 +35,7 @@ export function PlanComparisonChart({
 
   const getBarColor = (id: string) => {
     if (id === recommendedPlan && id !== currentPlan) return "#22c55e"
-    if (id === currentPlan) return "#8b5cf6"
+    if (id === currentPlan) return "hsl(var(--hue), 90%, 65%)"
     return "rgba(255,255,255,0.1)"
   }
 
@@ -101,7 +101,7 @@ export function PlanComparisonChart({
       {/* Legend */}
       <div className="flex items-center gap-4 mt-3 justify-center">
         <div className="flex items-center gap-1.5">
-          <div className="w-2.5 h-2.5 rounded-sm bg-violet-500" />
+          <div className="w-2.5 h-2.5 rounded-sm" style={{ background: "var(--lb-primary)" }} />
           <span className="text-white/40 text-xs">Current plan</span>
         </div>
         {recommendedPlan && recommendedPlan !== currentPlan && (

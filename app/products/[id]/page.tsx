@@ -1,6 +1,4 @@
-import { Navigation } from "@/components/navigation"
 import { Footer } from "@/components/footer"
-import { ColorBends } from "@/components/color-bends"
 import { Button } from "@/components/ui/button"
 import { ArrowRight, Check, Headphones, Mic, Radio, Music, Play, Download, Star } from "lucide-react"
 import Link from "next/link"
@@ -129,26 +127,29 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
   const Icon = product.icon
 
   return (
-    <div className="min-h-screen bg-background relative overflow-hidden">
-      <ColorBends />
+    <div className="min-h-screen bg-background relative overflow-hidden lb-aurora">
       <div className="relative z-10">
-        <Navigation />
 
         {/* Hero Section */}
-        <section className="pt-40 pb-20 px-6 lg:px-8">
+        <section className="relative pt-40 pb-20 px-6 lg:px-8">
+          {/* Floating glow orb */}
+          <div className="absolute -inset-8 pointer-events-none" style={{
+            background: "radial-gradient(50% 50% at 30% 40%, hsla(var(--hue), 90%, 65%, 0.15), transparent 70%)",
+            transform: "translate(var(--atle-fx), var(--atle-fy))"
+          }} />
           <div className="max-w-7xl mx-auto">
             <div className="grid lg:grid-cols-2 gap-16 items-center">
               {/* Left Content */}
               <div>
-                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass mb-6">
-                  <Icon className="w-4 h-4 text-violet-400" />
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full lb-glass mb-6">
+                  <Icon className="w-4 h-4" style={{ color: "var(--lb-accent)" }} />
                   <span className="text-sm text-white/80">{product.category}</span>
                 </div>
 
                 <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black text-white mb-4 tracking-tight">
                   {product.name.toUpperCase()}
                 </h1>
-                <p className="text-violet-400 font-medium mb-4">{product.description}</p>
+                <p className="font-medium mb-4" style={{ color: "var(--lb-accent)" }}>{product.description}</p>
                 <p className="text-xl text-white/60 mb-8 leading-relaxed max-w-lg">{product.longDescription}</p>
 
                 {/* Price */}
@@ -160,7 +161,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
                 {/* CTAs */}
                 <div className="flex flex-wrap gap-4 mb-8">
                   <Link href="/signup">
-                    <Button className="rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white font-bold px-8 py-6 text-lg">
+                    <Button className="rounded-full text-white font-bold px-8 py-6 text-lg lb-talk-btn">
                       Start Free Trial
                       <ArrowRight className="w-5 h-5 ml-2" />
                     </Button>
@@ -187,7 +188,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
 
               {/* Right - Product Image */}
               <div className="relative">
-                <div className="glass rounded-3xl overflow-hidden">
+                <div className="lb-glass rounded-3xl overflow-hidden">
                   <Image
                     src={product.image || "/placeholder.svg"}
                     alt={product.name}
@@ -198,7 +199,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
                 </div>
 
                 {/* Floating Specs Card */}
-                <div className="absolute -bottom-8 -left-8 glass rounded-2xl p-6">
+                <div className="absolute -bottom-8 -left-8 lb-glass rounded-2xl p-6">
                   <div className="grid grid-cols-2 gap-4">
                     {product.specs.map((spec, i) => (
                       <div key={i}>
@@ -220,8 +221,8 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
 
             <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {product.features.map((feature, i) => (
-                <div key={i} className="glass rounded-2xl p-6 hover:bg-white/[0.08] transition-all">
-                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-600 to-fuchsia-600 flex items-center justify-center mb-4">
+                <div key={i} className="lb-glass rounded-2xl p-6 hover:bg-white/[0.08] transition-all">
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-4" style={{ background: "linear-gradient(135deg, var(--lb-primary), var(--lb-primary-dim))" }}>
                     <Check className="w-5 h-5 text-white" />
                   </div>
                   <p className="text-white font-medium">{feature}</p>
@@ -234,8 +235,8 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
         {/* CTA Section */}
         <section className="py-20 px-6 lg:px-8">
           <div className="max-w-4xl mx-auto">
-            <div className="glass rounded-3xl p-12 text-center relative overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-br from-violet-600/20 to-fuchsia-600/20" />
+            <div className="lb-glass rounded-3xl p-12 text-center relative overflow-hidden">
+              <div className="absolute inset-0" style={{ background: "linear-gradient(135deg, hsla(var(--hue), 90%, 65%, 0.2), hsla(var(--hue-sec), 85%, 55%, 0.2))" }} />
               <div className="relative z-10">
                 <h2 className="text-3xl sm:text-4xl font-black text-white mb-4">Ready to transform your audio?</h2>
                 <p className="text-white/60 mb-8 max-w-lg mx-auto">
@@ -243,7 +244,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
                 </p>
                 <div className="flex flex-wrap justify-center gap-4">
                   <Link href="/signup">
-                    <Button className="rounded-full bg-white text-violet-600 hover:bg-white/90 font-bold px-8 py-6 text-lg">
+                    <Button className="rounded-full bg-white hover:bg-white/90 font-bold px-8 py-6 text-lg" style={{ color: "var(--lb-primary)" }}>
                       <Download className="w-5 h-5 mr-2" />
                       Download Now
                     </Button>

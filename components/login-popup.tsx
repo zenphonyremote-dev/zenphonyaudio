@@ -59,9 +59,9 @@ export function LoginPopup({ isOpen, onClose }: LoginPopupProps) {
       <div className="absolute inset-0 bg-background/90 backdrop-blur-md" onClick={onClose} />
 
       {/* Modal */}
-      <div className="relative z-10 w-full max-w-5xl glass-strong rounded-3xl shadow-2xl overflow-hidden flex">
+      <div className="relative z-10 w-full max-w-5xl lb-glass-strong rounded-3xl shadow-2xl overflow-hidden flex">
         {/* Left side - Image carousel (50%) */}
-        <div className="hidden md:block w-1/2 relative bg-gradient-to-br from-violet via-purple to-background">
+        <div className="hidden md:block w-1/2 relative" style={{ background: `linear-gradient(135deg, var(--lb-primary), var(--lb-primary-dim), var(--lb-surface))` }}>
           {/* Images */}
           {carouselImages.map((img, index) => (
             <div
@@ -80,7 +80,7 @@ export function LoginPopup({ isOpen, onClose }: LoginPopupProps) {
           {/* Quote overlay */}
           <div className="absolute bottom-0 left-0 right-0 p-8">
             <div className="space-y-3">
-              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-violet to-purple flex items-center justify-center glow-violet">
+              <div className="w-12 h-12 rounded-2xl flex items-center justify-center glow-md" style={{ background: "linear-gradient(135deg, var(--lb-primary), var(--lb-secondary))" }}>
                 <Activity className="w-6 h-6 text-white" />
               </div>
               <p className="text-2xl font-bold text-foreground leading-tight">{carouselImages[currentImage].quote}</p>
@@ -95,9 +95,10 @@ export function LoginPopup({ isOpen, onClose }: LoginPopupProps) {
                   onClick={() => setCurrentImage(index)}
                   className={`h-1.5 rounded-full transition-all duration-300 ${
                     index === currentImage
-                      ? "w-8 bg-gradient-to-r from-violet to-purple"
+                      ? "w-8"
                       : "w-1.5 bg-muted-foreground/40 hover:bg-muted-foreground"
                   }`}
+                  style={index === currentImage ? { background: "linear-gradient(90deg, var(--lb-primary), var(--lb-secondary))" } : undefined}
                 />
               ))}
             </div>
@@ -114,7 +115,7 @@ export function LoginPopup({ isOpen, onClose }: LoginPopupProps) {
           {/* Close Button */}
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 p-2 rounded-full hover:bg-violet/10 transition-colors text-muted-foreground hover:text-foreground"
+            className="absolute top-4 right-4 p-2 rounded-full hover:bg-white/10 transition-colors text-muted-foreground hover:text-foreground"
           >
             <X className="w-5 h-5" />
           </button>
@@ -139,7 +140,7 @@ export function LoginPopup({ isOpen, onClose }: LoginPopupProps) {
                   placeholder="First name"
                   value={firstName}
                   onChange={(e) => setFirstName(e.target.value)}
-                  className="pl-12 h-14 rounded-2xl bg-secondary/50 border-border/30 text-foreground placeholder:text-muted-foreground focus-visible:ring-violet focus-visible:border-violet"
+                  className="pl-12 h-14 rounded-2xl bg-secondary/50 border-border/30 text-foreground placeholder:text-muted-foreground focus-visible:ring-[color:var(--lb-primary)] focus-visible:border-[color:var(--lb-primary)]"
                 />
               </div>
               <div className="relative">
@@ -149,7 +150,7 @@ export function LoginPopup({ isOpen, onClose }: LoginPopupProps) {
                   placeholder="Last name"
                   value={lastName}
                   onChange={(e) => setLastName(e.target.value)}
-                  className="pl-12 h-14 rounded-2xl bg-secondary/50 border-border/30 text-foreground placeholder:text-muted-foreground focus-visible:ring-violet focus-visible:border-violet"
+                  className="pl-12 h-14 rounded-2xl bg-secondary/50 border-border/30 text-foreground placeholder:text-muted-foreground focus-visible:ring-[color:var(--lb-primary)] focus-visible:border-[color:var(--lb-primary)]"
                 />
               </div>
             </div>
@@ -161,7 +162,7 @@ export function LoginPopup({ isOpen, onClose }: LoginPopupProps) {
                 placeholder="Email address"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="pl-12 h-14 rounded-2xl bg-secondary/50 border-border/30 text-foreground placeholder:text-muted-foreground focus-visible:ring-violet focus-visible:border-violet"
+                className="pl-12 h-14 rounded-2xl bg-secondary/50 border-border/30 text-foreground placeholder:text-muted-foreground focus-visible:ring-[color:var(--lb-primary)] focus-visible:border-[color:var(--lb-primary)]"
               />
             </div>
 
@@ -169,7 +170,7 @@ export function LoginPopup({ isOpen, onClose }: LoginPopupProps) {
               <select
                 value={subject}
                 onChange={(e) => setSubject(e.target.value)}
-                className="w-full h-14 pl-4 pr-4 rounded-2xl bg-secondary/50 border border-border/30 text-foreground focus:outline-none focus:ring-2 focus:ring-violet focus:border-violet appearance-none cursor-pointer"
+                className="w-full h-14 pl-4 pr-4 rounded-2xl bg-secondary/50 border border-border/30 text-foreground focus:outline-none focus:ring-2 focus:ring-[color:var(--lb-primary)] focus:border-[color:var(--lb-primary)] appearance-none cursor-pointer"
               >
                 <option value="" disabled>Select a topic</option>
                 <option value="general">General Inquiry</option>
@@ -192,11 +193,11 @@ export function LoginPopup({ isOpen, onClose }: LoginPopupProps) {
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 rows={5}
-                className="w-full pl-12 pr-4 py-4 rounded-2xl bg-secondary/50 border border-border/30 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-violet focus:border-violet resize-none"
+                className="w-full pl-12 pr-4 py-4 rounded-2xl bg-secondary/50 border border-border/30 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[color:var(--lb-primary)] focus:border-[color:var(--lb-primary)] resize-none"
               />
             </div>
 
-            <Button className="w-full h-14 rounded-2xl bg-gradient-to-r from-violet to-purple text-white hover:opacity-90 font-bold text-lg group glow-violet">
+            <Button className="w-full h-14 rounded-2xl lb-talk-btn text-white hover:opacity-90 font-bold text-lg group">
               Send Message
               <Send className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
             </Button>
@@ -205,12 +206,12 @@ export function LoginPopup({ isOpen, onClose }: LoginPopupProps) {
           {/* Contact options */}
           <div className="mt-8 pt-6 border-t border-border/20">
             <div className="flex items-center justify-center gap-6">
-              <a href="mailto:hello@zenphony.com" className="flex items-center gap-2 text-muted-foreground hover:text-violet transition-colors">
+              <a href="mailto:hello@zenphony.com" className="flex items-center gap-2 text-muted-foreground hover:text-[color:var(--lb-accent)] transition-colors">
                 <Mail className="w-4 h-4" />
                 <span className="text-sm">hello@zenphony.com</span>
               </a>
               <span className="text-border">|</span>
-              <a href="#" className="flex items-center gap-2 text-muted-foreground hover:text-violet transition-colors">
+              <a href="#" className="flex items-center gap-2 text-muted-foreground hover:text-[color:var(--lb-accent)] transition-colors">
                 <MessageSquare className="w-4 h-4" />
                 <span className="text-sm">Live Chat</span>
               </a>

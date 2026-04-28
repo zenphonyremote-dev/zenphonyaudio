@@ -1,8 +1,6 @@
 "use client"
 
-import { Navigation } from "@/components/navigation"
 import { Footer } from "@/components/footer"
-import { Aurora } from "@/components/aurora"
 import { ArrowLeft, Sparkles, Music, Mic, Radio, Heart } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -59,24 +57,27 @@ const values = [
 
 export default function BackstoryPage() {
   return (
-    <main className="min-h-screen bg-background">
-      <Navigation />
+    <main className="min-h-screen bg-background lb-aurora">
 
       {/* Hero Section */}
       <section className="relative pt-32 pb-20 overflow-hidden">
-        <Aurora />
+        {/* Floating glow orb */}
+        <div className="absolute -inset-8 pointer-events-none" style={{
+          background: "radial-gradient(50% 50% at 30% 40%, hsla(var(--hue), 90%, 65%, 0.15), transparent 70%)",
+          transform: "translate(var(--atle-fx), var(--atle-fy))"
+        }} />
 
         <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <Link
             href="/"
-            className="inline-flex items-center gap-2 text-muted-foreground hover:text-violet mb-8 transition-colors"
+            className="inline-flex items-center gap-2 text-muted-foreground hover:text-[color:var(--lb-accent)] mb-8 transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
             Back to Home
           </Link>
 
           <h1 className="text-6xl sm:text-7xl lg:text-8xl font-black tracking-tighter mb-6">
-            OUR <span className="text-gradient-violet">STORY</span>
+            OUR <span className="text-gradient-primary">STORY</span>
           </h1>
 
           <p className="text-xl text-muted-foreground max-w-2xl leading-relaxed">
@@ -87,19 +88,19 @@ export default function BackstoryPage() {
       </section>
 
       {/* The Beginning */}
-      <section className="py-20 glass">
+      <section className="py-20 lb-glass">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-3 mb-8">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet to-purple flex items-center justify-center">
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: "linear-gradient(135deg, var(--lb-primary), var(--lb-primary-dim))" }}>
               <Heart className="w-4 h-4 text-white" />
             </div>
-            <span className="text-sm font-bold text-violet uppercase tracking-wider">The Beginning</span>
+            <span className="text-sm font-bold uppercase tracking-wider" style={{ color: "var(--lb-accent)" }}>The Beginning</span>
           </div>
 
           <h2 className="text-4xl sm:text-5xl font-black text-foreground mb-8">It started with a simple question</h2>
 
           <div className="space-y-6">
-            <p className="text-xl text-violet leading-relaxed">
+            <p className="text-xl leading-relaxed" style={{ color: "var(--lb-accent)" }}>
               &ldquo;Why is professional audio creation so inaccessible?&rdquo;
             </p>
             <p className="text-lg text-muted-foreground leading-relaxed">
@@ -118,28 +119,37 @@ export default function BackstoryPage() {
 
       {/* Timeline */}
       <section className="relative py-20 overflow-hidden">
-        <Aurora />
+        {/* Floating glow orb */}
+        <div className="absolute -inset-8 pointer-events-none" style={{
+          background: "radial-gradient(50% 50% at 60% 50%, hsla(var(--hue-sec), 85%, 55%, 0.12), transparent 70%)",
+          transform: "translate(calc(var(--atle-fx) * -1), var(--atle-fy))"
+        }} />
 
         <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-4xl sm:text-5xl font-black text-foreground mb-16 text-center">
-            Our <span className="text-gradient-violet">Journey</span>
+            Our <span className="text-gradient-primary">Journey</span>
           </h2>
 
           <div className="relative">
             {/* Timeline line */}
-            <div className="absolute left-8 top-0 bottom-0 w-px bg-gradient-to-b from-violet via-purple to-magenta hidden sm:block" />
+            <div className="absolute left-8 top-0 bottom-0 w-px hidden sm:block" style={{ background: "linear-gradient(to bottom, var(--lb-primary), var(--lb-secondary), var(--lb-accent))" }} />
 
             <div className="space-y-12">
               {timeline.map((item, index) => (
                 <div key={index} className="relative flex gap-8">
                   {/* Icon */}
-                  <div className="relative z-10 w-16 h-16 rounded-2xl bg-gradient-to-br from-violet to-purple flex items-center justify-center flex-shrink-0 glow-violet">
+                  <div className="relative z-10 w-16 h-16 rounded-2xl flex items-center justify-center flex-shrink-0 glow-md" style={{ background: "linear-gradient(135deg, var(--lb-primary), var(--lb-primary-dim))" }}>
                     <item.icon className="w-7 h-7 text-white" />
                   </div>
 
                   {/* Content */}
-                  <div className="flex-1 pb-8 glass rounded-2xl p-6 border-glow">
-                    <span className="text-sm font-bold text-violet">{item.year}</span>
+                  <div className="relative flex-1 pb-8 lb-glass rounded-2xl p-6">
+                    {/* Floating glow orb behind timeline item */}
+                    <div className="absolute -inset-4 pointer-events-none -z-10 rounded-2xl" style={{
+                      background: "radial-gradient(circle at 50% 50%, hsla(var(--hue), 90%, 65%, 0.06), transparent 70%)",
+                      transform: `translate(calc(var(--atle-fx) * ${0.3 + index * 0.1}), calc(var(--atle-fy) * ${0.3 + index * 0.1}))`
+                    }} />
+                    <span className="text-sm font-bold" style={{ color: "var(--lb-accent)" }}>{item.year}</span>
                     <h3 className="text-2xl font-black text-foreground mt-1 mb-3">{item.title}</h3>
                     <p className="text-muted-foreground leading-relaxed">{item.description}</p>
                   </div>
@@ -151,15 +161,15 @@ export default function BackstoryPage() {
       </section>
 
       {/* Values */}
-      <section className="py-20 glass">
+      <section className="py-20 lb-glass">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-4xl sm:text-5xl font-black text-foreground mb-16 text-center">
-            What We <span className="text-gradient-violet">Believe</span>
+            What We <span className="text-gradient-primary">Believe</span>
           </h2>
 
           <div className="grid sm:grid-cols-2 gap-6">
             {values.map((value, index) => (
-              <div key={index} className="glass rounded-3xl p-8 border-glow hover:scale-[1.02] transition-transform">
+              <div key={index} className="lb-glass rounded-3xl p-8 hover:scale-[1.02] transition-transform">
                 <h3 className="text-xl font-black text-foreground mb-3">{value.title}</h3>
                 <p className="text-muted-foreground leading-relaxed">{value.description}</p>
               </div>
@@ -170,17 +180,21 @@ export default function BackstoryPage() {
 
       {/* CTA */}
       <section className="relative py-20 overflow-hidden">
-        <Aurora />
+        {/* Floating glow orb */}
+        <div className="absolute -inset-8 pointer-events-none" style={{
+          background: "radial-gradient(50% 50% at 50% 50%, hsla(var(--hue), 90%, 65%, 0.12), transparent 70%)",
+          transform: "translate(var(--atle-fx), calc(var(--atle-fy) * -1))"
+        }} />
 
         <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-4xl sm:text-5xl font-black text-foreground mb-6">
-            Join Our <span className="text-gradient-violet">Story</span>
+            Join Our <span className="text-gradient-primary">Story</span>
           </h2>
           <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
             Be part of the audio revolution. Start creating with Zenphony Audio today.
           </p>
           <Link href="/signup">
-            <Button className="rounded-full bg-gradient-to-r from-violet to-purple text-white hover:opacity-90 font-bold px-10 py-6 text-lg glow-violet">
+            <Button className="rounded-full text-white font-bold px-10 py-6 text-lg lb-talk-btn">
               Get Started Free
             </Button>
           </Link>

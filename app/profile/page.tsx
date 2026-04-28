@@ -6,7 +6,6 @@ import { User, Mail, Phone, Building, Briefcase, Camera, LogOut, Loader2, Check,
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Footer } from "@/components/footer"
-import { ColorBends } from "@/components/color-bends"
 import { useAuth } from "@/contexts/auth-context"
 import { createClient } from "@/lib/supabase/client"
 import { SubscriptionDetailsCard } from "@/components/profile/subscription-details-card"
@@ -160,13 +159,13 @@ export default function ProfilePage() {
             <p className="text-white/50 text-sm">Taking longer than expected</p>
             <button
               onClick={() => window.location.reload()}
-              className="px-6 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-sm font-semibold transition-colors"
+              className="px-6 py-2.5 rounded-xl lb-talk-btn text-white text-sm font-semibold transition-colors"
             >
               Refresh Page
             </button>
           </div>
         ) : (
-          <Loader2 className="w-8 h-8 animate-spin text-violet-500" />
+          <Loader2 className="w-8 h-8 animate-spin" style={{ color: "var(--lb-accent)" }} />
         )}
       </div>
     )
@@ -180,13 +179,26 @@ export default function ProfilePage() {
   const isUnlimited = minutesLimit === -1
 
   return (
-    <div className="min-h-screen bg-background relative overflow-hidden">
-      {/* ColorBends Animated Background */}
-      <ColorBends
-        colors={["#8b5cf6", "#a855f7", "#d946ef", "#7c3aed", "#6366f1"]}
-        speed={0.015}
-        blur={120}
-      />
+    <div className="min-h-screen relative overflow-hidden lb-aurora">
+      {/* Floating glow orbs */}
+      <div className="absolute pointer-events-none" style={{
+        top: "10%", left: "5%", width: "45%", height: "45%",
+        background: "radial-gradient(circle, hsla(var(--hue), 90%, 65%, 0.1), transparent 60%)",
+        transform: "translate(var(--atle-fx), var(--atle-fy))",
+        filter: "blur(40px)"
+      }} />
+      <div className="absolute pointer-events-none" style={{
+        top: "50%", right: "5%", width: "35%", height: "35%",
+        background: "radial-gradient(circle, hsla(var(--hue), 90%, 65%, 0.08), transparent 60%)",
+        transform: "translate(var(--atle-fx), var(--atle-fy))",
+        filter: "blur(50px)"
+      }} />
+      <div className="absolute pointer-events-none" style={{
+        top: "75%", left: "30%", width: "25%", height: "25%",
+        background: "radial-gradient(circle, hsla(var(--hue), 90%, 65%, 0.06), transparent 60%)",
+        transform: "translate(var(--atle-fx), var(--atle-fy))",
+        filter: "blur(60px)"
+      }} />
 
       <div className="relative z-10">
 
@@ -214,8 +226,8 @@ export default function ProfilePage() {
               {/* Profile Card */}
               <div className="lg:col-span-2">
                 <div className="relative">
-                  <div className="absolute -inset-2 bg-violet-500/10 rounded-3xl blur-xl" />
-                  <div className="relative bg-white/[0.03] backdrop-blur-2xl rounded-3xl border border-white/[0.08] p-8">
+                  <div className="absolute -inset-2 rounded-3xl blur-xl" style={{ background: "hsla(var(--hue), 90%, 65%, 0.1)" }} />
+                  <div className="relative lb-glass rounded-3xl p-8">
                     {/* Avatar & Name */}
                     <div className="flex items-start gap-6 mb-8">
                       <div className="relative">
@@ -230,7 +242,7 @@ export default function ProfilePage() {
                             />
                           </div>
                         ) : (
-                          <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-violet-600 to-fuchsia-600 flex items-center justify-center text-white text-2xl font-bold">
+                          <div className="w-20 h-20 rounded-2xl lb-talk-btn flex items-center justify-center text-white text-2xl font-bold">
                             {(profile?.full_name || user.email?.split('@')[0] || '?').charAt(0).toUpperCase()}
                           </div>
                         )}
@@ -258,7 +270,7 @@ export default function ProfilePage() {
                           {profile?.full_name || user.email?.split('@')[0] || "Set your name"}
                         </h2>
                         <p className="text-white/50 text-sm">{user.email}</p>
-                        <div className={`inline-flex items-center gap-1.5 mt-2 px-3 py-1 rounded-full text-xs font-semibold bg-${plan.color}-500/20 text-${plan.color}-400`}>
+                        <div className="inline-flex items-center gap-1.5 mt-2 px-3 py-1 rounded-full text-xs font-semibold" style={{ background: "hsla(var(--hue), 90%, 65%, 0.15)", color: "var(--lb-accent)" }}>
                           <Crown className="w-3 h-3" />
                           {plan.name}
                         </div>
@@ -362,7 +374,8 @@ export default function ProfilePage() {
                         <Button
                           onClick={handleSave}
                           disabled={saving}
-                          className="rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white font-semibold px-8"
+                          className="rounded-xl lb-talk-btn text-white font-semibold px-8"
+                          style={{ boxShadow: "0 8px 24px var(--lb-glow)" }}
                         >
                           {saving ? (
                             <Loader2 className="w-4 h-4 animate-spin" />
@@ -394,17 +407,17 @@ export default function ProfilePage() {
                 {/* Open Plugin Link */}
                 <Link href="/plugin" className="block">
                   <div className="relative group">
-                    <div className="absolute -inset-2 bg-violet-500/10 rounded-3xl blur-xl group-hover:bg-violet-500/20 transition-all" />
-                    <div className="relative bg-white/[0.03] backdrop-blur-2xl rounded-3xl border border-white/[0.08] p-6 group-hover:border-violet-500/30 transition-all">
+                    <div className="absolute -inset-2 rounded-3xl blur-xl transition-all" style={{ background: "hsla(var(--hue), 90%, 65%, 0.1)" }} />
+                    <div className="relative lb-glass rounded-3xl p-6 transition-all" style={{ borderColor: "hsla(var(--hue), 90%, 65%, 0.1)" }}>
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-violet-500/20 flex items-center justify-center">
-                          <Headphones className="w-5 h-5 text-violet-400" />
+                        <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: "hsla(var(--hue), 90%, 65%, 0.15)" }}>
+                          <Headphones className="w-5 h-5" style={{ color: "var(--lb-accent)" }} />
                         </div>
                         <div className="flex-1">
                           <h3 className="font-semibold text-white">Listen Buddy Plugin</h3>
                           <p className="text-white/40 text-xs">Open and connect your DAW plugin</p>
                         </div>
-                        <ExternalLink className="w-5 h-5 text-white/30 group-hover:text-violet-400 transition-colors" />
+                        <ExternalLink className="w-5 h-5 text-white/30 group-hover:text-white transition-colors" />
                       </div>
                     </div>
                   </div>
@@ -426,8 +439,8 @@ export default function ProfilePage() {
               <Suspense
                 fallback={
                   <div className="relative">
-                    <div className="absolute -inset-2 bg-violet-500/10 rounded-3xl blur-xl" />
-                    <div className="relative bg-white/[0.03] backdrop-blur-2xl rounded-3xl border border-white/[0.08] p-6 flex items-center justify-center py-16">
+                    <div className="absolute -inset-2 rounded-3xl blur-xl" style={{ background: "hsla(var(--hue), 90%, 65%, 0.1)" }} />
+                    <div className="relative lb-glass rounded-3xl p-6 flex items-center justify-center py-16">
                       <Loader2 className="w-6 h-6 animate-spin text-white/20" />
                     </div>
                   </div>

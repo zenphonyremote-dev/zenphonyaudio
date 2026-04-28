@@ -4,7 +4,6 @@ import { useEffect, useState, Suspense } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
 import { Navigation } from "@/components/navigation"
 import { Footer } from "@/components/footer"
-import { ColorBends } from "@/components/color-bends"
 import { Button } from "@/components/ui/button"
 import { CheckCircle2, Loader2, Home, Download, Plus, Zap } from "lucide-react"
 import Link from "next/link"
@@ -76,7 +75,7 @@ function SuccessContent() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <Loader2 className="w-12 h-12 animate-spin text-violet-500" />
+        <Loader2 className="w-12 h-12 animate-spin" style={{ color: "var(--lb-accent)" }} />
       </div>
     )
   }
@@ -101,7 +100,7 @@ function SuccessContent() {
         </p>
 
         {/* Info Box */}
-        <div className="bg-gradient-to-br from-white/[0.06] to-white/[0.02] rounded-2xl p-8 border border-white/10 mb-12 text-left">
+        <div className="lb-glass rounded-2xl p-8 mb-12 text-left">
           <h2 className="text-2xl font-semibold text-white mb-6 text-center">
             Ready to Analyze?
           </h2>
@@ -123,9 +122,9 @@ function SuccessContent() {
                 desc: "Launch Listen Buddy in your DAW to start analyzing",
               },
             ].map((item, i) => (
-              <div key={i} className="flex gap-4 p-4 bg-white/[0.03] rounded-xl border border-white/10">
-                <div className="w-12 h-12 rounded-lg bg-cyan-600/20 flex items-center justify-center flex-shrink-0">
-                  <item.icon className="w-6 h-6 text-cyan-400" />
+              <div key={i} className="flex gap-4 p-4 rounded-xl" style={{ background: "hsla(var(--hue), 90%, 65%, 0.05)", border: "1px solid hsla(var(--hue), 90%, 65%, 0.1)" }}>
+                <div className="w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: "hsla(var(--hue), 90%, 65%, 0.15)" }}>
+                  <item.icon className="w-6 h-6" style={{ color: "var(--lb-accent)" }} />
                 </div>
                 <div>
                   <h3 className="text-lg font-semibold text-white mb-1">{item.title}</h3>
@@ -196,7 +195,7 @@ function SuccessContent() {
       </p>
 
       {/* Features List */}
-      <div className="bg-gradient-to-br from-white/[0.06] to-white/[0.02] rounded-2xl p-8 border border-white/10 mb-12 text-left">
+      <div className="lb-glass rounded-2xl p-8 mb-12 text-left">
         <h2 className="text-2xl font-semibold text-white mb-6 text-center">
           What's Next?
         </h2>
@@ -218,9 +217,9 @@ function SuccessContent() {
               desc: "Manage your subscription and view your analysis history",
             },
           ].map((item, i) => (
-            <div key={i} className="flex gap-4 p-4 bg-white/[0.03] rounded-xl border border-white/10">
-              <div className="w-12 h-12 rounded-lg bg-violet-600/20 flex items-center justify-center flex-shrink-0">
-                <item.icon className="w-6 h-6 text-violet-400" />
+            <div key={i} className="flex gap-4 p-4 rounded-xl" style={{ background: "hsla(var(--hue), 90%, 65%, 0.05)", border: "1px solid hsla(var(--hue), 90%, 65%, 0.1)" }}>
+              <div className="w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: "hsla(var(--hue), 90%, 65%, 0.15)" }}>
+                <item.icon className="w-6 h-6" style={{ color: "var(--lb-accent)" }} />
               </div>
               <div>
                 <h3 className="text-lg font-semibold text-white mb-1">{item.title}</h3>
@@ -234,7 +233,7 @@ function SuccessContent() {
       {/* CTA Buttons */}
       <div className="flex flex-wrap justify-center gap-4">
         <Link href="/signup">
-          <Button className="rounded-full bg-violet-600 hover:bg-violet-500 text-white font-semibold px-10 py-7 text-lg shadow-lg shadow-violet-600/25 transition-all duration-200">
+          <Button className="rounded-full lb-talk-btn text-white font-semibold px-10 py-7 text-lg transition-all duration-200" style={{ boxShadow: "0 8px 24px var(--lb-glow)" }}>
             <Download className="w-6 h-6 mr-2" />
             Download Plugin
           </Button>
@@ -275,20 +274,27 @@ function SuccessContent() {
 function SuccessLoading() {
   return (
     <div className="flex items-center justify-center py-20">
-      <Loader2 className="w-12 h-12 animate-spin text-violet-500" />
+      <Loader2 className="w-12 h-12 animate-spin" style={{ color: "var(--lb-accent)" }} />
     </div>
   )
 }
 
 export default function CheckoutSuccessPage() {
   return (
-    <div className="min-h-screen bg-background relative overflow-hidden">
-      {/* ColorBends - Full page animated background */}
-      <ColorBends
-        colors={["#8b5cf6", "#a855f7", "#d946ef", "#7c3aed", "#6366f1"]}
-        speed={0.015}
-        blur={120}
-      />
+    <div className="min-h-screen relative overflow-hidden lb-aurora">
+      {/* Floating glow orbs */}
+      <div className="absolute pointer-events-none" style={{
+        top: "15%", left: "8%", width: "40%", height: "40%",
+        background: "radial-gradient(circle, hsla(var(--hue), 90%, 65%, 0.1), transparent 60%)",
+        transform: "translate(var(--atle-fx), var(--atle-fy))",
+        filter: "blur(40px)"
+      }} />
+      <div className="absolute pointer-events-none" style={{
+        top: "55%", right: "10%", width: "30%", height: "30%",
+        background: "radial-gradient(circle, hsla(var(--hue), 90%, 65%, 0.08), transparent 60%)",
+        transform: "translate(var(--atle-fx), var(--atle-fy))",
+        filter: "blur(50px)"
+      }} />
 
       <div className="relative z-10">
         <Navigation />

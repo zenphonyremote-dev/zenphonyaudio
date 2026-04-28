@@ -28,8 +28,8 @@ export function PageTransition({ children }: { children: React.ReactNode }) {
         <div className="fixed inset-0 z-[200] bg-background flex items-center justify-center">
           {/* Animated gradient background */}
           <div className="absolute inset-0 overflow-hidden">
-            <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-violet-500/20 rounded-full blur-[150px] animate-pulse" />
-            <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-fuchsia-500/20 rounded-full blur-[120px] animate-pulse" style={{ animationDelay: "-1s" }} />
+            <div className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full blur-[150px]" style={{ background: "hsla(var(--hue), 90%, 65%, 0.2)", transform: "translate(var(--atle-fx), var(--atle-fy))" }} />
+            <div className="absolute bottom-1/4 right-1/4 w-80 h-80 rounded-full blur-[120px]" style={{ background: "hsla(var(--hue-sec), 85%, 55%, 0.2)", transform: "translate(calc(var(--atle-fx) * -1), calc(var(--atle-fy) * -1))" }} />
           </div>
 
           {/* 3D Orb — center stage */}
@@ -41,7 +41,8 @@ export function PageTransition({ children }: { children: React.ReactNode }) {
               {[0, 1, 2].map((i) => (
                 <div
                   key={i}
-                  className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-pulse"
+                  className="w-1.5 h-1.5 rounded-full animate-pulse"
+                  style={{ background: "var(--lb-accent)" }}
                   style={{ animationDelay: `${i * 0.2}s` }}
                 />
               ))}
