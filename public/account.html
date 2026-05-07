@@ -1011,7 +1011,7 @@ function App() {
     }
     setSignOutBusy(true);
     try {
-      await window.api('/api/auth/sign-out', { method: 'POST' });
+      await window.api('/api/auth/sign-out', { method: 'POST', body: JSON.stringify({}) });
     } catch (_) {}
     window.location.href = window.APP_BASE_URL + '/';
   };
