@@ -261,7 +261,8 @@
 .state-pill.trialing { background: hsla(190, 80%, 55%, 0.16); color: hsl(190, 90%, 78%); }
 .state-pill.past_due { background: hsla(35, 90%, 55%, 0.18);  color: hsl(35, 100%, 80%); }
 .state-pill.paused   { background: rgba(255,255,255,0.06);    color: var(--muted-foreground); }
-.state-pill.canceled { background: hsla(355, 80%, 60%, 0.16); color: hsl(355, 80%, 80%); }
+.state-pill.canceled,
+.state-pill.cancelled { background: hsla(355, 80%, 60%, 0.16); color: hsl(355, 80%, 80%); }
 .state-pill.free     { background: rgba(255,255,255,0.04);    color: rgba(255,255,255,0.55); }
 
 /* plan pill (re-uses .pill from dashboard list) */
@@ -276,9 +277,12 @@
   color: var(--muted-foreground);
   white-space: nowrap;
 }
-.plan-pill.studio { background: hsla(var(--hue), 90%, 60%, 0.18); color: hsl(var(--hue), 100%, 88%); }
-.plan-pill.master { background: hsla(var(--hue-sec), 80%, 55%, 0.18); color: hsl(var(--hue-sec), 100%, 82%); }
-.plan-pill.solo   { background: hsla(190, 80%, 55%, 0.16); color: hsl(190, 90%, 78%); }
+.plan-pill.studio,
+.plan-pill.max    { background: hsla(var(--hue), 90%, 60%, 0.18); color: hsl(var(--hue), 100%, 88%); }
+.plan-pill.master,
+.plan-pill.pro    { background: hsla(var(--hue-sec), 80%, 55%, 0.18); color: hsl(var(--hue-sec), 100%, 82%); }
+.plan-pill.solo,
+.plan-pill.basic  { background: hsla(190, 80%, 55%, 0.16); color: hsl(190, 90%, 78%); }
 .plan-pill.free   { background: rgba(255,255,255,0.04); color: var(--muted-foreground); }
 
 /* ---------- right pane: user detail ----------------------------------- */

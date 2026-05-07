@@ -772,6 +772,28 @@ function StubScreen({ id }) {
   );
 }
 
+/* Routes whose data is fully wired to the live backend. Anything else
+   gets a "preview data" banner so admins know not to trust the numbers. */
+const WIRED_ROUTES = new Set(['dashboard', 'users', 'subscriptions']);
+
+function PreviewBanner({ route }) {
+  return (
+    <div style={{
+      display: 'flex', alignItems: 'center', gap: 10,
+      padding: '10px 14px', marginBottom: 16, borderRadius: 10,
+      background: 'hsla(45, 100%, 60%, 0.10)',
+      border: '1px solid hsla(45, 100%, 60%, 0.25)',
+      color: 'hsl(45, 100%, 80%)',
+      fontSize: 12, lineHeight: 1.4,
+    }}>
+      <span style={{flex:'none', display:'inline-flex'}}><AIcon name="alert" /></span>
+      <div>
+        <strong style={{color:'hsl(45,100%,88%)'}}>Preview data</strong> — this section ({route}) isn't connected to live systems yet. Numbers shown here are placeholders for design review.
+      </div>
+    </div>
+  );
+}
+
 /* ============================================================================
    APP
    ============================================================================ */
@@ -794,11 +816,14 @@ function AdminApp() {
                   : persona === 'dealer'      ? window.DEALER_NAV
                   : NAV_GROUPS;
 
+  const isWired = persona === 'zenphony' && WIRED_ROUTES.has(route);
+
   return (
     <div className="adm-shell">
       <AdmSidebar persona={persona} setPersona={setPersona} route={route} setRoute={setRoute} navGroups={navGroups} />
       <main className="adm-main">
         <AdmTopbar persona={persona} route={route} navGroups={navGroups} />
+        {!isWired && <PreviewBanner route={route} />}
         {persona === 'distributor' ? (
           <window.DistRouter route={route} />
         ) : persona === 'dealer' ? (
