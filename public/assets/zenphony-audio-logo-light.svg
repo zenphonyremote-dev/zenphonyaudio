@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1700" height="380" viewBox="0 0 1700 380" preserveAspectRatio="xMidYMid meet">
+  <defs>
+    <linearGradient id="zaBarLight" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#5b5bff"></stop>
+      <stop offset="55%" stop-color="#8b5cf6"></stop>
+      <stop offset="100%" stop-color="#b04bf2"></stop>
+    </linearGradient>
+  </defs>
+
+  
+  <g fill="url(#zaBarLight)">
+    <rect x="40" y="150" width="38" height="120" rx="19"></rect>
+    <rect x="92" y="100" width="38" height="220" rx="19"></rect>
+    <rect x="144" y="70" width="38" height="280" rx="19"></rect>
+    <rect x="196" y="120" width="38" height="200" rx="19"></rect>
+    <rect x="248" y="170" width="38" height="100" rx="19"></rect>
+  </g>
+
+  
+  <polyline points="59,210 111,170 163,140 215,180 267,210" fill="none" stroke="#ffffff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" opacity="0.95"></polyline>
+  <g>
+    <circle cx="59" cy="210" r="9" fill="#ffffff" stroke="#5b5bff" stroke-width="3"></circle>
+    <circle cx="111" cy="170" r="9" fill="#ffffff" stroke="#7c4cf2" stroke-width="3"></circle>
+    <circle cx="163" cy="140" r="9" fill="#ffffff" stroke="#8b5cf6" stroke-width="3"></circle>
+    <circle cx="215" cy="180" r="9" fill="#ffffff" stroke="#a04bf0" stroke-width="3"></circle>
+    <circle cx="267" cy="210" r="9" fill="#ffffff" stroke="#b04bf2" stroke-width="3"></circle>
+  </g>
+
+  
+  <text x="340" y="252" font-family="Outfit, &#39;Inter&#39;, system-ui, -apple-system, sans-serif" font-weight="800" font-size="174" letter-spacing="-3" fill="#ffffff">Zenphony Audio</text>
+</svg>

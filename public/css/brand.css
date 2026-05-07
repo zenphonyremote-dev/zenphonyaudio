@@ -1,0 +1,189 @@
+/* ============================================================================
+   LISTEN BUDDY brand assets — wordmark + mascot deployment
+   Layered on top of existing site styles. Replaces the old typeset
+   "LISTEN BUDDY" cap and the abstract bars/orb mascot placeholders
+   with the real SVG wordmark and mascot.
+   ============================================================================ */
+
+/* --- Wordmark in plugin titlebars (hero + product) -------------------------- */
+.hpf-title .lb-wordmark,
+.pf-title  .lb-wordmark {
+    height: 11px;
+    width: auto;
+    display: block;
+    /* SVG ships white-on-transparent — keep it that way on the dark titlebar */
+    filter: drop-shadow(0 1px 0 rgba(0,0,0,0.35));
+}
+.pf-title  .lb-wordmark { height: 12px; }
+
+/* --- Wordmark inside the in-plugin "Ask me anything" mascot card ----------- */
+.pf-mascot-name {
+    display: block;
+    height: 9px;
+    width: auto;
+    margin-bottom: 3px;
+    /* Recolor the white wordmark to the accent so it matches the old .name */
+    filter: brightness(0) saturate(100%)
+            invert(64%) sepia(85%) saturate(420%) hue-rotate(230deg) brightness(102%) contrast(101%);
+    opacity: 0.95;
+}
+
+/* --- Mascot avatar inside the in-plugin "Ask me anything" card ------------- */
+.pf-mascot-card .pf-mascot-img {
+    width: 44px; height: 44px;
+    flex-shrink: 0;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.02);
+    /* subtle plate so the mascot reads against the card */
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.06);
+}
+
+/* --- Chat header orb (Talk to your mix · chat) ----------------------------- */
+.talk-chat-orb.has-mascot {
+    /* keep size + spinning conic ring; just clear the inner gradient ball */
+    overflow: hidden;
+    position: relative;
+}
+.talk-chat-orb.has-mascot img {
+    position: absolute;
+    inset: 2px;
+    width: calc(100% - 4px);
+    height: calc(100% - 4px);
+    border-radius: 50%;
+    background: #1a0f2e;
+    object-fit: cover;
+}
+
+/* --- Buddy avatars on chat messages ---------------------------------------- */
+.talk-msg .av.av-mascot {
+    background: #1a0f2e;
+    overflow: hidden;
+    padding: 0;
+}
+.talk-msg .av.av-mascot img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+    display: block;
+}
+
+/* --- "LB" pill avatar in the impression block ------------------------------ */
+.impression .who .av.av-mascot {
+    background: #1a0f2e;
+    overflow: hidden;
+    padding: 0;
+    text-indent: -9999px; /* hide the old "LB" letters if any leak through */
+}
+.impression .who .av.av-mascot img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+    display: block;
+    text-indent: 0;
+}
+
+/* --- Auth screen: mascot + wordmark intro --------------------------------- */
+.auth-buddy-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin: 18px 0 6px;
+    padding: 14px 16px;
+    border-radius: 14px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06);
+}
+.auth-buddy-mascot {
+    width: 56px;
+    height: 56px;
+    flex-shrink: 0;
+    border-radius: 14px;
+    background: rgba(0,0,0,0.18);
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.06);
+}
+.auth-buddy-wordmark {
+    height: 18px;
+    width: auto;
+    display: block;
+    opacity: 0.95;
+}
+
+/* --- Inline wordmark in headings (e.g. "Where [LISTEN BUDDY] is installed") - */
+.lb-h3 {
+    /* keep it as a normal heading — let the inline wordmark flow with the text */
+    line-height: 1.2;
+}
+.lb-inline-wordmark {
+    height: 0.62em;
+    width: auto;
+    display: inline-block;
+    margin: 0 0.18em;
+    transform: translateY(-0.02em);
+    vertical-align: baseline;
+    opacity: 0.95;
+}
+
+.visually-hidden {
+    position: absolute;
+    width: 1px; height: 1px;
+    padding: 0; margin: -1px;
+    overflow: hidden;
+    clip: rect(0,0,0,0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* --- Big Listen Buddy lockup above the product section -------------------- */
+.lb-lockup {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 18px;
+    margin: 0 auto 22px;
+    text-align: center;
+}
+.lb-lockup-mascot {
+    width: 132px;
+    height: 132px;
+    display: block;
+    filter: drop-shadow(0 16px 38px rgba(126, 63, 181, 0.45))
+            drop-shadow(0 4px 14px rgba(0, 0, 0, 0.35));
+    animation: lb-lockup-float 6s ease-in-out infinite;
+}
+.lb-lockup-wordmark {
+    height: 48px;
+    width: auto;
+    display: block;
+    filter: drop-shadow(0 4px 18px rgba(255, 255, 255, 0.08));
+}
+.lb-lockup-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    background: rgba(255, 255, 255, 0.03);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    color: var(--muted-foreground);
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+.lb-lockup-tag .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 8px var(--accent);
+}
+@keyframes lb-lockup-float {
+    0%, 100% { transform: translateY(0); }
+    50%      { transform: translateY(-8px); }
+}
+@media (max-width: 720px) {
+    .lb-lockup-mascot { width: 96px; height: 96px; }
+    .lb-lockup-wordmark { height: 34px; }
+}

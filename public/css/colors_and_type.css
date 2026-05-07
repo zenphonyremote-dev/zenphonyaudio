@@ -1,0 +1,267 @@
+/* ============================================================================
+   ZENPHONY AUDIO — COLOR & TYPE TOKENS
+   Reverse-engineered from Listen Buddy v1.0 beta screenshots (Velvet + Rosso).
+   The system is theme-driven: the theme class on .lb-stage / body sets BOTH
+   the background tint AND the accent gradient. Status colors are NEVER themed.
+   ============================================================================ */
+
+:root {
+    /* --- DEFAULT (Velvet) NEUTRALS ----------------------------------------- */
+    --page-bg:               #0a0815;   /* deepest stage */
+    --background:            #1a1530;   /* app/window background, theme-tinted */
+    --card:                  #221c3a;   /* surface card (impression, insights) */
+    --card-foreground:       #e8e6f0;
+    --muted:                 #1f1a32;   /* subtle inset surface */
+    --muted-foreground:      #8a86a0;   /* secondary text */
+    --border:                #36304d;   /* hairline borders */
+    --foreground:            #ece8f5;   /* primary text */
+    --surface:               #221c3a;
+    --surface-elevated:      #2a2342;
+    --right-rail:            #19142e;   /* darker right meter rail */
+
+    /* --- BRAND HUES (drive theme gradient) --------------------------------- */
+    --hue:                   265;       /* Velvet primary */
+    --hue-sec:               220;       /* Velvet secondary (blue) */
+
+    /* --- BRAND ACCENTS (theme override these wholesale) -------------------- */
+    --primary:               hsl(265, 80%, 65%);
+    --primary-dim:           hsl(265, 70%, 50%);
+    --secondary:             hsl(220, 90%, 65%);
+    --secondary-dim:         hsl(220, 80%, 52%);
+    --accent:                hsl(265, 90%, 75%);
+    --glow:                  hsla(265, 80%, 65%, 0.5);
+    --brand-gradient:        linear-gradient(135deg, var(--primary), var(--secondary));
+
+    /* --- SEMANTIC STATUS COLORS (NEVER themed) ----------------------------- */
+    --status-great:          #22c55e;   /* "Great Mix", AUDIO DETECTED dot */
+    --status-good:           #eab308;
+    --status-needs-work:     #ef4444;
+    --status-great-glow:     rgba(34, 197, 94, 0.55);
+    --status-good-glow:      rgba(234, 179, 8, 0.55);
+    --status-needs-work-glow:rgba(239, 68, 68, 0.55);
+
+    /* --- METER PEARL GRADIENT (signature LUFS / spectrum fill) ------------- */
+    --pearl: linear-gradient(90deg,
+        rgba(0,60,120,0.8),
+        rgba(0,150,255,0.9),
+        rgba(0,243,255,1.0),
+        rgba(180,0,255,0.7),
+        rgba(0,243,255,0.9));
+
+    /* --- ZENPHONY CORPORATE BRAND (NOT themed; for marketing surfaces) ----- */
+    --zen-ink:               #0f1738;   /* near-navy wordmark */
+    --zen-blue:              #3b3df0;   /* logo soundbar gradient start */
+    --zen-purple:            #8b5cf6;   /* logo soundbar gradient end */
+    --zen-paper:             #ffffff;
+
+    /* --- TYPOGRAPHY -------------------------------------------------------- */
+    --font-display:          'Outfit', 'Inter', system-ui, sans-serif;
+    --font-body:             'Inter', 'Outfit', system-ui, sans-serif;
+    --font-mono:             'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+
+    --fs-display:            42px;
+    --fs-h1:                 28px;
+    --fs-h2:                 18px;     /* "OVERALL IMPRESSION" uppercase */
+    --fs-h3:                 16px;     /* insight card titles */
+    --fs-body:               14px;
+    --fs-small:              13px;     /* impression body in plugin */
+    --fs-label:              11px;     /* UPPERCASE chrome labels */
+    --fs-mono:               11px;
+    --fs-tiny:               10px;     /* meter values, version */
+
+    --lh-tight:              1.1;
+    --lh-snug:               1.25;
+    --lh-normal:             1.55;
+    --lh-relaxed:            1.6;
+
+    /* --- SPACING ----------------------------------------------------------- */
+    --space-1:               6px;
+    --space-2:               8px;
+    --space-3:               10px;
+    --space-4:               14px;
+    --space-5:               16px;
+    --space-6:               24px;
+    --space-7:               32px;
+
+    /* --- RADII ------------------------------------------------------------- */
+    --radius-xs:             4px;
+    --radius-sm:             6px;
+    --radius-md:             8px;
+    --radius-lg:             12px;
+    --radius-xl:             14px;
+    --radius-2xl:            16px;
+    --radius-pill:           999px;
+
+    /* --- SHADOWS / GLOWS --------------------------------------------------- */
+    --shadow-popup:          0 20px 60px rgba(0,0,0,0.6);
+    --shadow-frame:          0 40px 120px rgba(0,0,0,0.5);
+    --shadow-grounding:      0 12px 32px rgba(0,0,0,0.4);
+    --glow-sm:               0 0 8px var(--glow);
+    --glow-md:               0 0 14px var(--glow);
+    --glow-lg:               0 0 20px var(--glow), 0 0 40px var(--glow);
+    --glow-inner:            inset 0 0 12px hsla(var(--hue), 80%, 65%, 0.15);
+    --frame-bloom:           0 40px 120px rgba(0,0,0,0.5),
+                             0 0 80px hsla(var(--hue), 80%, 65%, 0.06);
+
+    /* --- MOTION CURVES ----------------------------------------------------- */
+    --motion-pop:            0.3s ease-out;
+    --motion-pulse:          1.6s ease-in-out;
+    --motion-glow:           2s ease-in-out;
+    --motion-shimmer:        3s linear;
+    --motion-sound:          0.9s ease-in-out;
+    --motion-spin:           4s linear;
+    --motion-aurora:         18s linear;
+}
+
+@property --atle-ang {
+    syntax: '<angle>';
+    initial-value: 0deg;
+    inherits: false;
+}
+
+/* ============================================================================
+   THEMES — apply class to .lb-stage, body, or the plugin frame.
+   Each theme tints BOTH the background AND the accent gradient.
+   Names match the in-product theme dropdown.
+   ============================================================================ */
+
+/* Velvet — purple/blue (default) — brighter, plugin-matched */
+.theme-velvet {
+    --hue: 268; --hue-sec: 232;
+    --background:        #1a1538;
+    --card:              #241e44;
+    --muted:             #211b3e;
+    --right-rail:        #1a1438;
+    --border:            #3d3560;
+    --primary:           hsl(268, 95%, 70%);
+    --primary-dim:       hsl(268, 80%, 55%);
+    --secondary:         hsl(232, 100%, 68%);
+    --secondary-dim:     hsl(232, 88%, 55%);
+    --accent:            hsl(275, 100%, 80%);
+    --glow:              hsla(268, 95%, 68%, 0.65);
+}
+
+/* Rosso — coral/red */
+.theme-rosso {
+    --hue: 12; --hue-sec: 350;
+    --background:        #2a1816;
+    --card:              #321d1b;
+    --muted:             #2d1a18;
+    --right-rail:        #251513;
+    --border:            #4a2a26;
+    --primary:           hsl(12, 85%, 65%);     /* coral #f47862 */
+    --primary-dim:       hsl(12, 75%, 52%);
+    --secondary:         hsl(350, 80%, 60%);    /* deeper red */
+    --secondary-dim:     hsl(350, 70%, 48%);
+    --accent:            hsl(20, 90%, 72%);
+    --glow:              hsla(12, 85%, 65%, 0.5);
+}
+
+/* Amarillo — gold/amber */
+.theme-amarillo {
+    --hue: 42; --hue-sec: 30;
+    --background:        #261d10;
+    --card:              #2e2415;
+    --muted:             #2a2113;
+    --right-rail:        #20190d;
+    --border:            #4a3a20;
+    --primary:           hsl(42, 95%, 60%);     /* gold */
+    --primary-dim:       hsl(42, 85%, 48%);
+    --secondary:         hsl(30, 90%, 58%);     /* amber */
+    --secondary-dim:     hsl(30, 80%, 46%);
+    --accent:            hsl(48, 100%, 70%);
+    --glow:              hsla(42, 95%, 60%, 0.5);
+}
+
+/* Aether — cyan/teal */
+.theme-aether {
+    --hue: 188; --hue-sec: 215;
+    --background:        #0f2128;
+    --card:              #15293132;
+    --muted:             #122530;
+    --right-rail:        #0c1c24;
+    --border:            #1f3a48;
+    --primary:           hsl(188, 85%, 55%);
+    --primary-dim:       hsl(188, 75%, 42%);
+    --secondary:         hsl(215, 80%, 60%);
+    --secondary-dim:     hsl(215, 70%, 48%);
+    --accent:            hsl(188, 90%, 70%);
+    --glow:              hsla(188, 85%, 55%, 0.5);
+}
+
+/* Verdant — green/lime */
+.theme-verdant {
+    --hue: 142; --hue-sec: 90;
+    --background:        #0f2419;
+    --card:              #152e21;
+    --muted:             #122a1d;
+    --right-rail:        #0c1f15;
+    --border:            #1f4030;
+    --primary:           hsl(142, 70%, 50%);
+    --primary-dim:       hsl(142, 65%, 38%);
+    --secondary:         hsl(90, 75%, 55%);
+    --secondary-dim:     hsl(90, 65%, 42%);
+    --accent:            hsl(142, 80%, 65%);
+    --glow:              hsla(142, 70%, 50%, 0.5);
+}
+
+/* ============================================================================
+   SEMANTIC TYPE — apply to base elements directly.
+   ============================================================================ */
+html, body {
+    font-family: var(--font-body);
+    font-size: var(--fs-body);
+    line-height: var(--lh-relaxed);
+    color: var(--foreground);
+    background: var(--page-bg);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+}
+
+h1, .h1 {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: var(--fs-display);
+    line-height: var(--lh-tight);
+    letter-spacing: -0.02em;
+}
+h2, .h2 {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: var(--fs-h2);
+    line-height: var(--lh-snug);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--primary);
+}
+h3, .h3 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: var(--fs-h3);
+    color: var(--foreground);
+}
+p, .body {
+    font-size: var(--fs-body);
+    line-height: var(--lh-relaxed);
+    color: var(--card-foreground);
+    max-width: 64ch;
+}
+.label-caps {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: var(--fs-label);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted-foreground);
+}
+code, .mono {
+    font-family: var(--font-mono);
+    font-size: var(--fs-mono);
+}
+code:not(pre code) {
+    background: rgba(255,255,255,0.06);
+    padding: 2px 6px;
+    border-radius: var(--radius-xs);
+    color: var(--accent);
+}

@@ -1,0 +1,324 @@
+/* ============================================================================
+   BUDDIES SECTION — Meet the four Listen Buddy variants
+   ============================================================================ */
+
+.buddies-section {
+    position: relative;
+}
+
+.buddies-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+    margin-top: 8px;
+}
+
+.buddies-row {
+    position: relative;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 24px;
+    padding: 22px 22px 26px;
+    background:
+        linear-gradient(180deg, rgba(255,255,255,0.025), rgba(255,255,255,0.005)),
+        rgba(0,0,0,0.18);
+    backdrop-filter: blur(8px);
+}
+.buddies-row.buddies-cloud {
+    border-color: rgba(120, 200, 255, 0.14);
+    background:
+        linear-gradient(180deg, rgba(120,200,255,0.04), rgba(120,200,255,0.01)),
+        rgba(0,0,0,0.20);
+}
+
+.buddies-row-h {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 18px;
+    padding: 0 4px;
+}
+.buddies-row-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.10em;
+    color: var(--foreground);
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.10);
+}
+.buddies-row-tag .dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: hsl(140, 70%, 60%);
+    box-shadow: 0 0 8px hsl(140, 70%, 60%);
+}
+.buddies-row-tag.cloud .dot {
+    background: hsl(200, 90%, 65%);
+    box-shadow: 0 0 8px hsl(200, 90%, 65%);
+}
+.buddies-row-meta {
+    font-size: 12px;
+    color: var(--muted-foreground);
+    font-family: var(--font-mono);
+    letter-spacing: 0.01em;
+}
+
+.buddies-row-cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+@media (max-width: 880px) {
+    .buddies-row-cards { grid-template-columns: 1fr; }
+}
+
+/* ---------- buddy card ---------- */
+
+.buddy-card {
+    position: relative;
+    overflow: hidden;
+    padding: 22px 22px 20px;
+    border-radius: 18px;
+    border: 1px solid rgba(255,255,255,0.08);
+    background:
+        linear-gradient(180deg, rgba(255,255,255,0.025), rgba(255,255,255,0.005)),
+        rgba(8, 8, 16, 0.55);
+    transition: transform .35s cubic-bezier(.2,.8,.2,1), border-color .25s, background .25s;
+}
+.buddy-card::before {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity .25s;
+    background: radial-gradient(60% 60% at 30% 0%, var(--buddy-glow, transparent), transparent 70%);
+}
+.buddy-card:hover {
+    transform: translateY(-3px);
+    border-color: var(--buddy-edge, rgba(255,255,255,0.18));
+}
+.buddy-card:hover::before { opacity: 1; }
+
+.buddy-card-stripe {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--buddy-stripe, transparent);
+}
+
+.buddy-card-h {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+.buddy-card-mark {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+}
+.buddy-swatch {
+    width: 22px; height: 22px;
+    border-radius: 7px;
+    background: var(--buddy-swatch, hsl(0,0%,50%));
+    box-shadow:
+        0 0 0 1px rgba(255,255,255,0.10),
+        0 0 18px var(--buddy-glow, transparent);
+    flex-shrink: 0;
+}
+.buddy-name {
+    font-family: var(--font-display);
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--foreground);
+}
+.buddy-card-where {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.10em;
+    color: var(--muted-foreground);
+    padding: 4px 9px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+}
+
+.buddy-card-vibe {
+    font-family: var(--font-display);
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--buddy-accent, var(--foreground));
+    margin: 0 0 8px;
+    letter-spacing: -0.01em;
+}
+.buddy-card-body {
+    font-size: 13.5px;
+    line-height: 1.6;
+    color: var(--muted-foreground);
+    margin: 0 0 16px;
+}
+
+.buddy-card-traits {
+    list-style: none;
+    margin: 0;
+    padding: 14px 0 0;
+    border-top: 1px dashed rgba(255,255,255,0.10);
+    display: grid;
+    grid-template-columns: 90px 1fr;
+    column-gap: 14px;
+    row-gap: 8px;
+}
+.buddy-card-traits li {
+    display: contents;
+    font-family: var(--font-mono);
+    font-size: 11px;
+}
+.buddy-card-traits .t-k {
+    color: var(--muted-foreground);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    white-space: nowrap;
+    align-self: baseline;
+}
+.buddy-card-traits .t-v {
+    color: var(--foreground);
+    text-align: left;
+    line-height: 1.45;
+    word-break: break-word;
+}
+
+/* ---------- per-buddy color identities ---------- */
+
+.buddy-velvet {
+    --buddy-swatch: hsl(268, 95%, 68%);
+    --buddy-glow: hsla(268, 95%, 68%, 0.40);
+    --buddy-edge: hsla(268, 95%, 68%, 0.40);
+    --buddy-accent: hsl(275, 100%, 82%);
+    --buddy-stripe: linear-gradient(90deg, hsl(232, 100%, 68%), hsl(275, 100%, 80%));
+}
+.buddy-amarillo {
+    --buddy-swatch: hsl(42, 95%, 60%);
+    --buddy-glow: hsla(42, 95%, 60%, 0.40);
+    --buddy-edge: hsla(42, 95%, 60%, 0.40);
+    --buddy-accent: hsl(48, 100%, 72%);
+    --buddy-stripe: linear-gradient(90deg, hsl(30, 90%, 58%), hsl(48, 100%, 70%));
+}
+.buddy-rosso {
+    --buddy-swatch: hsl(12, 85%, 60%);
+    --buddy-glow: hsla(12, 85%, 60%, 0.40);
+    --buddy-edge: hsla(12, 85%, 60%, 0.40);
+    --buddy-accent: hsl(20, 95%, 74%);
+    --buddy-stripe: linear-gradient(90deg, hsl(350, 80%, 60%), hsl(20, 90%, 70%));
+}
+.buddy-verde {
+    --buddy-swatch: hsl(142, 75%, 55%);
+    --buddy-glow: hsla(142, 75%, 55%, 0.40);
+    --buddy-edge: hsla(142, 75%, 55%, 0.40);
+    --buddy-accent: hsl(142, 80%, 70%);
+    --buddy-stripe: linear-gradient(90deg, hsl(90, 75%, 55%), hsl(142, 80%, 65%));
+}
+
+/* ---------- footer row ---------- */
+
+.buddies-foot {
+    margin-top: 24px;
+    padding: 22px 24px;
+    border-radius: 18px;
+    border: 1px solid rgba(255,255,255,0.08);
+    background:
+        linear-gradient(135deg, rgba(255,255,255,0.025), rgba(255,255,255,0.005)),
+        rgba(0,0,0,0.20);
+}
+.buddies-foot-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    flex-wrap: wrap;
+}
+.buddies-foot-l {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    max-width: 640px;
+}
+.buddies-foot-icon {
+    width: 38px; height: 38px;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.10);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--accent);
+    flex-shrink: 0;
+}
+.buddies-foot-icon svg { width: 18px; height: 18px; }
+.buddies-foot-h {
+    font-family: var(--font-display);
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--foreground);
+    margin-bottom: 4px;
+    letter-spacing: -0.01em;
+}
+.buddies-foot-s {
+    font-size: 13px;
+    line-height: 1.55;
+    color: var(--muted-foreground);
+}
+.buddies-foot-r {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+.buddies-mini-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding: 6px 12px 6px 10px;
+    border-radius: 999px;
+    border: 1px solid rgba(255,255,255,0.10);
+    background: rgba(255,255,255,0.04);
+    color: var(--foreground);
+}
+.buddies-mini-pill::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+    box-shadow: 0 0 8px currentColor;
+    flex-shrink: 0;
+}
+.buddies-mini-pill.local { color: hsl(140, 70%, 70%); border-color: hsla(140,70%,60%,0.30); }
+.buddies-mini-pill.cloud { color: hsl(200, 90%, 75%); border-color: hsla(200,90%,65%,0.30); }
+.buddies-mini-arrow {
+    color: var(--muted-foreground);
+    font-family: var(--font-mono);
+    font-size: 14px;
+}
+.buddies-mini-help {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--muted-foreground);
+    margin-left: 4px;
+}

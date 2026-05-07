@@ -1,0 +1,1179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Zenphony Audio — Account</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="css/colors_and_type.css?v=6">
+<link rel="stylesheet" href="css/components.css?v=6">
+<link rel="stylesheet" href="css/site.css?v=6">
+<link rel="stylesheet" href="css/account.css?v=15">
+<link rel="stylesheet" href="css/forum.css?v=2">
+<link rel="stylesheet" href="css/brand.css?v=3">
+
+<!-- ────────── App constants & helpers ────────── -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  window.APP_BASE_URL = window.location.origin;
+  window.SUPABASE_URL = "https://brqumrnkcevzieqfvhsm.supabase.co";
+  window.SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJycXVtcm5rY2V2emllcWZ2aHNtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc2MDIxMzAsImV4cCI6MjA4MzE3ODEzMH0.FAETiYqho_hC3ebm3CtwHTo-Zf-K68rg8ErAHKluvYk";
+  window.api = (path, opts = {}) => fetch(window.APP_BASE_URL + path, { credentials: "include", headers: { "Content-Type": "application/json", ...(opts.headers || {}) }, ...opts });
+  window.sb = () => window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+</script>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+</head>
+<body class="theme-velvet account">
+<div class="page-aurora"><div class="blob-3"></div><div class="blob-4"></div><div class="blob-5"></div><div class="grain"></div></div>
+
+<div id="root"></div>
+
+<script type="text/babel" src="tweaks-panel.jsx"></script>
+<script type="text/babel" src="forum.jsx"></script>
+<script type="text/babel">
+const { useState, useEffect, useMemo } = React;
+
+const DEFAULTS = /*EDITMODE-BEGIN*/{
+  "screen": "settings",
+  "section": "account",
+  "authMode": "signin",
+  "theme": "velvet",
+  "settingsTab": "usage",
+  "forumView": "home",
+  "forumCategory": "bugs",
+  "forumThread": "daw-3",
+  "user": "Maya Reyes"
+}/*EDITMODE-END*/;
+
+/* ────────── shared bits ────────── */
+function BrandMark() {
+  return (
+    <a href="/" className="brand-link">
+      <img src="assets/zenphony-audio-logo.png" alt="Zenphony Audio" className="brand-logo" />
+    </a>
+  );
+}
+function AppBrandMark() {
+  return (
+    <a href="/" className="brand-link">
+      <img src="assets/zenphony-audio-logo.png" alt="Zenphony Audio" className="brand-logo brand-logo-sm" />
+    </a>
+  );
+}
+function Initials({ name, size = 32 }) {
+  const initials = name.split(' ').map(s => s[0]).slice(0,2).join('');
+  return <span style={{
+    width: size, height: size, borderRadius: '50%',
+    background: 'linear-gradient(135deg, var(--primary), var(--secondary))',
+    boxShadow: '0 0 12px var(--glow)',
+    display: 'grid', placeItems: 'center', color: 'white',
+    fontFamily: 'var(--font-display)', fontWeight: 700,
+    fontSize: size * 0.42 }}>{initials}</span>;
+}
+function Icon({ name }) {
+  const paths = {
+    home:    <><path d="M3 11l9-7 9 7v9a2 2 0 0 1-2 2h-4v-7H9v7H5a2 2 0 0 1-2-2z"/></>,
+    waves:   <><path d="M3 12c2 0 2-4 4-4s2 4 4 4 2-4 4-4 2 4 4 4"/><path d="M3 16c2 0 2-3 4-3s2 3 4 3 2-3 4-3 2 3 4 3"/></>,
+    library: <><rect x="3" y="3" width="7" height="18" rx="1.5"/><rect x="14" y="3" width="7" height="11" rx="1.5"/><rect x="14" y="16" width="7" height="5" rx="1.5"/></>,
+    folder:  <><path d="M3 6a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></>,
+    settings:<><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></>,
+    bell:    <><path d="M18 16v-5a6 6 0 0 0-12 0v5l-2 2v1h16v-1z"/><path d="M10 21a2 2 0 0 0 4 0"/></>,
+    plus:    <><path d="M12 5v14M5 12h14"/></>,
+    search:  <><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></>,
+    check:   <><path d="M5 12l5 5 9-11"/></>,
+    speaker: <><rect x="6" y="3" width="12" height="18" rx="2"/><circle cx="12" cy="14" r="3"/><circle cx="12" cy="7" r="1"/></>,
+    laptop:  <><rect x="3" y="5" width="18" height="11" rx="1.5"/><path d="M2 19h20"/></>,
+    cpu:     <><rect x="6" y="6" width="12" height="12" rx="1.5"/><path d="M9 1v3M15 1v3M9 20v3M15 20v3M1 9h3M1 15h3M20 9h3M20 15h3"/></>,
+    music:   <><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/><path d="M9 18V5l12-2v13"/></>,
+    star:    <><path d="M12 2l3 7 7 .8-5.2 4.7L18 22l-6-3.5L6 22l1.2-7.5L2 9.8 9 9z"/></>,
+    download:<><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></>,
+    log:     <><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></>,
+    key:     <><circle cx="9" cy="14" r="4"/><path d="M13 14l8-8M17 6l3 3"/></>,
+    plug:    <><path d="M9 2v6M15 2v6M6 8h12v3a6 6 0 0 1-12 0z"/><path d="M12 17v5"/></>,
+    shield:  <><path d="M12 3l8 3v6c0 5-3.5 8.5-8 9-4.5-.5-8-4-8-9V6z"/></>,
+    card:    <><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18"/></>,
+    out:     <><path d="M9 12h12M17 8l4 4-4 4M14 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8"/></>
+  };
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+      {paths[name] || null}
+    </svg>
+  );
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   AUTH SCREEN — login & signup
+   ════════════════════════════════════════════════════════════════════════ */
+function AuthScreen({ mode, setMode, onSignIn }) {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [name, setName] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [info, setInfo] = useState('');
+
+  // Reset error/info when switching mode
+  useEffect(() => { setError(''); setInfo(''); }, [mode]);
+
+  const handleSubmit = async (e) => {
+    if (e && e.preventDefault) e.preventDefault();
+    setError(''); setInfo('');
+    if (!email || !password || (mode === 'signup' && !name)) {
+      setError('Please fill out every field.'); return;
+    }
+    // Preview-mode shortcut: don't call cross-origin Vercel API. Just enter the dashboard.
+    const IS_PROD = window.location.origin === window.APP_BASE_URL;
+    if (!IS_PROD) { onSignIn && onSignIn(); return; }
+    setLoading(true);
+    try {
+      const path = mode === 'signin' ? '/api/auth/sign-in/email' : '/api/auth/sign-up/email';
+      const body = mode === 'signin' ? { email, password } : { email, password, name };
+      const res = await window.api(path, { method: 'POST', body: JSON.stringify(body) });
+      if (res.ok) { window.location.reload(); return; }
+      let msg = 'Something went wrong. Please try again.';
+      try {
+        const j = await res.json();
+        if (j && j.message) msg = j.message;
+        if (mode === 'signup' && /exist/i.test(msg)) msg = 'Email already registered, sign in instead.';
+        if (mode === 'signin' && res.status === 401) msg = 'Wrong email or password.';
+      } catch (_) {}
+      setError(msg);
+    } catch (err) {
+      setError('Network error. Check your connection and try again.');
+    } finally { setLoading(false); }
+  };
+
+  const handleGoogle = () => {
+    const IS_PROD = window.location.origin === window.APP_BASE_URL;
+    if (!IS_PROD) { onSignIn && onSignIn(); return; }
+    const cb = encodeURIComponent(window.APP_BASE_URL + '/account');
+    window.location.href = window.APP_BASE_URL + '/api/auth/sign-in/social/google?callbackURL=' + cb;
+  };
+
+  const handleForgot = async (e) => {
+    if (e && e.preventDefault) e.preventDefault();
+    setError(''); setInfo('');
+    if (!email) { setError('Enter your email above first.'); return; }
+    setLoading(true);
+    try {
+      const res = await window.api('/api/auth/forget-password', {
+        method: 'POST',
+        body: JSON.stringify({ email, redirectTo: window.APP_BASE_URL + '/reset-password' })
+      });
+      if (res.ok) setInfo('Check your email for a reset link.');
+      else setError('Could not send reset email. Try again.');
+    } catch (_) {
+      setError('Network error. Try again.');
+    } finally { setLoading(false); }
+  };
+
+  return (
+    <div className="auth-shell">
+      <form className="auth-card glass" onSubmit={handleSubmit} noValidate>
+        <div className="auth-card-head">
+          <AppBrandMark />
+          <a href="/" className="auth-back">← Back to site</a>
+        </div>
+
+        <h1 className="auth-title">
+          {mode === 'signin' ? 'Welcome back.' : 'Create your account.'}
+        </h1>
+        <p className="auth-sub">
+          {mode === 'signin'
+            ? 'Sign in to keep listening. Your sessions are right where you left them.'
+            : 'Start a free trial. Install Listen Buddy on your DAW in under a minute.'}
+        </p>
+
+        <div className="auth-tabs">
+          <div className={`auth-tab ${mode === 'signin' ? 'active' : ''}`} onClick={() => setMode('signin')}>Sign in</div>
+          <div className={`auth-tab ${mode === 'signup' ? 'active' : ''}`} onClick={() => setMode('signup')}>Create account</div>
+        </div>
+
+        {mode === 'signup' && (
+          <div className="field">
+            <label className="field-label">Full name</label>
+            <input className="field-input" placeholder="Maya Reyes" value={name} onChange={(e) => setName(e.target.value)} autoComplete="name" />
+          </div>
+        )}
+
+        <div className="field">
+          <label className="field-label">Email</label>
+          <input className="field-input" type="email" placeholder="you@studio.com" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" />
+        </div>
+
+        <div className="field">
+          <label className="field-label">Password</label>
+          <input className="field-input" type="password" placeholder="••••••••••••" value={password || (mode === 'signin' ? '••••••••••••' : '')} onChange={(e) => setPassword(e.target.value)} autoComplete={mode === 'signin' ? 'current-password' : 'new-password'} />
+        </div>
+
+        <div className="field-row">
+          <label className="field-check">
+            <input type="checkbox" defaultChecked={mode === 'signin'} />
+            <span className="box">✓</span>
+            <span>{mode === 'signin' ? 'Stay signed in' : 'Email me beta updates'}</span>
+          </label>
+          {mode === 'signin' && <a href="#" onClick={handleForgot} style={{ cursor: 'pointer' }}>Forgot password?</a>}
+        </div>
+
+        {error && <div className="auth-msg auth-msg-error" role="alert" style={{ color: '#ff8a8a', fontSize: 13, marginTop: 4, marginBottom: -4 }}>{error}</div>}
+        {info && <div className="auth-msg auth-msg-info" style={{ color: '#9bd1a8', fontSize: 13, marginTop: 4, marginBottom: -4 }}>{info}</div>}
+
+        <button type="submit" className="auth-submit" disabled={loading}>
+          {loading ? (mode === 'signin' ? 'Signing in…' : 'Creating account…') : (mode === 'signin' ? 'Sign in' : 'Create account')}
+        </button>
+
+        <div className="auth-divider">or continue with</div>
+        <div className="oauth-row">
+          <button type="button" className="oauth-btn" onClick={handleGoogle}>
+            <svg viewBox="0 0 24 24"><path fill="#fff" d="M21.35 11.1H12v2.85h5.35c-.23 1.5-1.7 4.4-5.35 4.4-3.22 0-5.85-2.67-5.85-5.95s2.63-5.95 5.85-5.95c1.83 0 3.06.78 3.76 1.45l2.57-2.47C16.7 3.93 14.55 3 12 3 6.92 3 2.8 7.13 2.8 12.4S6.92 21.8 12 21.8c6.93 0 9.55-4.85 9.55-7.34 0-.5-.05-.88-.2-1.36z"/></svg>
+            Google
+          </button>
+          <button type="button" className="oauth-btn">
+            <svg viewBox="0 0 24 24"><path fill="#fff" d="M16.7 1.66c0 1.18-.42 2.32-1.13 3.13-.74.85-2 1.5-3.04 1.43-.13-1.13.42-2.32 1.1-3.07.78-.85 2.05-1.5 3.07-1.5zM20.4 17.2c-.6 1.4-1.34 2.78-2.5 2.8-1.13.03-1.5-.66-2.8-.66-1.3 0-1.7.65-2.78.7-1.13.04-2-1.5-2.6-2.86-1.24-2.7-2.2-7.66.92-11.04.95-1 2.34-1.65 3.74-1.65 1.13 0 2.2.74 2.86.74.66 0 1.94-.92 3.27-.78.55.03 2.1.2 3.1 1.66-2.65 1.7-2.36 5.74.43 7.3-.55 1.5-.92 1.66-1.64 3.8z"/></svg>
+            Apple
+          </button>
+          <button type="button" className="oauth-btn">
+            <svg viewBox="0 0 24 24"><path fill="#fff" d="M12 2C6.5 2 2 6.6 2 12.2c0 4.5 2.87 8.3 6.84 9.65.5.1.68-.22.68-.49 0-.24-.01-.88-.01-1.72-2.78.62-3.37-1.36-3.37-1.36-.45-1.18-1.1-1.5-1.1-1.5-.91-.63.07-.62.07-.62 1 .07 1.53 1.05 1.53 1.05.9 1.55 2.34 1.1 2.91.84.1-.66.35-1.1.63-1.36-2.22-.26-4.55-1.13-4.55-5.04 0-1.1.39-2.02 1.03-2.74-.1-.26-.45-1.3.1-2.7 0 0 .84-.27 2.75 1.05.8-.23 1.65-.34 2.5-.34s1.7.11 2.5.34c1.91-1.32 2.75-1.05 2.75-1.05.55 1.4.2 2.44.1 2.7.64.72 1.03 1.64 1.03 2.74 0 3.92-2.34 4.78-4.57 5.03.36.32.68.94.68 1.9 0 1.37-.01 2.48-.01 2.82 0 .27.18.6.69.49C19.13 20.5 22 16.7 22 12.2 22 6.6 17.5 2 12 2z"/></svg>
+            GitHub
+          </button>
+        </div>
+
+        <div className="auth-foot">
+          {mode === 'signin'
+            ? <>Don't have an account? <a onClick={() => setMode('signup')} style={{ cursor: 'pointer' }}>Start a free trial →</a></>
+            : <>Already have a license? <a onClick={() => setMode('signin')} style={{ cursor: 'pointer' }}>Sign in →</a></>
+          }
+        </div>
+      </form>
+    </div>
+  );
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   ACCOUNT HEADER — slim top bar shared across settings views
+   ════════════════════════════════════════════════════════════════════════ */
+function AccountHeader({ user, onSignOut, section, setSection }) {
+  return (
+    <header className="acct-head">
+      <BrandMark />
+      <div className="acct-section-toggle" role="tablist" aria-label="Section">
+        <button className={section === 'account' ? 'active' : ''} onClick={() => setSection('account')}>Account</button>
+        <button className={section === 'forum' ? 'active' : ''} onClick={() => setSection('forum')}>Community</button>
+      </div>
+      <div className="acct-head-spacer"></div>
+      <a href="/" className="acct-head-link">Back to site</a>
+      <div className="acct-head-user">
+        <Initials name={user} size={32} />
+        <div className="who">
+          <div className="name">{user}</div>
+          <div className="plan-chip" title="Pro plan · $29.99/mo">
+            <span className="plan-chip-glyph" aria-hidden="true">
+              <svg viewBox="0 0 12 12" width="10" height="10"><path d="M6 1 L11 6 L6 11 L1 6 Z" fill="currentColor"/></svg>
+            </span>
+            <span className="plan-chip-tier">Pro</span>
+            <span className="plan-chip-sep">·</span>
+            <span className="plan-chip-cycle">monthly</span>
+          </div>
+        </div>
+      </div>
+      <button className="btn-secondary" onClick={onSignOut} title="Sign out"><Icon name="out" /> Sign out</button>
+    </header>
+  );
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   PROFILE / SETTINGS
+   ════════════════════════════════════════════════════════════════════════ */
+function Settings({ user, sessionEmail, theme, setTheme, settingsTab, setSettingsTab, onSignOut }) {
+  // Billing/usage data fetched from API.
+  const [subDetails, setSubDetails] = useState(null);
+  const [billingHistory, setBillingHistory] = useState(null);
+  const [usageHistory, setUsageHistory] = useState(null);
+  const [billingLoading, setBillingLoading] = useState(false);
+  const [busyAction, setBusyAction] = useState(null); // string id of in-flight button
+  const [billingError, setBillingError] = useState('');
+
+  // Lightweight inline toast.
+  const showToast = (msg, kind) => {
+    const t = document.createElement('div');
+    t.textContent = msg;
+    t.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);'
+      + 'padding:12px 18px;border-radius:10px;background:' + (kind === 'error' ? 'rgba(120,20,30,.95)' : 'rgba(20,20,28,.95)') + ';'
+      + 'color:#fff;font:500 14px/1.4 var(--font-body,Inter,sans-serif);'
+      + 'box-shadow:0 8px 32px rgba(0,0,0,.4);z-index:9999;';
+    document.body.appendChild(t);
+    setTimeout(() => t.remove(), 3500);
+  };
+
+  // Load billing/usage when entering those tabs.
+  useEffect(() => {
+    if (settingsTab !== 'billing' && settingsTab !== 'usage') return;
+    let cancelled = false;
+    (async () => {
+      setBillingLoading(true);
+      setBillingError('');
+      try {
+        const [subRes, histRes, usageRes] = await Promise.all([
+          window.api('/api/subscription-details'),
+          window.api('/api/billing-history'),
+          window.api('/api/usage-history')
+        ]);
+        if (cancelled) return;
+        if (subRes.ok)   setSubDetails(await subRes.json());
+        if (histRes.ok)  setBillingHistory(await histRes.json());
+        if (usageRes.ok) setUsageHistory(await usageRes.json());
+      } catch (e) {
+        if (!cancelled) setBillingError('Could not load billing data.');
+      } finally {
+        if (!cancelled) setBillingLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [settingsTab]);
+
+  // Checkout for plan changes / top-ups.
+  const startCheckout = async (body, actionId) => {
+    setBusyAction(actionId);
+    try {
+      const res = await window.api('/api/checkout', {
+        method: 'POST',
+        body: JSON.stringify({ ...body, email: sessionEmail || undefined })
+      });
+      if (!res.ok) throw new Error('Checkout failed (' + res.status + ')');
+      const j = await res.json();
+      if (j && j.url) window.location.href = j.url;
+      else throw new Error('No URL returned');
+    } catch (err) {
+      console.error('[checkout]', err);
+      showToast('Could not start checkout. Please try again.', 'error');
+      setBusyAction(null);
+    }
+  };
+
+  const downgradeTo = async (planId, actionId) => {
+    setBusyAction(actionId);
+    try {
+      const res = await window.api('/api/subscription/downgrade', {
+        method: 'POST',
+        body: JSON.stringify({ planId })
+      });
+      if (!res.ok) throw new Error('Downgrade failed (' + res.status + ')');
+      showToast('Downgrade scheduled. Takes effect at next renewal.');
+      // Reload subscription data
+      try {
+        const r = await window.api('/api/subscription-details');
+        if (r.ok) setSubDetails(await r.json());
+      } catch (_) {}
+    } catch (err) {
+      console.error('[downgrade]', err);
+      showToast('Could not schedule downgrade.', 'error');
+    } finally { setBusyAction(null); }
+  };
+
+  const [toggles, setToggles] = useState({
+    notifyInsights: true,
+    notifyReports: true,
+    notifyMarketing: false,
+    autoSnapshot: true,
+    soundOn: false,
+    publicProfile: true
+  });
+  const flip = (k) => setToggles(t => ({ ...t, [k]: !t[k] }));
+
+  return (
+    <div className="app-main">
+      <div className="app-topbar">
+        <div>
+          <h1>Account</h1>
+          <div className="sub">Identity, devices, and billing for your Zenphony Audio account.</div>
+        </div>
+        <div className="spacer"></div>
+        <button className="btn-secondary">Cancel</button>
+        <button className="btn btn-primary">Save changes</button>
+      </div>
+
+      {/* Profile hero */}
+      <div className="profile-hero glass">
+        <div className="profile-avatar">
+          <div className="inner">{user.split(' ').map(s => s[0]).join('').slice(0,2)}</div>
+        </div>
+        <div className="profile-meta">
+          <h1>{user}</h1>
+          <div className="handle">@{user.toLowerCase().replace(/\s+/g, '')} · maya@velvetstatic.fm</div>
+          <div className="tags">
+            <span className="profile-tag"><span className="dot"></span> Pro plan</span>
+            <span className="profile-tag">Velvet theme</span>
+            <span className="profile-tag">Mix engineer</span>
+            <span className="profile-tag">Joined Jan '26</span>
+          </div>
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'flex-end' }}>
+          <button className="btn-secondary"><Icon name="download" /> Export data</button>
+          <button className="btn-secondary">Change avatar</button>
+        </div>
+      </div>
+
+      {/* Tabs */}
+      <div className="settings-tabs glass-tight">
+        {['profile','devices','downloads','billing','usage','security'].map(tab => (
+          <div key={tab}
+               className={`settings-tab ${settingsTab === tab ? 'active' : ''}`}
+               onClick={() => setSettingsTab(tab)}>
+            {tab[0].toUpperCase() + tab.slice(1)}
+          </div>
+        ))}
+      </div>
+
+      {settingsTab === 'profile' && (
+        <div className="settings-grid">
+          <div className="set-section glass">
+            <div className="set-section-h">
+              <div className="label">▎ Identity</div>
+              <h3>Public details</h3>
+              <p>How your name and handle appear on shared sessions and the reference library.</p>
+            </div>
+            <div className="field-grid-2">
+              <div className="field">
+                <label className="field-label">Display name</label>
+                <input className="field-input" defaultValue={user} />
+              </div>
+              <div className="field">
+                <label className="field-label">Handle</label>
+                <input className="field-input" defaultValue="@mayareyes" />
+              </div>
+            </div>
+            <div className="field">
+              <label className="field-label">Bio</label>
+              <input className="field-input" defaultValue="Mix engineer at Velvet Static. R&B, jazz, broken-piano stuff." />
+            </div>
+            <div className="field-grid-2">
+              <div className="field">
+                <label className="field-label">Studio</label>
+                <input className="field-input" defaultValue="Velvet Static Studio" />
+              </div>
+              <div className="field">
+                <label className="field-label">Time zone</label>
+                <input className="field-input" defaultValue="(GMT−5) New York" />
+              </div>
+            </div>
+            <div className="set-row">
+              <div className="text">
+                <div className="name">Public profile</div>
+                <div className="desc">Let other engineers see your shared snapshots and references.</div>
+              </div>
+              <div className={`toggle ${toggles.publicProfile ? 'on' : ''}`} onClick={() => flip('publicProfile')}></div>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 24, minWidth: 0 }}>
+            <div className="set-section glass">
+              <div className="set-section-h">
+                <div className="label">▎ Theme</div>
+                <h3>Velvet, Rosso, Amarillo, Aether or Verdant</h3>
+                <p>Tints both the Listen Buddy plugin and your account. The interface retunes to match.</p>
+              </div>
+              <div className="theme-swatches">
+                {['velvet','rosso','amarillo','aether','verdant'].map(t => (
+                  <div key={t}
+                       className={`swatch ${t} ${theme === t ? 'active' : ''}`}
+                       onClick={() => setTheme(t)}>
+                    <span className="label">{t}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="set-section glass">
+              <div className="set-section-h">
+                <div className="label">▎ Listening defaults</div>
+                <h3>How Buddy starts a session</h3>
+              </div>
+              <div className="set-row">
+                <div className="text">
+                  <div className="name">Default analysis mode</div>
+                  <div className="desc">Mix Mode. Broad mix critique with reference matching.</div>
+                </div>
+                <button className="btn-secondary">Change…</button>
+              </div>
+              <div className="set-row">
+                <div className="text">
+                  <div className="name">Default QC standard</div>
+                  <div className="desc">No QC. Pick per-session.</div>
+                </div>
+                <button className="btn-secondary">Change…</button>
+              </div>
+              <div className="set-row">
+                <div className="text">
+                  <div className="name">Auto-snapshot every analysis</div>
+                  <div className="desc">Save spectrogram + LUFS + impression to history automatically.</div>
+                </div>
+                <div className={`toggle ${toggles.autoSnapshot ? 'on' : ''}`} onClick={() => flip('autoSnapshot')}></div>
+              </div>
+              <div className="set-row">
+                <div className="text">
+                  <div className="name">Buddy voice (audio)</div>
+                  <div className="desc">Buddy reads its impression aloud after analysis. Off by default.</div>
+                </div>
+                <div className={`toggle ${toggles.soundOn ? 'on' : ''}`} onClick={() => flip('soundOn')}></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {settingsTab === 'devices' && (
+        <div className="set-section glass">
+          <div className="set-section-h">
+            <div className="label">▎ Devices · 2 of 3 active</div>
+            <h3 className="lb-h3">
+              Where <img className="lb-inline-wordmark" src="assets/listen-buddy-wordmark.svg" alt="Listen Buddy" /> is installed
+            </h3>
+          </div>
+          {[
+            { name: 'M3 Max · Studio', meta: 'macOS 15.1 · Logic Pro 11.2 · LB 1.0.4', state: 'live' },
+            { name: 'Mac Studio · Live Room', meta: 'macOS 14.6 · Pro Tools 2025.3 · LB 1.0.3', state: 'idle' },
+            { name: 'Genelec 8341A SAM Pair', meta: 'Calibrated −0.6 LU · Apr 22', state: 'linked' }
+          ].map((d, i) => (
+            <div className="device" key={i}>
+              <div className="icon"><Icon name={i === 2 ? 'speaker' : 'laptop'} /></div>
+              <div>
+                <div className="name">{d.name}</div>
+                <div className="info">{d.meta}</div>
+              </div>
+              {d.state === 'live'
+                ? <div className="live"><span className="dot"></span> Live</div>
+                : <div style={{ display: 'flex', gap: 8 }}>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--muted-foreground)', alignSelf: 'center' }}>{d.state}</span>
+                    <button className="btn-secondary">Revoke</button>
+                  </div>}
+            </div>
+          ))}
+          <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+            <button className="btn btn-outline"><Icon name="plus" /> Authorize new device</button>
+          </div>
+        </div>
+      )}
+
+      {settingsTab === 'downloads' && (
+        <div style={{display:'flex',flexDirection:'column',gap:24}}>
+        <div className="set-section glass hub-dl-card">
+          <div className="set-section-h">
+            <div className="label">▎ Desktop app</div>
+            <h3>Zenphony Audio Software Hub</h3>
+            <p className="set-section-sub">One installer, all your buddies. Manages plugin updates, license, and on‑device engines from a single tray app.</p>
+          </div>
+          <div className="hub-dl-row">
+            <div className="hub-dl-info">
+              <div className="hub-dl-ver">v1.6.0 <span className="hub-dl-tag">stable</span></div>
+              <div className="hub-dl-meta">Released May 02 · 142 MB · macOS 13+</div>
+            </div>
+            <div className="hub-dl-actions">
+              <button className="btn btn-primary"><Icon name="download" /> Download for macOS</button>
+            </div>
+          </div>
+          <div className="hub-dl-foot">
+            <a className="link">Release notes</a> · <a className="link">Older builds</a> · <a className="link">Verify checksum</a>
+          </div>
+        </div>
+        </div>
+      )}
+
+      {settingsTab === 'billing' && (() => {
+        const plans = [
+          { id: 'free',  name: 'Free',  price: 0,     minutes: 10,  blurb: 'Try the local DSP, no card required.' },
+          { id: 'basic', name: 'Basic', price: 7.99,  minutes: 60,  blurb: 'For the casual mixer. An hour a month.' },
+          { id: 'pro',   name: 'Pro',   price: 29.99, minutes: 240, blurb: 'Built for working sessions. Four hours.' },
+          { id: 'max',   name: 'Max',   price: 69.99, minutes: 700, blurb: 'Studio-grade headroom plus priority support.' }
+        ];
+        const currentPlanId = 'pro';
+        const currentIdx = plans.findIndex(p => p.id === currentPlanId);
+        const currentPlan = plans[currentIdx];
+        const topUps = [
+          { id: 'tu-20',  name: '20 min',  price: 3.99,  perMin: '$0.20/min', note: 'One-off top-up for a long session.' },
+          { id: 'tu-60',  name: '60 min',  price: 9.99,  perMin: '$0.17/min', note: 'Most popular. Roughly an album side.', badge: 'Popular' },
+          { id: 'tu-200', name: '200 min', price: 24.99, perMin: '$0.13/min', note: 'Studio reserve. Best value per minute.', badge: 'Best value' }
+        ];
+
+        return (
+          <div className="bill2">
+
+            {/* Section: Your plan */}
+            <h2 className="bill2-h">Your plan</h2>
+            <div className="bill2-card bill2-current">
+              <div className="b2c-row">
+                <div className="b2c-name">Pro plan</div>
+                <div className="b2c-price">$29.99 <span>per month</span></div>
+              </div>
+              <div className="b2c-meta">240 minutes per month · Renews May 22, 2026 · Visa ending 4019</div>
+              <div className="b2c-actions">
+                <button className="b2-btn b2-btn-quiet">Switch to yearly (save 20%)</button>
+                <button className="b2-btn b2-btn-quiet">Update payment method</button>
+                <button className="b2-btn b2-btn-quiet b2-btn-danger">Cancel plan</button>
+              </div>
+            </div>
+
+            {/* Section: Change plan */}
+            <h2 className="bill2-h">Change plan</h2>
+            <p className="bill2-sub">Upgrades take effect immediately and are prorated. Downgrades start at your next billing date so you keep the minutes you've already paid for.</p>
+
+            <div className="bill2-grid bill2-grid-4">
+            {plans.map((p, i) => {
+              const isCurrent = p.id === currentPlanId;
+              const isUpgrade = i > currentIdx;
+              const isDowngrade = i < currentIdx;
+              let actionLabel, actionClass, disabled = false;
+              if (isCurrent)   { actionLabel = 'Your current plan'; actionClass = 'b2-btn b2-btn-quiet'; disabled = true; }
+              if (isUpgrade)   { actionLabel = `Upgrade to ${p.name}`; actionClass = 'b2-btn b2-btn-primary'; }
+              if (isDowngrade) { actionLabel = p.id === 'free' ? 'Cancel and move to Free' : `Downgrade to ${p.name}`; actionClass = 'b2-btn b2-btn-quiet'; }
+              return (
+                <div key={p.id} className={`bill2-card bill2-card-col ${isCurrent ? 'is-current' : ''}`}>
+                  <div className="b2c-head">
+                    <div className="b2c-name">
+                      <span>{p.name}</span>
+                      {isCurrent && <span className="b2c-tag b2c-tag-current">Current</span>}
+                    </div>
+                  </div>
+                  <div className="b2c-bigprice">
+                    <span className="b2c-bigprice-cur">$</span>{p.price.toFixed(0)}<span className="b2c-bigprice-frac">.{p.price.toFixed(2).split('.')[1]}</span>
+                    <span className="b2c-bigprice-per">/mo</span>
+                  </div>
+                  <div className="b2c-meta">{p.minutes} minutes per month</div>
+                  <p className="b2c-blurb">{p.blurb}</p>
+                  <div className="b2c-actions b2c-actions-bottom">
+                    <button
+                      className={actionClass + ' b2-btn-block'}
+                      disabled={disabled || busyAction === 'plan-' + p.id}
+                      onClick={() => {
+                        if (disabled) return;
+                        if (isUpgrade) startCheckout({ planId: p.id, billingPeriod: 'monthly' }, 'plan-' + p.id);
+                        else if (isDowngrade) downgradeTo(p.id, 'plan-' + p.id);
+                      }}
+                    >{busyAction === 'plan-' + p.id ? 'Working…' : actionLabel}</button>
+                  </div>
+                </div>
+              );
+            })}
+            </div>
+
+            {/* Section: Top-ups */}
+            <h2 className="bill2-h">Add minutes</h2>
+            <p className="bill2-sub">One-time packs that stack on top of your monthly allowance. They roll over for 60 days and don't auto-renew.</p>
+
+            <div className="bill2-grid bill2-grid-3">
+            {topUps.map(tu => (
+              <div key={tu.id} className="bill2-card bill2-card-col">
+                <div className="b2c-head">
+                  <div className="b2c-name">
+                    <span>{tu.name} top-up</span>
+                    {tu.badge && <span className={`b2c-tag ${tu.badge === 'Popular' ? 'b2c-tag-pop' : 'b2c-tag-best'}`}>{tu.badge}</span>}
+                  </div>
+                </div>
+                <div className="b2c-bigprice">
+                  <span className="b2c-bigprice-cur">$</span>{tu.price.toFixed(0)}<span className="b2c-bigprice-frac">.{tu.price.toFixed(2).split('.')[1]}</span>
+                  <span className="b2c-bigprice-per">one-time</span>
+                </div>
+                <div className="b2c-meta">{tu.perMin}</div>
+                <p className="b2c-blurb">{tu.note}</p>
+                <div className="b2c-actions b2c-actions-bottom">
+                  <button
+                    className="b2-btn b2-btn-quiet b2-btn-block"
+                    disabled={busyAction === 'topup-' + tu.id}
+                    onClick={() => startCheckout({ topUpId: tu.id }, 'topup-' + tu.id)}
+                  >{busyAction === 'topup-' + tu.id ? 'Working…' : 'Add ' + tu.name}</button>
+                </div>
+              </div>
+            ))}
+            </div>
+
+            {/* Section: Invoices */}
+            <h2 className="bill2-h">Recent invoices</h2>
+            {[
+              { id: 'INV-2026-04-3201', date: 'Apr 22, 2026', desc: 'Pro · monthly',           amt: '$29.99' },
+              { id: 'INV-2026-03-2918', date: 'Mar 22, 2026', desc: 'Pro · monthly',           amt: '$29.99' },
+              { id: 'INV-2026-02-2646', date: 'Feb 22, 2026', desc: 'Pro · monthly',           amt: '$29.99' },
+              { id: 'INV-2026-01-2386', date: 'Jan 22, 2026', desc: 'Pro · monthly (prorated)', amt: '$18.40' }
+            ].map((iv, i) => (
+              <div key={i} className="bill2-card bill2-invoice">
+                <div className="b2c-row">
+                  <div className="b2c-name">{iv.desc}</div>
+                  <div className="b2c-price">{iv.amt} <span className="b2c-paid">Paid</span></div>
+                </div>
+                <div className="b2c-meta">{iv.date} · {iv.id}</div>
+                <div className="b2c-actions">
+                  <button className="b2-btn b2-btn-quiet">Download receipt</button>
+                </div>
+              </div>
+            ))}
+
+          </div>
+        );
+      })()}
+
+      {settingsTab === 'usage' && (() => {
+        // Mock 30-day usage series (minutes per day). Total ≈ 142 min over 30 days.
+        const usageDaily = [3,2,4,0,2,5,3,4,2,0,3,4,5,2,1,4,3,2,0,5,4,2,3,4,5,2,1,3,2,4];
+        const totalMonth = usageDaily.reduce((a,b) => a+b, 0);
+        const last90Avg = 88; // average minutes/month over last 90 days
+        const peak = 112;      // peak month
+        const limit = 120;     // Pro limit
+        const max = Math.max(...usageDaily, 12);
+        const W = 660, H = 180, PAD = { l: 36, r: 16, t: 14, b: 24 };
+        const innerW = W - PAD.l - PAD.r, innerH = H - PAD.t - PAD.b;
+        const xAt = (i) => PAD.l + (i / (usageDaily.length - 1)) * innerW;
+        const yAt = (v) => PAD.t + innerH - (v / max) * innerH;
+        const linePts = usageDaily.map((v,i) => `${xAt(i)},${yAt(v)}`).join(' ');
+        const areaPts = `${PAD.l},${PAD.t + innerH} ${linePts} ${PAD.l + innerW},${PAD.t + innerH}`;
+        const limitY = yAt(Math.min(limit/30 * 1.5, max)); // visual ref line for daily-equiv
+        const yTicks = [0, Math.round(max * 0.5), max];
+
+        // Plan comparison
+        const plans = [
+          { id: 'free',  name: 'Free',  minutes: 10,  price: 0,     msgs: 'Generous monthly Listen Buddy chat' },
+          { id: 'basic', name: 'Basic', minutes: 60,  price: 7.99,  msgs: 'Unlimited Listen Buddy chat' },
+          { id: 'pro',   name: 'Pro',   minutes: 240, price: 29.99, msgs: 'Unlimited Listen Buddy chat' },
+          { id: 'max',   name: 'Max',   minutes: 700, price: 69.99, msgs: 'Unlimited Listen Buddy chat' }
+        ];
+        const planMaxMin = 700;
+        const currentPlanId = 'pro';
+        const recommendedPlanId = 'pro'; // Pro fits well — average 138, peak 168, limit 240
+
+        return (
+          <div className="settings-grid usage-grid">
+
+            {/* Plan + headline numbers */}
+            <div className="set-section glass usage-summary">
+              <div className="set-section-h">
+                <div className="label">▎ This month</div>
+                <h3>{totalMonth} of {limit} minutes</h3>
+                <p>30-day rolling. Resets May 22, 2026 · Pro plan · $29.99/mo</p>
+              </div>
+              <div className="plan-bar"><div className="fill" style={{ width: `${Math.min(totalMonth/limit*100, 100)}%` }}></div></div>
+              <div className="plan-meta">
+                <span>{Math.round(totalMonth/limit*100)}% used · {Math.max(limit - totalMonth, 0)} min remaining</span>
+                <span>Resets in 11 days</span>
+              </div>
+              <div className="usage-stat-row">
+                <div className="usage-stat">
+                  <div className="lbl">90-day avg</div>
+                  <div className="val">{last90Avg} <span>min/mo</span></div>
+                </div>
+                <div className="usage-stat">
+                  <div className="lbl">Peak month</div>
+                  <div className="val">{peak} <span>min</span></div>
+                </div>
+                <div className="usage-stat">
+                  <div className="lbl">Trend</div>
+                  <div className="val trend-up">↑ 9% <span>vs last 90d</span></div>
+                </div>
+                <div className="usage-stat">
+                  <div className="lbl">Sessions</div>
+                  <div className="val">22 <span>this month</span></div>
+                </div>
+              </div>
+            </div>
+
+            {/* Usage over time chart */}
+            <div className="set-section glass">
+              <div className="set-section-h">
+                <div className="label">▎ Usage over time</div>
+                <h3>Last 30 days</h3>
+                <p>Minutes consumed per day. Hover the curve to see a daily breakdown.</p>
+              </div>
+              <div className="usage-range">
+                {['30 days','90 days','12 months'].map((r,i) => (
+                  <button key={i} className={`u-range-pill ${i===0 ? 'active' : ''}`}>{r}</button>
+                ))}
+              </div>
+              <div className="usage-chart-wrap">
+                <svg viewBox={`0 0 ${W} ${H}`} className="usage-chart" preserveAspectRatio="none">
+                  <defs>
+                    <linearGradient id="usageFill" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="var(--primary)" stopOpacity="0.35" />
+                      <stop offset="100%" stopColor="var(--primary)" stopOpacity="0" />
+                    </linearGradient>
+                  </defs>
+                  {/* y-grid */}
+                  {yTicks.map((tv,i) => (
+                    <g key={i}>
+                      <line x1={PAD.l} x2={W - PAD.r} y1={yAt(tv)} y2={yAt(tv)} stroke="rgba(255,255,255,0.06)" strokeDasharray="3 4" />
+                      <text x={PAD.l - 8} y={yAt(tv) + 4} fontSize="10" fill="rgba(255,255,255,0.4)" textAnchor="end" fontFamily="var(--font-mono)">{tv}</text>
+                    </g>
+                  ))}
+                  {/* area + line */}
+                  <polygon points={areaPts} fill="url(#usageFill)" />
+                  <polyline points={linePts} fill="none" stroke="var(--primary)" strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" />
+                  {/* dots */}
+                  {usageDaily.map((v,i) => (
+                    <circle key={i} cx={xAt(i)} cy={yAt(v)} r="2.5" fill="var(--primary)" />
+                  ))}
+                  {/* x-axis labels (every 5th day) */}
+                  {usageDaily.map((_,i) => (i % 5 === 0 || i === usageDaily.length-1) && (
+                    <text key={`x${i}`} x={xAt(i)} y={H - 6} fontSize="10" fill="rgba(255,255,255,0.4)" textAnchor="middle" fontFamily="var(--font-mono)">
+                      {i === 0 ? 'Apr 1' : i === usageDaily.length-1 ? 'today' : `Apr ${i+1}`}
+                    </text>
+                  ))}
+                </svg>
+              </div>
+              <div className="usage-legend">
+                <span><i className="dot dot-primary"></i> Minutes used</span>
+                <span><i className="dot dot-cloud"></i> Cloud (50% of total)</span>
+                <span><i className="dot dot-local"></i> Local DSP (free, unmetered)</span>
+              </div>
+            </div>
+
+            {/* Plan comparison */}
+            <div className="set-section glass">
+              <div className="set-section-h">
+                <div className="label">▎ Where you sit</div>
+                <h3>Plan comparison</h3>
+                <p>Your 90-day average drawn against every tier. The marker is your usage line; the bars are what each plan gives you.</p>
+              </div>
+              <div className="plan-compare">
+                {plans.map(p => {
+                  const widthPct = (p.minutes / planMaxMin) * 100;
+                  const isCur = p.id === currentPlanId;
+                  const isRec = p.id === recommendedPlanId && p.id !== currentPlanId;
+                  return (
+                    <div key={p.id} className={`pc-row ${isCur ? 'is-current' : ''} ${isRec ? 'is-rec' : ''}`}>
+                      <div className="pc-name">
+                        {p.name}
+                        {isCur && <span className="pc-tag pc-tag-current">Current</span>}
+                        {isRec && <span className="pc-tag pc-tag-rec">Recommended</span>}
+                      </div>
+                      <div className="pc-track">
+                        <div className="pc-bar" style={{ width: `${widthPct}%` }}>
+                          <span className="pc-bar-num">{p.minutes} min</span>
+                        </div>
+                      </div>
+                      <div className="pc-price">${p.price.toFixed(2)}<span>/mo</span></div>
+                    </div>
+                  );
+                })}
+                {/* Avg-usage marker — overlays the track column.
+                    Track column starts at 144px (label 130px + 14px gap) and ends at -104px (price 90px + 14px gap). */}
+                <div
+                  className="pc-avg-marker"
+                  style={{ left: `calc(144px + (100% - 248px) * ${last90Avg / planMaxMin})` }}>
+                  <div className="pc-avg-line"></div>
+                  <div className="pc-avg-label">Your avg · {last90Avg} min</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Recommendation */}
+            <div className="set-section glass usage-rec">
+              <div className="set-section-h">
+                <div className="label">▎ Recommendation</div>
+                <h3>Pro is the right plan for you.</h3>
+                <p>Confidence: high · based on 90 days of session data.</p>
+              </div>
+              <div className="rec-body">
+                <p>You average <strong>{last90Avg} min/mo</strong>, with a peak of <strong>{peak} min</strong> in March. Pro covers that peak comfortably and you haven't paid for a top-up in the last 90 days.</p>
+                <p className="muted">If your usage stays around this level through summer, we'll keep recommending Pro. If two months in a row push past 200 min, we'll suggest Max.</p>
+              </div>
+              <div className="rec-actions">
+                <button className="btn-secondary">See top-ups instead</button>
+                <button className="btn-secondary">Switch to yearly (save 20%)</button>
+              </div>
+            </div>
+
+            {/* Top-ups / overage history */}
+            <div className="set-section glass">
+              <div className="set-section-h">
+                <div className="label">▎ Top-ups & overages</div>
+                <h3>Last 90 days</h3>
+                <p>One-time minute purchases when a session ran past your monthly limit.</p>
+              </div>
+              {[
+                { date: 'Mar 14, 2026', desc: '20 min top-up · manual',          amt: '$3.99' }
+              ].map((tu, i) => (
+                <div className="billing-row" key={i}>
+                  <span className="invoice">{tu.date}</span>
+                  <span className="desc">{tu.desc}</span>
+                  <span className="status-pill">Paid</span>
+                  <span className="amount">{tu.amt}</span>
+                </div>
+              ))}
+              <div style={{ marginTop: 14, paddingTop: 14, borderTop: '1px solid rgba(255,255,255,0.06)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: 13, color: 'var(--muted-foreground)' }}>Top-up spend (90d)</span>
+                <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, color: 'var(--accent)' }}>$3.99</span>
+              </div>
+            </div>
+
+          </div>
+        );
+      })()}
+
+      {settingsTab === 'security' && (
+        <div className="set-section glass">
+          <div className="set-section-h">
+            <div className="label">▎ Security</div>
+            <h3>Sign-in &amp; sessions</h3>
+          </div>
+          <div className="set-row">
+            <div className="text">
+              <div className="name">Password</div>
+              <div className="desc">Last changed 38 days ago.</div>
+            </div>
+            <button className="btn-secondary">Change password</button>
+          </div>
+          <div className="set-row">
+            <div className="text">
+              <div className="name">Two-factor authentication</div>
+              <div className="desc">Authenticator app · Backup codes generated Apr 12.</div>
+            </div>
+            <div className="toggle on"></div>
+          </div>
+          <div className="set-row">
+            <div className="text">
+              <div className="name">Active sessions</div>
+              <div className="desc">2 browsers · last active in New York &amp; Brooklyn.</div>
+            </div>
+            <button className="btn-danger">Sign out all</button>
+          </div>
+        </div>
+      )}
+
+      <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', padding: '12px 4px' }}>
+        <button className="btn-danger">Delete Zenphony account</button>
+      </div>
+    </div>
+  );
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   ROOT — switch between auth / dashboard / settings via tweaks
+   ════════════════════════════════════════════════════════════════════════ */
+function App() {
+  const [t, setTweak] = useTweaks(DEFAULTS);
+  const [sessionLoading, setSessionLoading] = useState(true);
+  const [sessionUser, setSessionUser] = useState(null); // { name, email } or null
+  const [signOutBusy, setSignOutBusy] = useState(false);
+
+  // Sync theme to body
+  useEffect(() => {
+    document.body.classList.remove('theme-velvet','theme-rosso','theme-amarillo','theme-aether','theme-verdant');
+    document.body.classList.add('theme-' + t.theme);
+  }, [t.theme]);
+
+  // URL routing — single-tab integration with the marketing site.
+  useEffect(() => {
+    const p = new URLSearchParams(window.location.search);
+    const s = p.get('screen');
+    const m = p.get('mode');
+    const sec = p.get('section');
+    if (s && ['login','settings'].includes(s) && s !== t.screen) setTweak('screen', s);
+    if (m && ['signin','signup'].includes(m) && m !== t.authMode) setTweak('authMode', m);
+    if (sec && ['account','forum'].includes(sec) && sec !== t.section) setTweak('section', sec);
+  }, []);
+
+  // Session check on mount — Better Auth.
+  // In preview (different origin) this fails with CORS and we keep the Tweak-driven view.
+  // In production (same origin) it populates user data and swaps screen if needed.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await window.api('/api/auth/get-session');
+        if (cancelled || !res.ok) return;
+        const data = await res.json();
+        if (data && data.user) {
+          setSessionUser({ name: data.user.name || data.user.email, email: data.user.email });
+          // Only force-redirect when on the auth screen and a real session exists.
+          if (t.screen === 'login') setTweak('screen', 'settings');
+        } else {
+          // No session: only redirect if we're somewhere that needs auth AND the page
+          // is actually running on the production origin (not the design preview).
+          const sameOrigin = window.location.origin === window.APP_BASE_URL;
+          if (sameOrigin && t.screen !== 'login') setTweak('screen', 'login');
+        }
+      } catch (e) {
+        // CORS in preview iframe — leave the design exactly as-is.
+      } finally {
+        if (!cancelled) setSessionLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
+  const handleRealSignOut = async () => {
+    const IS_PROD = window.location.origin === window.APP_BASE_URL;
+    if (!IS_PROD) {
+      // Preview mode: just flip back to the auth screen, don't bounce to Vercel.
+      setSessionUser(null);
+      setTweak('screen', 'login');
+      return;
+    }
+    setSignOutBusy(true);
+    try {
+      await window.api('/api/auth/sign-out', { method: 'POST' });
+    } catch (_) {}
+    window.location.href = window.APP_BASE_URL + '/';
+  };
+
+  const displayName = (sessionUser && sessionUser.name) || t.user;
+
+  let content;
+  if (t.screen === 'login') {
+    content = <AuthScreen
+      mode={t.authMode}
+      setMode={(m) => setTweak('authMode', m)}
+      onSignIn={() => setTweak('screen', 'settings')} />;
+  } else {
+    const inner = t.section === 'forum'
+      ? (
+          <div className="app-main">
+            <Forum
+              user={displayName}
+              view={t.forumView}
+              setView={(v) => setTweak('forumView', v)}
+              categoryId={t.forumCategory}
+              setCategoryId={(v) => setTweak('forumCategory', v)}
+              threadId={t.forumThread}
+              setThreadId={(v) => setTweak('forumThread', v)} />
+          </div>
+        )
+      : (
+          <Settings user={displayName}
+                    sessionEmail={sessionUser ? sessionUser.email : null}
+                    theme={t.theme}
+                    setTheme={(v) => setTweak('theme', v)}
+                    settingsTab={t.settingsTab}
+                    setSettingsTab={(v) => setTweak('settingsTab', v)}
+                    onSignOut={handleRealSignOut} />
+        );
+    content = (
+      <div className="acct-shell">
+        <AccountHeader user={displayName}
+                       section={t.section}
+                       setSection={(v) => setTweak('section', v)}
+                       onSignOut={handleRealSignOut} />
+        {inner}
+      </div>
+    );
+  }
+
+  return (
+    <>
+      {content}
+      <TweaksPanel title="Tweaks">
+        <TweakSection label="Screen" />
+        <TweakRadio
+          label="Show"
+          value={t.screen}
+          options={[
+            { value: 'login',    label: 'Auth' },
+            { value: 'settings', label: 'Account' }
+          ]}
+          onChange={(v) => setTweak('screen', v)} />
+
+        {t.screen === 'login' && (
+          <TweakRadio
+            label="Auth mode"
+            value={t.authMode}
+            options={[
+              { value: 'signin', label: 'Sign in' },
+              { value: 'signup', label: 'Sign up' }
+            ]}
+            onChange={(v) => setTweak('authMode', v)} />
+        )}
+        {t.screen === 'settings' && (
+          <TweakRadio
+            label="Section"
+            value={t.section}
+            options={[
+              { value: 'account', label: 'Account' },
+              { value: 'forum',   label: 'Community' }
+            ]}
+            onChange={(v) => setTweak('section', v)} />
+        )}
+
+        {t.screen === 'settings' && t.section === 'account' && (
+          <TweakSelect
+            label="Settings tab"
+            value={t.settingsTab}
+            options={[
+              { value: 'profile', label: 'Profile' },
+              { value: 'devices', label: 'Devices' },
+              { value: 'downloads', label: 'Downloads' },
+              { value: 'billing', label: 'Billing' },
+              { value: 'usage', label: 'Usage' },
+              { value: 'security', label: 'Security' }
+            ]}
+            onChange={(v) => setTweak('settingsTab', v)} />
+        )}
+
+        {t.screen === 'settings' && t.section === 'forum' && (
+          <>
+            <TweakRadio
+              label="Forum view"
+              value={t.forumView}
+              options={[
+                { value: 'home',     label: 'Home' },
+                { value: 'category', label: 'Category' },
+                { value: 'thread',   label: 'Thread' }
+              ]}
+              onChange={(v) => setTweak('forumView', v)} />
+            {(t.forumView === 'category' || t.forumView === 'thread') && (
+              <TweakSelect
+                label="Category"
+                value={t.forumCategory}
+                options={[
+                  { value: 'test-drive-1', label: 'Test Drive #1' },
+                  { value: 'latest-beta',  label: 'Latest Beta' },
+                  { value: 'bugs',         label: 'Bug Reports' },
+                  { value: 'features',     label: 'Feature Requests' },
+                  { value: 'modes',        label: 'Listening Modes' },
+                  { value: 'daw',          label: 'DAW & Install' },
+                  { value: 'examples',     label: 'Audio Examples' },
+                  { value: 'lounge',       label: 'Lounge' }
+                ]}
+                onChange={(v) => setTweak('forumCategory', v)} />
+            )}
+          </>
+        )}
+
+        <TweakSection label="Theme" />
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 6, padding: '4px 0' }}>
+          {['velvet','rosso','amarillo','aether','verdant'].map(name => {
+            const grads = {
+              velvet:   'linear-gradient(135deg, hsl(265,80%,65%), hsl(220,90%,65%))',
+              rosso:    'linear-gradient(135deg, hsl(12,85%,65%), hsl(350,80%,60%))',
+              amarillo: 'linear-gradient(135deg, hsl(42,95%,60%), hsl(30,90%,58%))',
+              aether:   'linear-gradient(135deg, hsl(188,85%,55%), hsl(215,80%,60%))',
+              verdant:  'linear-gradient(135deg, hsl(142,70%,50%), hsl(90,75%,55%))'
+            };
+            return (
+              <div key={name}
+                onClick={() => setTweak('theme', name)}
+                title={name}
+                style={{
+                  aspectRatio: '1',
+                  borderRadius: 8,
+                  cursor: 'pointer',
+                  background: grads[name],
+                  border: t.theme === name ? '2px solid #29261b' : '2px solid transparent',
+                  boxShadow: t.theme === name ? '0 0 0 2px rgba(255,255,255,0.6)' : 'none'
+                }} />
+            );
+          })}
+        </div>
+
+        <TweakSection label="User" />
+        <TweakText label="Name" value={t.user} onChange={(v) => setTweak('user', v)} />
+      </TweaksPanel>
+    </>
+  );
+}
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<App />);
+</script>
+
+</body>
+</html>

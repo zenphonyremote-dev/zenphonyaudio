@@ -1,0 +1,282 @@
+/* ============================================================================
+   ZENPHONY AUDIO — COMPONENT & EFFECT PRIMITIVES
+   Pair with colors_and_type.css. All classes are unprefixed for the Zenphony
+   site; prefixed `.lb-*` aliases survive for components ported from Listen
+   Buddy.
+   ============================================================================ */
+
+/* --- BASE FRAMES --------------------------------------------------------- */
+.za-frame {
+    background: rgba(26, 22, 37, 0.88);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: var(--radius-2xl);
+    box-shadow: var(--frame-bloom);
+}
+.za-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    padding: var(--space-6);
+}
+.za-card-elevated {
+    background: var(--surface-elevated);
+    border: 1px solid rgba(255,255,255,0.1);
+    box-shadow: var(--shadow-grounding), 0 0 24px var(--glow);
+}
+.za-glass {
+    background: rgba(255, 255, 255, 0.04);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: var(--radius-lg);
+    padding: var(--space-4);
+}
+
+/* --- BUTTONS ------------------------------------------------------------- */
+.za-btn-primary {
+    padding: 8px 14px;
+    border-radius: var(--radius-md);
+    border: none;
+    background: var(--primary);
+    color: #fff;
+    font-weight: 700;
+    font-size: var(--fs-label);
+    font-family: inherit;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.za-btn-primary:hover { background: var(--primary-dim); }
+
+.za-btn-talk {
+    padding: 14px 28px;
+    border-radius: var(--radius-pill);
+    border: none;
+    background: linear-gradient(135deg, var(--primary), var(--primary-dim));
+    color: #fff;
+    font-weight: 700;
+    font-size: var(--fs-body);
+    font-family: inherit;
+    letter-spacing: 0.01em;
+    cursor: pointer;
+    box-shadow: 0 8px 24px var(--glow), inset 0 1px 0 rgba(255,255,255,0.15);
+    transition: all 0.25s;
+}
+.za-btn-talk:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 32px var(--glow), inset 0 1px 0 rgba(255,255,255,0.2);
+    filter: brightness(1.08);
+}
+.za-btn-talk.live { animation: za-talkBtnGlow var(--motion-glow) infinite; }
+
+.za-btn-circle {
+    width: 32px; height: 32px;
+    border: none;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+    color: #fff;
+    font-size: 14px;
+    line-height: 1;
+    padding: 0;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: filter 0.2s, box-shadow 0.2s, transform 0.15s;
+}
+.za-btn-circle:hover {
+    filter: brightness(1.15);
+    box-shadow: 0 0 10px var(--glow);
+    transform: translateY(-1px);
+}
+.za-btn-circle.listening { animation: za-listenPulse var(--motion-pulse) infinite; box-shadow: 0 0 14px var(--glow); }
+
+.za-btn-ghost {
+    width: 24px; height: 24px;
+    border: none;
+    border-radius: var(--radius-sm);
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--muted-foreground);
+    font-size: 12px;
+    font-family: inherit;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.2s;
+}
+.za-btn-ghost:hover { background: rgba(255, 255, 255, 0.12); }
+
+.za-chip {
+    padding: 6px 14px;
+    border-radius: var(--radius-pill);
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--border);
+    color: var(--accent);
+    font-size: var(--fs-small);
+    font-weight: 500;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.za-chip:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: var(--primary);
+    color: var(--foreground);
+}
+
+/* --- INPUTS -------------------------------------------------------------- */
+.za-input {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-md);
+    padding: 8px 12px;
+    color: var(--foreground);
+    font-family: inherit;
+    font-size: var(--fs-small);
+    outline: none;
+    transition: border-color 0.2s;
+}
+.za-input:focus { border-color: var(--primary); }
+
+/* --- STATUS PILLS -------------------------------------------------------- */
+.za-status {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 6px 12px;
+    border-radius: var(--radius-pill);
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--border);
+    font-size: var(--fs-label);
+    font-weight: 600;
+    color: var(--muted-foreground);
+}
+.za-status .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--status-great);
+    box-shadow: 0 0 6px var(--status-great-glow);
+}
+
+/* --- TRAFFIC-LIGHT DOTS -------------------------------------------------- */
+.za-tl { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.za-tl.great      { background: var(--status-great);      box-shadow: 0 0 8px var(--status-great-glow); }
+.za-tl.good       { background: var(--status-good);       box-shadow: 0 0 8px var(--status-good-glow); }
+.za-tl.needs-work { background: var(--status-needs-work); box-shadow: 0 0 8px var(--status-needs-work-glow); }
+
+/* --- GLOW UTILITIES ------------------------------------------------------ */
+.glow-sm { box-shadow: var(--glow-sm); }
+.glow-md { box-shadow: var(--glow-md); }
+.glow-lg { box-shadow: var(--glow-lg); }
+.glow-inner { box-shadow: var(--glow-inner); }
+.glow-svg svg { filter: drop-shadow(0 0 6px var(--glow)); }
+
+/* --- AURORA / GLOW BACKGROUND ------------------------------------------- */
+.za-aurora {
+    position: relative;
+    overflow: hidden;
+    background:
+        radial-gradient(50% 60% at 20% 20%, hsla(var(--hue), 90%, 65%, 0.35) 0%, transparent 70%),
+        radial-gradient(40% 50% at 80% 30%, hsla(var(--hue-sec), 85%, 55%, 0.30) 0%, transparent 70%),
+        radial-gradient(60% 70% at 50% 90%, hsla(var(--hue), 95%, 72%, 0.20) 0%, transparent 70%),
+        var(--page-bg);
+}
+.za-aurora::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: conic-gradient(from 0deg at 50% 50%,
+        hsla(var(--hue), 90%, 65%, 0.0) 0deg,
+        hsla(var(--hue), 90%, 65%, 0.18) 90deg,
+        hsla(var(--hue-sec), 85%, 55%, 0.18) 180deg,
+        hsla(var(--hue), 95%, 72%, 0.18) 270deg,
+        hsla(var(--hue), 90%, 65%, 0.0) 360deg);
+    animation: za-auroraSpin var(--motion-aurora) infinite;
+    filter: blur(40px);
+    opacity: 0.55;
+    pointer-events: none;
+}
+
+/* --- CONIC RING (avatar / mascot frame) --------------------------------- */
+.za-conic-ring {
+    position: relative;
+    width: 96px; height: 96px;
+    border-radius: 50%;
+    padding: 3px;
+    background: conic-gradient(from var(--atle-ang, 0deg),
+        var(--primary), var(--secondary), var(--primary));
+    animation: za-conicSpin var(--motion-spin) infinite;
+}
+.za-conic-ring > .inner {
+    width: 100%; height: 100%;
+    border-radius: 50%;
+    background: rgba(20, 15, 35, 0.95);
+    display: flex; align-items: center; justify-content: center;
+}
+
+/* --- PEARL METER --------------------------------------------------------- */
+.za-pearl-bar {
+    height: 8px;
+    border-radius: var(--radius-xs);
+    background: var(--pearl);
+    background-size: 300% 100%;
+    animation: za-pearlShimmer var(--motion-shimmer) infinite;
+    box-shadow: 0 0 12px rgba(0, 243, 255, 0.4),
+                0 -4px 12px rgba(180, 0, 255, 0.25);
+}
+
+/* --- SOUND-BAR EQ -------------------------------------------------------- */
+.za-soundbars {
+    display: flex; align-items: flex-end; gap: 2px;
+    height: 18px;
+}
+.za-soundbars > span {
+    width: 3px;
+    background: var(--primary);
+    border-radius: 1px;
+    animation: za-soundPulse var(--motion-sound) infinite;
+}
+.za-soundbars > span:nth-child(1) { animation-delay: 0s; }
+.za-soundbars > span:nth-child(2) { animation-delay: 0.15s; }
+.za-soundbars > span:nth-child(3) { animation-delay: 0.30s; }
+.za-soundbars > span:nth-child(4) { animation-delay: 0.45s; }
+.za-soundbars > span:nth-child(5) { animation-delay: 0.60s; }
+
+/* --- HEADER GLOW RULE ---------------------------------------------------- */
+.za-glow-rule {
+    height: 1px;
+    background: linear-gradient(90deg, transparent,
+        var(--primary), var(--secondary), transparent);
+    opacity: 0.4;
+}
+
+/* --- SPARKLE DOT --------------------------------------------------------- */
+.za-sparkle {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--accent);
+    animation: za-sparkle var(--motion-glow) infinite;
+}
+
+/* ============================================================================
+   KEYFRAMES
+   ============================================================================ */
+@keyframes za-chatIn {
+    from { opacity: 0; transform: scale(0.9) translateY(10px); }
+    to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+@keyframes za-listenPulse {
+    0%, 100% { transform: scale(1);    filter: brightness(1); }
+    50%      { transform: scale(1.08); filter: brightness(1.3); }
+}
+@keyframes za-talkBtnGlow {
+    0%, 100% { box-shadow: 0 8px 24px var(--glow); }
+    50%      { box-shadow: 0 8px 36px var(--glow); }
+}
+@keyframes za-sparkle {
+    0%, 100% { opacity: 0.4; transform: scale(0.8); }
+    50%      { opacity: 1;   transform: scale(1.4); }
+}
+@keyframes za-soundPulse {
+    0%, 100% { height: 5px;  opacity: 0.55; }
+    50%      { height: 18px; opacity: 1; }
+}
+@keyframes za-pearlShimmer {
+    0%   { background-position: 0% 50%; }
+    100% { background-position: 300% 50%; }
+}
+@keyframes za-conicSpin { to { --atle-ang: 360deg; } }
+@keyframes za-auroraSpin { to { transform: rotate(360deg); } }

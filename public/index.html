@@ -1,0 +1,1069 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Zenphony Audio — Intelligence for sound</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="css/colors_and_type.css?v=6">
+<link rel="stylesheet" href="css/components.css?v=6">
+<link rel="stylesheet" href="css/site.css?v=7">
+<link rel="stylesheet" href="css/talk.css?v=1">
+<link rel="stylesheet" href="css/brand.css?v=5">
+<link rel="stylesheet" href="css/screenshots.css?v=1">
+<link rel="stylesheet" href="css/buddies.css?v=2">
+
+<!-- ────────── App constants & helpers ────────── -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  window.APP_BASE_URL = window.location.origin;
+  window.SUPABASE_URL = "https://brqumrnkcevzieqfvhsm.supabase.co";
+  window.SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJycXVtcm5rY2V2emllcWZ2aHNtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc2MDIxMzAsImV4cCI6MjA4MzE3ODEzMH0.FAETiYqho_hC3ebm3CtwHTo-Zf-K68rg8ErAHKluvYk";
+  window.api = (path, opts = {}) => fetch(window.APP_BASE_URL + path, { credentials: "include", headers: { "Content-Type": "application/json", ...(opts.headers || {}) }, ...opts });
+  window.sb = () => window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+</script>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+</head>
+<body class="theme-velvet">
+<div class="page-aurora"><div class="blob-3"></div><div class="blob-4"></div><div class="blob-5"></div><div class="grain"></div></div>
+
+<div class="site">
+
+  <!-- ================= NAV ================= -->
+  <nav class="nav">
+    <div class="container nav-inner">
+      <a href="/" class="brand">
+        <img src="assets/zenphony-audio-logo.png" alt="Zenphony Audio" class="brand-logo" />
+      </a>
+      <div class="nav-pill">
+        <a class="nav-link active" href="#product">Listen Buddy</a>
+        <a class="nav-link" href="#buddies">Buddies</a>
+        <a class="nav-link" href="#features">Features</a>
+        <a class="nav-link" href="#pricing">Pricing</a>
+        <a class="nav-link" href="#about">About</a>
+      </div>
+      <div class="nav-cta" id="nav-cta">
+        <a class="btn btn-ghost" id="nav-login" data-action="login" href="/account.html">Log in</a>
+        <a class="btn btn-primary" id="nav-signup" data-action="signup" href="/account.html?screen=login&amp;mode=signup">Get Started</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ================= HERO ================= -->
+  <section class="hero">
+    <div class="container hero-grid">
+      <div class="hero-copy reveal">
+        <div class="eyebrow"><span class="dot"></span><span>v1.0 Beta · Now shipping</span></div>
+        <h1>
+          <span class="grad">Intelligence</span><br>
+          for <span class="alt">sound.</span>
+        </h1>
+        <p class="hero-sub">Zenphony builds tools that help producers, engineers, and composers hear more clearly, decide faster, and trust the mix in front of them.</p>
+        <div class="hero-actions">
+          <a class="btn btn-primary btn-lg" data-action="try-free" href="#">Try Listen Buddy free
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          </a>
+          <a class="btn btn-outline btn-lg">Watch a sample analysis</a>
+        </div>
+        <div class="hero-meta">
+          <div class="hero-meta-item"><span class="tl great"></span><strong>Real-time</strong><span>Spectral DSP</span></div>
+          <div class="hero-meta-item"><span class="tl great"></span><strong>VST3 / AU</strong><span>macOS · Apple Silicon</span></div>
+          <div class="hero-meta-item"><span class="tl great"></span><strong>−14.2 LUFS</strong><span>Reference-aware</span></div>
+        </div>
+      </div>
+
+      <div class="hero-stage hero-stage-shot reveal">
+        <div class="lb-shot lb-shot-hero" data-shot-track>
+          <img src="assets/lb-purple-1.png" alt="Listen Buddy plugin — analysis view" />
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= MARQUEE ================= -->
+  <section class="marquee">
+    <span class="marquee-label">Trusted by engineers, composers and post houses</span>
+    <div class="marquee-track" id="marquee">
+      <div class="marquee-item">Atlas Mastering</div>
+      <div class="marquee-item">Northway Studios</div>
+      <div class="marquee-item">Polyphon Records</div>
+      <div class="marquee-item">Vesper Post</div>
+      <div class="marquee-item">Field Sound Co.</div>
+      <div class="marquee-item">Helix Audio</div>
+      <div class="marquee-item">Lighthouse Mix</div>
+      <div class="marquee-item">Roomtone</div>
+      <div class="marquee-item">Atlas Mastering</div>
+      <div class="marquee-item">Northway Studios</div>
+      <div class="marquee-item">Polyphon Records</div>
+      <div class="marquee-item">Vesper Post</div>
+      <div class="marquee-item">Field Sound Co.</div>
+      <div class="marquee-item">Helix Audio</div>
+      <div class="marquee-item">Lighthouse Mix</div>
+      <div class="marquee-item">Roomtone</div>
+    </div>
+  </section>
+
+  <!-- ================= PRODUCT ================= -->
+  <section class="section" id="product">
+    <div class="container">
+      <div class="lb-lockup reveal">
+        <img class="lb-lockup-mascot" src="assets/listen-buddy-mascot.svg" alt="" />
+        <img class="lb-lockup-wordmark" src="assets/listen-buddy-wordmark.svg" alt="Listen Buddy" />
+        <div class="lb-lockup-tag"><span class="dot"></span>The plugin · v1.0 BETA</div>
+      </div>
+      <div class="section-head reveal">
+        <h2>A second pair of ears, <span class="grad">trained on yours.</span></h2>
+        <p>A mix companion that sits in your DAW, reads the signal in real time, and tells you what's happening in the spectrum: plain English, with the dB and kHz to back it up.</p>
+      </div>
+
+      <div class="product reveal">
+        <!-- LEFT: PLUGIN GALLERY -->
+        <div class="lb-gallery" data-gallery aria-label="Listen Buddy screen gallery">
+          <div class="lb-gallery-stage">
+            <div class="lb-shot lb-shot-gallery" data-shot-track data-gallery-zoom role="button" tabindex="0" aria-label="Click to zoom into screenshot">
+              <img data-gallery-img src="assets/lb-red-1.png" alt="Listen Buddy plugin screen" />
+              <span class="lb-gallery-zoom-hint" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/><path d="M11 8v6"/><path d="M8 11h6"/></svg>
+                Click to zoom
+              </span>
+            </div>
+            <button class="lb-gallery-nav prev" data-gallery-prev aria-label="Previous screen">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>
+            </button>
+            <button class="lb-gallery-nav next" data-gallery-next aria-label="Next screen">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
+            </button>
+          </div>
+          <div class="lb-gallery-rail" role="tablist">
+            <button class="lb-gallery-thumb is-active" data-gallery-thumb="0" role="tab" aria-label="Overall impression — Rosso">
+              <img src="assets/lb-red-1.png" alt="" />
+            </button>
+            <button class="lb-gallery-thumb" data-gallery-thumb="1" role="tab" aria-label="Insight cards — Rosso">
+              <img src="assets/lb-red-2.png" alt="" />
+            </button>
+            <button class="lb-gallery-thumb" data-gallery-thumb="2" role="tab" aria-label="Velvet — chat with Listen Buddy">
+              <img src="assets/lb-purple-1.png" alt="" />
+            </button>
+            <button class="lb-gallery-thumb" data-gallery-thumb="3" role="tab" aria-label="Velvet — reference tracks">
+              <img src="assets/lb-purple-2.png" alt="" />
+            </button>
+            <button class="lb-gallery-thumb" data-gallery-thumb="4" role="tab" aria-label="Amarillo — collapsed insights">
+              <img src="assets/lb-amber-1.png" alt="" />
+            </button>
+            <button class="lb-gallery-thumb" data-gallery-thumb="5" role="tab" aria-label="Amarillo — reference tracks">
+              <img src="assets/lb-amber-2.png" alt="" />
+            </button>
+          </div>
+        </div>
+
+        <!-- RIGHT: COPY -->
+        <div class="product-copy">
+          <div class="eyebrow"><span class="dot"></span><span>Inside the analysis</span></div>
+          <h3>Hear what's there.<br>Decide what's next.</h3>
+          <p>Listen Buddy reads the same four signals a great engineer does: tonal balance, dynamics, stereo image, translation. It surfaces them as plain‑language insight, with the dB and kHz values right next to the words.</p>
+
+          <div class="kv-list">
+            <div class="kv">
+              <div class="label">Mode</div>
+              <div class="val">Mix · Master · Film</div>
+              <div class="desc">Six listening modes calibrated to context</div>
+            </div>
+            <div class="kv">
+              <div class="label">Reference</div>
+              <div class="val">Curated · Custom</div>
+              <div class="desc">Match against tracks that already translate</div>
+            </div>
+            <div class="kv">
+              <div class="label">Latency</div>
+              <div class="val">Real‑time</div>
+              <div class="desc">Inline DSP, no offline render required</div>
+            </div>
+            <div class="kv">
+              <div class="label">Format</div>
+              <div class="val">VST3 · AU · AAX</div>
+              <div class="desc">Native Apple Silicon · macOS 13+</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= IMPRESSION QUOTE ================= -->
+  <section class="section" style="padding: 40px 0 60px;">
+    <div class="container">
+      <div class="impression reveal">
+        <div class="label"><span class="dot"></span>Sample insight · Pop / R&B mix · 96 kHz</div>
+        <p>Punchy mix overall. The low end has <span class="accent">nice weight on the kick and 808</span>, and the vocal sits forward without getting harsh. Air on the cymbals could use a small bump around <span class="accent">12 kHz</span>, and the bus compressor could be backed off <span class="accent">~1 dB</span> during the chorus.</p>
+        <div class="who">
+          <div class="av av-mascot"><img src="assets/listen-buddy-mascot.svg" alt=""></div>
+          <div class="meta"><span class="name">Listen Buddy</span> · Mix mode · QC reference: Spotify</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= MEET THE BUDDIES ================= -->
+  <section class="section buddies-section" id="buddies" style="padding: 40px 0 80px;">
+    <div class="container">
+      <div class="section-head reveal">
+        <div class="eyebrow"><span class="dot"></span><span>Four ears, two homes</span></div>
+        <h2>Meet your <span class="grad">listening crew.</span></h2>
+        <p>Listen Buddy isn't one voice — it's four. Two who live on your laptop and never leave the room. Two who live in the cloud with deeper memory and a wider library. Pick the buddy that fits the work, or let the plugin pick for you.</p>
+      </div>
+
+      <div class="buddies-grid reveal">
+        <!-- LOCAL ROW -->
+        <div class="buddies-row buddies-local">
+          <div class="buddies-row-h">
+            <div class="buddies-row-tag"><span class="dot"></span>Local · on your machine</div>
+            <div class="buddies-row-meta">runs on Apple Silicon &amp; modern x86 · zero data leaves your DAW · works offline</div>
+          </div>
+          <div class="buddies-row-cards">
+            <article class="buddy-card buddy-velvet">
+              <div class="buddy-card-stripe"></div>
+              <header class="buddy-card-h">
+                <div class="buddy-card-mark">
+                  <span class="buddy-swatch"></span>
+                  <span class="buddy-name">Velvet</span>
+                </div>
+                <div class="buddy-card-where">local · purple</div>
+              </header>
+              <p class="buddy-card-vibe">The patient one. Wide ears, warm read.</p>
+              <p class="buddy-card-body">Velvet is the buddy you crack open at 2am when the mix is mostly there and you just need someone calm to confirm it. Tonal balance, low‑end weight, vocal sit. Won't argue, won't oversell. Default for Mix and Master modes.</p>
+              <ul class="buddy-card-traits">
+                <li><span class="t-k">strengths</span><span class="t-v">balance · low end · vocal sit</span></li>
+                <li><span class="t-k">tone</span><span class="t-v">calm · confirming</span></li>
+                <li><span class="t-k">latency</span><span class="t-v">~80 ms first read</span></li>
+              </ul>
+            </article>
+
+            <article class="buddy-card buddy-amarillo">
+              <div class="buddy-card-stripe"></div>
+              <header class="buddy-card-h">
+                <div class="buddy-card-mark">
+                  <span class="buddy-swatch"></span>
+                  <span class="buddy-name">Amarillo</span>
+                </div>
+                <div class="buddy-card-where">local · gold</div>
+              </header>
+              <p class="buddy-card-vibe">The bright one. Quick draw, sharp ear.</p>
+              <p class="buddy-card-body">Amarillo flags problems. Sibilance at 6k, a 380 Hz resonance you stopped hearing two hours ago, a kick that's clipping your bus. Fast, blunt, useful. The buddy you bring to the polish pass.</p>
+              <ul class="buddy-card-traits">
+                <li><span class="t-k">strengths</span><span class="t-v">issue detection · transient work</span></li>
+                <li><span class="t-k">tone</span><span class="t-v">direct · prescriptive</span></li>
+                <li><span class="t-k">latency</span><span class="t-v">~60 ms first read</span></li>
+              </ul>
+            </article>
+          </div>
+        </div>
+
+        <!-- CLOUD ROW -->
+        <div class="buddies-row buddies-cloud">
+          <div class="buddies-row-h">
+            <div class="buddies-row-tag cloud"><span class="dot"></span>Cloud · the heavier model</div>
+            <div class="buddies-row-meta">deeper context · larger reference library · remembers your sessions · needs a connection</div>
+          </div>
+          <div class="buddies-row-cards">
+            <article class="buddy-card buddy-rosso">
+              <div class="buddy-card-stripe"></div>
+              <header class="buddy-card-h">
+                <div class="buddy-card-mark">
+                  <span class="buddy-swatch"></span>
+                  <span class="buddy-name">Rosso</span>
+                </div>
+                <div class="buddy-card-where">cloud · coral</div>
+              </header>
+              <p class="buddy-card-vibe">The opinionated one. Holds a position.</p>
+              <p class="buddy-card-body">Rosso has heard a lot of records. When you ask whether the bridge is working, Rosso names the reference, points to the bar, and tells you what would change. Push back and Rosso pushes back. Best for mastering, A/B, and arrangement notes.</p>
+              <ul class="buddy-card-traits">
+                <li><span class="t-k">strengths</span><span class="t-v">references · arrangement · A/B</span></li>
+                <li><span class="t-k">tone</span><span class="t-v">opinionated · conversational</span></li>
+                <li><span class="t-k">model</span><span class="t-v">cloud · deep context</span></li>
+              </ul>
+            </article>
+
+            <article class="buddy-card buddy-verde">
+              <div class="buddy-card-stripe"></div>
+              <header class="buddy-card-h">
+                <div class="buddy-card-mark">
+                  <span class="buddy-swatch"></span>
+                  <span class="buddy-name">Verde</span>
+                </div>
+                <div class="buddy-card-where">cloud · green</div>
+              </header>
+              <p class="buddy-card-vibe">The studious one. Reads the spec sheet.</p>
+              <p class="buddy-card-body">Verde knows the standards. Spotify −14 LUFS, Apple Music, Netflix −27, ATSC A/85, EBU R128. Verde checks your mix against the destination and tells you exactly where it's out — true peak, integrated loudness, dialnorm, the works. Best for delivery and broadcast.</p>
+              <ul class="buddy-card-traits">
+                <li><span class="t-k">strengths</span><span class="t-v">delivery specs · loudness · QC</span></li>
+                <li><span class="t-k">tone</span><span class="t-v">precise · technical</span></li>
+                <li><span class="t-k">model</span><span class="t-v">cloud · standards-aware</span></li>
+              </ul>
+            </article>
+          </div>
+        </div>
+      </div>
+
+      <div class="buddies-foot reveal">
+        <div class="buddies-foot-row">
+          <div class="buddies-foot-l">
+            <span class="buddies-foot-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+            </span>
+            <div>
+              <div class="buddies-foot-h">Switch buddies mid‑session.</div>
+              <div class="buddies-foot-s">Click the badge in the plugin header. Velvet for the second pass, Amarillo for the polish, Rosso when you want a fight, Verde before you bounce. Same insight format. Different ear.</div>
+            </div>
+          </div>
+          <div class="buddies-foot-r">
+            <span class="buddies-mini-pill local">local</span>
+            <span class="buddies-mini-arrow">→</span>
+            <span class="buddies-mini-pill cloud">cloud</span>
+            <span class="buddies-mini-help">one shortcut · ⌥⌘B</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= FEATURES ================= -->
+  <section class="section" id="features" style="padding-top: 40px;">
+    <div class="container">
+      <div class="section-head reveal">
+        <div class="eyebrow"><span class="dot"></span><span>What it does</span></div>
+        <h2>Reads what's there. <span class="grad">Knows what's next.</span></h2>
+        <p>Six listening modes calibrated to the work in front of you. Ten broadcast and streaming standards you can measure against. A reference library that knows the records that already translate. And a conversation that remembers what it just heard.</p>
+      </div>
+
+      <div class="features reveal">
+        <div class="feature">
+          <div class="feature-glyph">
+            <svg viewBox="0 0 24 24"><path d="M3 12h2M19 12h2M7 5v14M11 8v8M15 5v14M19 8v8M3 8v8"/></svg>
+          </div>
+          <h4>Tonal balance</h4>
+          <p>A spectral read across the full range, weighted to genre and reference. See where the low‑mids are crowded, where the air is missing, and what to nudge. In dB, not adjectives.</p>
+          <div class="extra"><div class="feat-bars"><span style="--h:30%"></span><span style="--h:60%"></span><span style="--h:80%"></span><span style="--h:55%"></span><span style="--h:90%"></span><span style="--h:65%"></span><span style="--h:40%"></span><span style="--h:75%"></span><span style="--h:50%"></span><span style="--h:85%"></span><span style="--h:60%"></span><span style="--h:35%"></span></div></div>
+        </div>
+
+        <div class="feature">
+          <div class="feature-glyph">
+            <svg viewBox="0 0 24 24"><path d="M3 12c2 0 2-7 4-7s2 14 4 14 2-9 4-9 2 5 4 5 2-3 2-3"/></svg>
+          </div>
+          <h4>Dynamics &amp; loudness</h4>
+          <p>Integrated LUFS, true peak, and crest factor, calibrated against streaming targets. The pearl meter shows compression character at a glance, not just a number.</p>
+          <div class="extra"><div class="feat-pearl"></div></div>
+        </div>
+
+        <div class="feature">
+          <div class="feature-glyph">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg>
+          </div>
+          <h4>Stereo image</h4>
+          <p>Phase, correlation, and width over time. Catches the moment a chorus pulls left, or a synth pad collapses to mono on a phone speaker, before your reference listener does.</p>
+          <div class="extra"><div class="feat-tags"><span class="feat-tag">+0.18 corr</span><span class="feat-tag">112°</span><span class="feat-tag">center stable</span></div></div>
+        </div>
+
+        <div class="feature">
+          <div class="feature-glyph">
+            <svg viewBox="0 0 24 24"><path d="M4 4h16v16H4z"/><path d="M9 9l6 6M15 9l-6 6"/></svg>
+          </div>
+          <h4>Issue detection</h4>
+          <p>Sibilance on a soloed vocal. A resonant peak around 380 Hz. Inter‑sample peaks above 0 dBTP. Listen Buddy flags them with a frequency and a suggested move.</p>
+          <div class="extra"><div class="feat-tags"><span class="feat-tag">⚠ 5.6 kHz sibilance</span><span class="feat-tag">⚠ +0.3 dBTP</span></div></div>
+        </div>
+
+        <div class="feature">
+          <div class="feature-glyph">
+            <svg viewBox="0 0 24 24"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg>
+          </div>
+          <h4>Reference matching</h4>
+          <p>Drop in a track that already translates. Listen Buddy maps its tonal curve, dynamics, and stereo profile onto yours, and tells you the gap. Not "close enough", but "−1.4 dB low‑shelf at 80".</p>
+          <div class="extra"><div class="feat-tags"><span class="feat-tag">QC: Spotify</span><span class="feat-tag">QC: Apple Music</span><span class="feat-tag">Custom</span></div></div>
+        </div>
+
+        <div class="feature">
+          <div class="feature-glyph">
+            <svg viewBox="0 0 24 24"><path d="M21 15a4 4 0 0 1-4 4H7l-4 4V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"/></svg>
+          </div>
+          <h4>Talk to your mix</h4>
+          <p>Ask a question, like "is the vocal too forward in the bridge?", and Listen Buddy answers from what it heard, not from a generic style guide. It's a conversation, with frequencies.</p>
+          <div class="extra"><div class="feat-tags"><span class="feat-tag">Listen for sibilance on the soloed vocal</span></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= TALK TO YOUR MIX ================= -->
+  <section class="section talk-section" id="talk">
+    <div class="container">
+      <div class="section-head reveal">
+        <div class="eyebrow"><span class="dot"></span><span>Talk to your mix</span></div>
+        <h2>Keep the conversation going. <span class="grad">Follow up, push back, get unstuck.</span></h2>
+        <p>The Listen Buddy chat is a resource to go to when you have questions about mixing techniques, your DAW, and your plugins. It’s also your sounding board. Pull on a thread from your last analysis. Ask the &ldquo;what if&rdquo; question. Whether you need a creative spark or a technical sanity check, Listen Buddy is always around to talk it through.</p>
+        <div class="talk-free-pill"><span class="lozenge">▎ Free</span> A generous monthly ceiling of Listen Buddy chat on the free tier. Unlimited on every paid plan.</div>
+      </div>
+
+      <div class="talk-stage reveal">
+        <!-- LEFT: chat conversation -->
+        <div class="talk-chat" aria-label="Listen Buddy chat conversation">
+          <div class="talk-chat-head">
+            <div class="talk-chat-head-l">
+              <div class="talk-chat-orb has-mascot"><img src="assets/listen-buddy-mascot.svg" alt=""></div>
+              <div>
+                <div class="talk-chat-title">Listen Buddy · chat</div>
+                <div class="talk-chat-sub">Mix mode · listening to <span class="mono">oleo_RVG_velvet.wav</span></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="talk-chat-stream">
+            <div class="talk-msg me">
+              <div class="bubble">You said the chorus felt &ldquo;crowded.&rdquo; Crowded how? I keep hearing it, can&rsquo;t place it.</div>
+              <div class="meta">Maya · follow-up on last analysis</div>
+            </div>
+
+            <div class="talk-msg buddy">
+              <div class="av av-mascot"><img src="assets/listen-buddy-mascot.svg" alt=""></div>
+              <div class="bubble-wrap">
+                <div class="bubble">
+                  Three things are sharing the same shelf. The lead vocal sibilance, the snare top, and the hi-hat are all parked between <span class="hl">5–7 kHz</span>. None of them are loud on their own. Together they make a wall.
+                </div>
+                <div class="bubble">
+                  When I called it crowded, I meant: <em>nothing has its own room up there.</em> The verse breathes because the hat drops out. The chorus doesn&rsquo;t get that breath.
+                </div>
+                <div class="meta">Listen Buddy</div>
+              </div>
+            </div>
+
+            <div class="talk-msg me">
+              <div class="bubble">What if I leaned into it instead? Made the chorus feel deliberately busier than the verse?</div>
+              <div class="meta">Maya</div>
+            </div>
+
+            <div class="talk-msg buddy">
+              <div class="av av-mascot"><img src="assets/listen-buddy-mascot.svg" alt=""></div>
+              <div class="bubble-wrap">
+                <div class="bubble">
+                  That&rsquo;s a real choice. A lot of records do exactly that. The trick is making it feel <em>intentional</em>, not accidental. Right now your chorus reads as &ldquo;louder verse,&rdquo; not &ldquo;different section.&rdquo;
+                </div>
+                <div class="bubble">
+                  If you&rsquo;re going busier, give the listener a signpost: a tonal shift, a stereo widen on the hat, a synth pad arriving on the downbeat. Otherwise the energy lifts but the ear doesn&rsquo;t know <em>why</em> it lifted.
+                </div>
+                <div class="meta">Listen Buddy</div>
+              </div>
+            </div>
+
+            <div class="talk-msg me">
+              <div class="bubble">Pad idea is interesting. What would you reach for?</div>
+              <div class="meta">Maya</div>
+            </div>
+
+            <div class="talk-msg buddy">
+              <div class="av av-mascot"><img src="assets/listen-buddy-mascot.svg" alt=""></div>
+              <div class="bubble-wrap">
+                <div class="bubble">
+                  Something that lives <em>under</em> the vocal, not next to it. A warm sine-ish pad sitting around <span class="hl">200–400 Hz</span>, low in the mix, wide. It&rsquo;d give the chorus weight without adding to the 5 kHz traffic jam.
+                </div>
+                <div class="meta">Listen Buddy · <a class="link">Pin to session</a></div>
+              </div>
+            </div>
+
+            <div class="talk-msg me">
+              <div class="bubble">Okay, I&rsquo;m gonna try that. Anything else jumping out before I dive in?</div>
+              <div class="meta">Maya</div>
+            </div>
+
+            <div class="talk-msg buddy is-typing">
+              <div class="av av-mascot"><img src="assets/listen-buddy-mascot.svg" alt=""></div>
+              <div class="bubble-wrap">
+                <div class="bubble bubble-typing">
+                  <span></span><span></span><span></span>
+                </div>
+                <div class="meta">Listen Buddy · thinking…</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="talk-chat-composer">
+            <div class="composer-input"><span class="caret">|</span><span class="ph">Ask anything about the audio…</span></div>
+            <div class="composer-tools">
+              <button class="composer-tool" title="Attach reference"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12l-9 9a5 5 0 0 1-7-7l9-9a3 3 0 0 1 4 4l-8 8a1 1 0 0 1-2-2l7-7"/></svg></button>
+              <button class="composer-tool" title="Voice"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></button>
+              <button class="composer-send"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT: rationale rail -->
+        <aside class="talk-rail">
+          <div class="talk-rail-card reveal">
+            <div class="talk-rail-glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12c2 0 2-4 4-4s2 4 4 4 2-4 4-4 2 4 4 4"/><path d="M3 16c2 0 2-3 4-3s2 3 4 3 2-3 4-3 2 3 4 3"/></svg></div>
+            <div>
+              <h4>Pick up where you left off.</h4>
+              <p>Buddy already heard your track. Pull on any thread from the analysis. Ask why, ask how, ask what would change if you tried it the other way.</p>
+            </div>
+          </div>
+          <div class="talk-rail-card reveal">
+            <div class="talk-rail-glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h18M3 12h12M3 17h18"/></svg></div>
+            <div>
+              <h4>A second pair of ears.</h4>
+              <p>Stuck on a section? Bounce ideas off Buddy. It&rsquo;ll riff with you, suggest references, and tell you when an idea is worth chasing, or when it&rsquo;s a detour.</p>
+            </div>
+          </div>
+          <div class="talk-rail-card reveal">
+            <div class="talk-rail-glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div>
+            <div>
+              <h4>Inspiration, not just instruction.</h4>
+              <p>Some of the best ideas show up sideways. Buddy is a creative collaborator, not a checklist. Ask &ldquo;what would make this feel bigger?&rdquo; and see what comes back.</p>
+            </div>
+          </div>
+          <div class="talk-rail-card talk-rail-cta reveal">
+            <div>
+              <div class="lbl">▎ Built into the plugin</div>
+              <h4>Listen Buddy chat, included on every plan.</h4>
+              <p>A generous monthly chat ceiling on the $0 tier — no card required. Unlimited on Basic, Pro, and Max. Listen Now sessions draw from your monthly analysis minutes.</p>
+            </div>
+            <a class="btn btn-primary" data-action="try-free" href="#">Download the free plugin
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+            </a>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= MODES ================= -->
+  <section class="section" style="padding-top: 40px;">
+    <div class="container">
+      <div class="section-head reveal">
+        <div class="eyebrow"><span class="dot"></span><span>Six listening modes</span></div>
+        <h2>Calibrated to <span class="grad">context.</span></h2>
+        <p>The same mix sounds different through a film mixer's ears than through a pop engineer's. Listen Buddy switches its weighting (targets, references, language) to match what you're actually doing.</p>
+      </div>
+
+      <div class="modes reveal">
+        <div class="mode"><div class="mode-glyph">🎚</div><div><span class="mode-name">Mixing</span><div class="mode-desc">Balance, clarity, and translation across systems</div></div></div>
+        <div class="mode"><div class="mode-glyph">🎛</div><div><span class="mode-name">Production</span><div class="mode-desc">Instrumentation, arrangement, and density</div></div></div>
+        <div class="mode"><div class="mode-glyph">👑</div><div><span class="mode-name">Mastering</span><div class="mode-desc">Final polish, consistency, and streaming targets</div></div></div>
+        <div class="mode"><div class="mode-glyph">🎙</div><div><span class="mode-name">Podcast</span><div class="mode-desc">Speech intelligibility, presence, and dialogue level</div></div></div>
+        <div class="mode"><div class="mode-glyph">🎬</div><div><span class="mode-name">Film</span><div class="mode-desc">Dialogue, music, effects, and the silence between</div></div></div>
+        <div class="mode"><div class="mode-glyph">📣</div><div><span class="mode-name">Commercial</span><div class="mode-desc">Attention‑first sound for spots and short‑form</div></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= PRICING ================= -->
+  <section class="section" id="pricing">
+    <div class="container">
+      <div class="section-head reveal">
+        <div class="eyebrow"><span class="dot"></span><span>Pricing</span></div>
+        <h2>Pay for the <span class="grad">minutes you listen.</span></h2>
+        <p>Every paid plan ships with all six listening modes and unlimited Listen Buddy chat — the free tier gets a generous monthly ceiling. You're paying for analysis minutes: the cloud‑side compute that powers deeper insight and reference matching..</p>
+      </div>
+
+      <div style="text-align:center;">
+        <div class="toggle reveal">
+          <div class="opt active" data-bp="m">Monthly</div>
+          <div class="opt" data-bp="y">Yearly <span class="badge">−12%</span></div>
+        </div>
+      </div>
+
+      <div class="pricing reveal">
+        <div class="plan">
+          <div class="plan-name">Free</div>
+          <div class="plan-price"><span class="amt">$0</span><span class="per">/ month</span></div>
+          <div class="plan-blurb">Hear what Listen Buddy hears, on a single mix.</div>
+          <div class="plan-mins"><span class="num">10</span><span class="lab">analysis min / mo</span></div>
+          <ul class="plan-feat">
+            <li>All six listening modes</li>
+            <li>Generous monthly Listen Buddy chat ceiling</li>
+            <li class="muted">Custom references</li>
+            <li class="muted">Priority support</li>
+          </ul>
+          <div class="plan-cta"><a class="btn btn-outline" data-action="choose-plan" data-plan="free" data-billing="monthly" href="#" style="width:100%;">Start free</a></div>
+        </div>
+
+        <div class="plan">
+          <div class="plan-name">Basic</div>
+          <div class="plan-price"><span class="amt">$7.99</span><span class="per">/ month</span></div>
+          <div class="plan-blurb">For producers shipping their own work.</div>
+          <div class="plan-mins"><span class="num">60</span><span class="lab">analysis min / mo</span></div>
+          <ul class="plan-feat">
+            <li>All six listening modes</li>
+            <li>Unlimited Listen Buddy chat</li>
+            <li>Reference library</li>
+            <li class="muted">Priority support</li>
+          </ul>
+          <div class="plan-cta"><a class="btn btn-outline" data-action="choose-plan" data-plan="basic" data-billing="monthly" href="#" style="width:100%;">Choose Basic</a></div>
+        </div>
+
+        <div class="plan popular">
+          <span class="plan-tag">Most popular</span>
+          <div class="plan-name">Pro</div>
+          <div class="plan-price"><span class="amt">$29.99</span><span class="per">/ month</span></div>
+          <div class="plan-blurb">For working engineers and small studios.</div>
+          <div class="plan-mins"><span class="num">240</span><span class="lab">analysis min / mo</span></div>
+          <ul class="plan-feat">
+            <li>All six listening modes</li>
+            <li>Unlimited Listen Buddy chat</li>
+            <li>Custom references</li>
+            <li>Priority support</li>
+          </ul>
+          <div class="plan-cta"><a class="btn btn-primary" data-action="choose-plan" data-plan="pro" data-billing="monthly" href="#" style="width:100%;">Choose Pro</a></div>
+        </div>
+
+        <div class="plan">
+          <div class="plan-name">Max</div>
+          <div class="plan-price"><span class="amt">$69.99</span><span class="per">/ month</span></div>
+          <div class="plan-blurb">For mastering engineers and post houses.</div>
+          <div class="plan-mins"><span class="num">700</span><span class="lab">analysis min / mo</span></div>
+          <ul class="plan-feat">
+            <li>All six listening modes</li>
+            <li>Unlimited Listen Buddy chat</li>
+            <li>Custom references &amp; presets</li>
+            <li>Dedicated support</li>
+          </ul>
+          <div class="plan-cta"><a class="btn btn-outline" data-action="choose-plan" data-plan="max" data-billing="monthly" href="#" style="width:100%;">Choose Max</a></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= ABOUT ================= -->
+  <section class="section" id="about" style="padding-top: 60px;">
+    <div class="container">
+      <div class="section-head reveal">
+        <div class="eyebrow"><span class="dot"></span><span>About Zenphony</span></div>
+        <h2>Built by people who <span class="grad">make records.</span></h2>
+        <p>Zenphony Audio was founded in 2025 by two musicians, producers, and composers who love every part of the craft. We track, write, mix, score, and master, and we build the tools we wished we had at 2 a.m. when the work is close and the room has gone quiet.</p>
+      </div>
+
+      <div class="features reveal" style="grid-template-columns: repeat(3, 1fr);">
+        <div class="feature">
+          <div class="feature-glyph"><svg viewBox="0 0 24 24"><path d="M12 21s-7-5-7-11a7 7 0 0 1 14 0c0 6-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg></div>
+          <h4>Made for working sessions</h4>
+          <p>Built calm, by people who live in sessions. No flashy meters, no interruptions, no breaking the moment when an idea finally lands. Just steady ears for the long stretch.</p>
+        </div>
+        <div class="feature">
+          <div class="feature-glyph"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div>
+          <h4>Across the whole chain</h4>
+          <p>We work in pop, R&amp;B, film, and everything that bleeds between them. Tracking, production, mix, score, master. The tools we ship reflect that range, because the work does.</p>
+        </div>
+        <div class="feature">
+          <div class="feature-glyph"><svg viewBox="0 0 24 24"><path d="M3 12h4l3-9 4 18 3-9h4"/></svg></div>
+          <h4>One product at a time</h4>
+          <p>One thing, finished, before we start the next. Listen Buddy is the first, shaped in real sessions over real records. The next one is already taking shape in the room.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= CTA STRIP ================= -->
+  <section class="section" style="padding-top: 0; padding-bottom: 80px;">
+    <div class="container">
+      <div class="cta-strip reveal">
+        <div class="eyebrow" style="margin: 0 auto 18px;"><span class="dot"></span><span>Ready when you are</span></div>
+        <h2>Hear your mix, <span class="grad">honestly.</span></h2>
+        <p>Drop Listen Buddy on the bus, hit Analyze, and read the impression that comes back. If it tells you something you didn't know, keep it.</p>
+        <div class="actions">
+          <a class="btn btn-primary btn-lg" data-action="try-free" href="#">Try Listen Buddy free
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          </a>
+          <a class="btn btn-outline btn-lg">Read the changelog</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= FOOTER ================= -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <a href="/" class="brand">
+            <img src="assets/zenphony-audio-logo.png" alt="Zenphony Audio" class="brand-logo" />
+          </a>
+          <p>Intelligent audio tools for anyone who cares how it sounds — pros, hobbyists, and everyone working it out in between. Built in studios, shipped from the same room.</p>
+        </div>
+        <div class="footer-col">
+          <h5>Product</h5>
+          <ul>
+            <li><a>Listen Buddy</a></li>
+            <li><a>Pricing</a></li>
+            <li><a>Changelog</a></li>
+            <li><a>Roadmap</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h5>Company</h5>
+          <ul>
+            <li><a>About</a></li>
+            <li><a>Backstory</a></li>
+            <li><a>Careers</a></li>
+            <li><a>Press</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h5>Resources</h5>
+          <ul>
+            <li><a>Documentation</a></li>
+            <li><a>Reference library</a></li>
+            <li><a>Support</a></li>
+            <li><a>Contact</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>© 2026 Zenphony Audio · Made for makers.</span>
+        <span class="meter"><span class="dot"></span>All systems · −14.2 LUFS · v1.0 BETA</span>
+      </div>
+    </div>
+  </footer>
+
+</div>
+
+<!-- Tweaks panel -->
+<script type="text/babel" src="tweaks-panel.jsx"></script>
+<script type="text/babel" data-presets="env,react">
+const { useEffect } = React;
+
+const DEFAULTS = /*EDITMODE-BEGIN*/{
+  "theme": "velvet",
+  "headline": "Intelligence",
+  "subhead": "Zenphony builds tools that help producers, engineers, and composers hear more clearly, decide faster, and trust the mix in front of them.",
+  "showCorporateNav": true,
+  "screen": "login",
+  "authMode": "signup",
+  "forumCategory": "test-drive-1",
+  "forumView": "thread",
+  "settingsTab": "billing",
+  "section": "account",
+  "forumThread": "td1-4"
+}/*EDITMODE-END*/;
+
+function App() {
+  const [t, setTweak] = useTweaks(DEFAULTS);
+
+  useEffect(() => {
+    document.body.classList.remove('theme-velvet','theme-rosso','theme-amarillo','theme-aether','theme-verdant');
+    document.body.classList.add('theme-' + t.theme);
+  }, [t.theme]);
+
+  useEffect(() => {
+    const grad = document.querySelector('.hero h1 .grad');
+    if (grad) grad.textContent = t.headline;
+  }, [t.headline]);
+
+  useEffect(() => {
+    const sub = document.querySelector('.hero-sub');
+    if (sub) sub.textContent = t.subhead;
+  }, [t.subhead]);
+
+  return (
+    <TweaksPanel title="Tweaks">
+      <TweakSection label="Theme" />
+      <div className="theme-row">
+        {['velvet','rosso','amarillo','aether','verdant'].map(name => (
+          <div key={name}
+            className={`theme-swatch ${name} ${t.theme === name ? 'active' : ''}`}
+            onClick={() => setTweak('theme', name)}
+            title={name} />
+        ))}
+      </div>
+      <TweakSection label="Hero copy" />
+      <TweakText label="Headline word" value={t.headline}
+                 onChange={(v) => setTweak('headline', v)} />
+      <TweakText label="Subhead" value={t.subhead}
+                 onChange={(v) => setTweak('subhead', v)} />
+    </TweaksPanel>
+  );
+}
+
+const root = ReactDOM.createRoot(document.getElementById('tweaks-root') || (() => {
+  const el = document.createElement('div');
+  el.id = 'tweaks-root';
+  document.body.appendChild(el);
+  return el;
+})());
+root.render(<App />);
+</script>
+
+<script>
+// Listen Buddy screenshot gallery
+(function(){
+  const gallery = document.querySelector('[data-gallery]');
+  if (!gallery) return;
+  const sources = [
+    'assets/lb-red-1.png',
+    'assets/lb-red-2.png',
+    'assets/lb-purple-1.png',
+    'assets/lb-purple-2.png',
+    'assets/lb-amber-1.png',
+    'assets/lb-amber-2.png'
+  ];
+  const stage = gallery.querySelector('.lb-shot-gallery');
+  const img = gallery.querySelector('[data-gallery-img]');
+  const thumbs = gallery.querySelectorAll('[data-gallery-thumb]');
+  const prev = gallery.querySelector('[data-gallery-prev]');
+  const next = gallery.querySelector('[data-gallery-next]');
+  let i = 0;
+  function go(n) {
+    i = (n + sources.length) % sources.length;
+    stage.classList.add('is-swapping');
+    setTimeout(() => {
+      img.src = sources[i];
+      stage.classList.remove('is-swapping');
+    }, 220);
+    thumbs.forEach((t, k) => {
+      t.classList.toggle('is-active', k === i);
+    });
+  }
+  thumbs.forEach((t, k) => {
+    t.addEventListener('click', () => go(k));
+  });
+  if (prev) prev.addEventListener('click', () => go(i - 1));
+  if (next) next.addEventListener('click', () => go(i + 1));
+
+  // ----- Click-to-zoom lightbox -----
+  const captions = [
+    'Overall impression — Rosso',
+    'Insight cards — Rosso',
+    'Velvet — chat with Listen Buddy',
+    'Velvet — reference tracks',
+    'Amarillo — collapsed insights',
+    'Amarillo — reference tracks'
+  ];
+  const lb = document.querySelector('[data-lightbox]');
+  const lbImg = lb && lb.querySelector('[data-lightbox-img]');
+  const lbCap = lb && lb.querySelector('[data-lightbox-cap]');
+
+  function openZoom(idx) {
+    if (!lb) return;
+    i = (idx + sources.length) % sources.length;
+    lbImg.src = sources[i];
+    lbCap.textContent = captions[i] || '';
+    thumbs.forEach((t, k) => t.classList.toggle('is-active', k === i));
+    // Kill the transition for one frame so the browser registers a paint
+    // before we add `is-open` and animate from 0 to 1.
+    lb.style.transition = 'none';
+    void lb.offsetWidth;
+    lb.classList.add('is-open');
+    void lb.offsetWidth;
+    setTimeout(() => { lb.style.transition = ''; }, 30);
+    lb.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeZoom() {
+    if (!lb) return;
+    lb.classList.remove('is-open');
+    lb.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+    img.src = sources[i];
+  }
+  function stepZoom(d) { openZoom(i + d); }
+
+  // Use event delegation on document so attachment can never silently fail
+  // because of a bad selector or an out-of-order DOM lookup.
+  document.addEventListener('click', (e) => {
+    if (e.target.closest('[data-gallery-zoom]')) {
+      openZoom(i);
+      return;
+    }
+    if (e.target.closest('[data-lightbox-close]')) { closeZoom(); return; }
+    if (e.target.closest('[data-lightbox-prev]')) { stepZoom(-1); return; }
+    if (e.target.closest('[data-lightbox-next]')) { stepZoom(1); return; }
+    // Click on the lightbox backdrop (not its children) closes
+    if (e.target === lb) { closeZoom(); return; }
+  });
+  document.addEventListener('keydown', (e) => {
+    if (!lb) return;
+    const open = lb.classList.contains('is-open');
+    if (e.target.closest && e.target.closest('[data-gallery-zoom]') && (e.key === 'Enter' || e.key === ' ')) {
+      e.preventDefault();
+      openZoom(i);
+      return;
+    }
+    if (!open) return;
+    if (e.key === 'Escape') closeZoom();
+    else if (e.key === 'ArrowLeft') stepZoom(-1);
+    else if (e.key === 'ArrowRight') stepZoom(1);
+  });
+})();
+
+// Reveal-on-scroll
+(function(){
+  const els = document.querySelectorAll('.reveal');
+  const io = new IntersectionObserver((entries) => {
+    for (const e of entries) {
+      if (e.isIntersecting) {
+        e.target.classList.add('in');
+        io.unobserve(e.target);
+      }
+    }
+  }, { threshold: 0.08 });
+  els.forEach(el => io.observe(el));
+})();
+
+// Pricing toggle (visual + sets billing period on CTA buttons)
+(function(){
+  const opts = document.querySelectorAll('.toggle .opt');
+  opts.forEach(o => o.addEventListener('click', () => {
+    opts.forEach(x => x.classList.remove('active'));
+    o.classList.add('active');
+    const isYearly = o.dataset.bp === 'y';
+    const billing = isYearly ? 'yearly' : 'monthly';
+    document.querySelectorAll('.plan').forEach(plan => {
+      const cta = plan.querySelector('[data-action="choose-plan"]');
+      if (cta) cta.dataset.billing = billing;
+      const amt = plan.querySelector('.plan-price .amt');
+      if (!amt) return;
+      const m = amt.dataset.monthly || amt.textContent;
+      if (!amt.dataset.monthly) amt.dataset.monthly = m;
+      const num = parseFloat(m.replace('$',''));
+      if (isNaN(num)) return;
+      if (isYearly) {
+        amt.textContent = '$' + (num*12*0.88).toFixed(0);
+        plan.querySelector('.plan-price .per').textContent = '/ year';
+      } else {
+        amt.textContent = m;
+        plan.querySelector('.plan-price .per').textContent = '/ month';
+      }
+    });
+  }));
+})();
+
+/* ────────── Auth + checkout wiring (Better Auth + Stripe) ────────── */
+(function(){
+  const APP = window.APP_BASE_URL;
+  // True only on the production Next.js domain. In the design preview iframe,
+  // CTAs stay as in-project links so we never bounce to the old deployed site.
+  const IS_PROD = window.location.origin === APP;
+
+  // 1) Session check — swap nav state if logged in. (Production only; CORS in preview.)
+  (async () => {
+    if (!IS_PROD) return;
+    try {
+      const res = await window.api('/api/auth/get-session');
+      if (!res.ok) return;
+      const data = await res.json();
+      if (!data || !data.user) return;
+      const cta = document.getElementById('nav-cta');
+      if (!cta) return;
+      const email = data.user.email || '';
+      const name  = data.user.name || email;
+      cta.innerHTML =
+        '<span class="nav-email-pill" style="font:500 13px/1 var(--font-body, Inter, sans-serif);'
+        + 'padding:8px 12px;border-radius:999px;background:rgba(255,255,255,0.06);'
+        + 'border:1px solid rgba(255,255,255,0.12);color:var(--text, #fff);opacity:.85;'
+        + 'margin-right:8px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'
+        + email.replace(/[<>&"]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]))
+        + '</span>'
+        + '<a class="btn btn-primary" id="nav-account" href="' + APP + '/account">Account</a>';
+      cta.dataset.signedIn = '1';
+      cta.dataset.email = email;
+      cta.dataset.name = name;
+    } catch (e) { /* ignore */ }
+  })();
+
+  // 2) CTA click handler — production: hit real APIs. Preview: stay in project.
+  document.addEventListener('click', async (ev) => {
+    const a = ev.target.closest('[data-action]');
+    if (!a) return;
+    const action = a.dataset.action;
+
+    if (action === 'login') {
+      if (!IS_PROD) return; // let the existing href="Account.html" fire
+      ev.preventDefault();
+      window.location.href = APP + '/login';
+      return;
+    }
+    if (action === 'signup' || action === 'try-free') {
+      if (!IS_PROD) {
+        ev.preventDefault();
+        window.location.href = '/account.html?screen=login&mode=signup';
+        return;
+      }
+      ev.preventDefault();
+      window.location.href = APP + '/signup';
+      return;
+    }
+    if (action === 'choose-plan') {
+      ev.preventDefault();
+      const planId = a.dataset.plan;
+      const billing = a.dataset.billing || 'monthly';
+
+      if (!IS_PROD) {
+        // In preview, just route to in-project Account page.
+        window.location.href = '/account.html?screen=login&mode=signup';
+        return;
+      }
+
+      if (planId === 'free') {
+        window.location.href = APP + '/signup?plan=free';
+        return;
+      }
+
+      const cta = document.getElementById('nav-cta');
+      const signedIn = cta && cta.dataset.signedIn === '1';
+      const email = cta ? cta.dataset.email : '';
+
+      if (!signedIn) {
+        window.location.href = APP + '/signup?plan=' + encodeURIComponent(planId)
+          + '&billing=' + encodeURIComponent(billing);
+        return;
+      }
+
+      const original = a.textContent;
+      a.classList.add('is-loading');
+      a.style.pointerEvents = 'none';
+      a.textContent = 'Redirecting…';
+      try {
+        const res = await window.api('/api/checkout', {
+          method: 'POST',
+          body: JSON.stringify({ planId, billingPeriod: billing, email })
+        });
+        if (!res.ok) throw new Error('Checkout failed (' + res.status + ')');
+        const json = await res.json();
+        if (json && json.url) window.location.href = json.url;
+        else throw new Error('No checkout URL returned');
+      } catch (err) {
+        a.textContent = original;
+        a.classList.remove('is-loading');
+        a.style.pointerEvents = '';
+        const t = document.createElement('div');
+        t.textContent = 'Could not start checkout. Please try again.';
+        t.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);'
+          + 'padding:12px 18px;border-radius:10px;background:rgba(20,20,28,.92);'
+          + 'color:#fff;font:500 14px/1.4 var(--font-body,Inter,sans-serif);'
+          + 'box-shadow:0 8px 32px rgba(0,0,0,.4);z-index:9999;';
+        document.body.appendChild(t);
+        setTimeout(() => t.remove(), 4000);
+      }
+    }
+  });
+})();
+</script>
+<!-- Gallery zoom lightbox -->
+<div class="lb-lightbox" data-lightbox aria-hidden="true" role="dialog" aria-label="Zoomed screenshot">
+  <button class="lb-lightbox-close" data-lightbox-close aria-label="Close zoom">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+  </button>
+  <button class="lb-lightbox-nav prev" data-lightbox-prev aria-label="Previous">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>
+  </button>
+  <button class="lb-lightbox-nav next" data-lightbox-next aria-label="Next">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
+  </button>
+  <figure class="lb-lightbox-stage">
+    <img data-lightbox-img alt="" />
+    <figcaption class="lb-lightbox-cap" data-lightbox-cap></figcaption>
+  </figure>
+</div>
+
+</body>
+</html>

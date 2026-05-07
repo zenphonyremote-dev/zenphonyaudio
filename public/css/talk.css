@@ -1,0 +1,494 @@
+/* ════════════════════════════════════════════════════════════════════════
+   TALK TO YOUR MIX — full-section showcase of the plugin chat
+   Uses site.css tokens (--primary, --secondary, --accent, --hue, etc.)
+   ════════════════════════════════════════════════════════════════════════ */
+
+.talk-section {
+    padding: 80px 0 120px;
+    position: relative;
+}
+
+/* ----- "Free on every plan" pill under the section head ----------------- */
+.talk-free-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 22px;
+    padding: 10px 18px 10px 14px;
+    border-radius: 999px;
+    background:
+        linear-gradient(135deg, hsla(var(--hue), 90%, 60%, 0.14), hsla(var(--hue-sec), 85%, 55%, 0.10)),
+        rgba(15, 12, 32, 0.55);
+    border: 1px solid hsla(var(--hue), 90%, 65%, 0.32);
+    font-size: 13px;
+    color: var(--muted-foreground);
+    text-wrap: pretty;
+    backdrop-filter: blur(12px);
+    box-shadow: 0 0 18px hsla(var(--hue), 90%, 65%, 0.18);
+}
+.talk-free-pill .lozenge {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: hsla(var(--hue), 90%, 60%, 0.18);
+    border: 1px solid hsla(var(--hue), 90%, 65%, 0.40);
+    white-space: nowrap;
+}
+
+/* ----- Two-column stage ------------------------------------------------- */
+.talk-stage {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 32px;
+    align-items: stretch;
+    max-width: 1100px;
+    margin: 0 auto;
+}
+@media (max-width: 1100px) {
+    .talk-stage { grid-template-columns: 1fr; }
+}
+
+/* ─────────────────────────── CHAT FRAME ─────────────────────────── */
+.talk-chat {
+    position: relative;
+    border-radius: 22px;
+    overflow: hidden;
+    background:
+        radial-gradient(60% 80% at 25% 0%, hsla(var(--hue), 95%, 65%, 0.20), transparent 60%),
+        radial-gradient(60% 80% at 75% 100%, hsla(var(--hue-sec), 90%, 60%, 0.16), transparent 60%),
+        rgba(20, 16, 42, 0.92);
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    box-shadow:
+        0 40px 80px rgba(0, 0, 0, 0.45),
+        0 0 60px hsla(var(--hue), 80%, 65%, 0.12),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    display: flex;
+    flex-direction: column;
+    height: 600px;
+    max-height: 80vh;
+}
+
+/* head */
+.talk-chat-head {
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.03), transparent);
+}
+.talk-chat-head-l {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+}
+.talk-chat-orb {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    padding: 2px;
+    background: conic-gradient(from var(--atle-ang, 0deg),
+        var(--primary), var(--secondary), var(--accent), var(--primary));
+    animation: za-conicSpin 6s linear infinite;
+    flex-shrink: 0;
+}
+.talk-chat-orb .inner {
+    width: 100%; height: 100%;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%,
+        hsla(var(--hue), 90%, 80%, 0.7),
+        hsla(var(--hue), 80%, 30%, 1) 70%);
+    position: relative;
+}
+.talk-chat-orb .inner::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(30% 25% at 35% 25%, rgba(255, 255, 255, 0.7), transparent 70%);
+    border-radius: 50%;
+}
+.talk-chat-title {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--foreground);
+}
+.talk-chat-sub {
+    font-size: 11px;
+    color: var(--muted-foreground);
+    margin-top: 2px;
+}
+.talk-chat-sub .mono {
+    font-family: var(--font-mono);
+    color: var(--accent);
+    font-size: 10px;
+}
+.talk-chat-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: rgba(34, 197, 94, 0.10);
+    border: 1px solid rgba(34, 197, 94, 0.30);
+    font-family: var(--font-display);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    color: hsl(142, 70%, 70%);
+    white-space: nowrap;
+}
+.talk-chat-status .dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: hsl(142, 70%, 60%);
+    box-shadow: 0 0 8px rgba(34, 197, 94, 0.7);
+    animation: za-sparkle 2s ease-in-out infinite;
+}
+
+/* stream */
+.talk-chat-stream {
+    flex: 1;
+    padding: 24px 22px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    min-height: 0;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.12) transparent;
+}
+.talk-chat-stream::-webkit-scrollbar {
+    width: 8px;
+}
+.talk-chat-stream::-webkit-scrollbar-track {
+    background: transparent;
+}
+.talk-chat-stream::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.10);
+    border-radius: 999px;
+}
+.talk-chat-stream::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.18);
+}
+
+.talk-msg {
+    display: flex;
+    gap: 12px;
+    max-width: 100%;
+}
+.talk-msg.me {
+    flex-direction: column;
+    align-items: flex-end;
+    margin-left: auto;
+    max-width: 75%;
+}
+.talk-msg.buddy {
+    align-items: flex-start;
+    max-width: 88%;
+}
+.talk-msg .av {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    padding: 2px;
+    background: conic-gradient(from var(--atle-ang, 0deg),
+        var(--primary), var(--secondary), var(--accent), var(--primary));
+    animation: za-conicSpin 6s linear infinite;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+.talk-msg .av .orb {
+    width: 100%; height: 100%;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%,
+        hsla(var(--hue), 90%, 80%, 0.7),
+        hsla(var(--hue), 80%, 30%, 1) 70%);
+}
+.talk-msg .bubble-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+}
+.talk-msg .bubble {
+    padding: 12px 16px;
+    border-radius: 16px;
+    font-size: 14px;
+    line-height: 1.55;
+    color: var(--foreground);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    text-wrap: pretty;
+}
+.talk-msg.me .bubble {
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    color: white;
+    border: 1px solid hsla(var(--hue), 90%, 65%, 0.40);
+    border-bottom-right-radius: 6px;
+    box-shadow: 0 6px 18px hsla(var(--hue), 90%, 60%, 0.30);
+}
+.talk-msg.buddy .bubble {
+    background: rgba(255, 255, 255, 0.04);
+    border-bottom-left-radius: 6px;
+}
+.talk-msg .bubble .hl {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--accent);
+    background: hsla(var(--hue), 90%, 60%, 0.12);
+    padding: 1px 6px;
+    border-radius: 4px;
+    border: 1px solid hsla(var(--hue), 90%, 65%, 0.22);
+    white-space: nowrap;
+}
+.talk-msg.me .bubble .hl {
+    color: white;
+    background: rgba(255, 255, 255, 0.18);
+    border-color: rgba(255, 255, 255, 0.30);
+}
+.talk-msg .meta {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--muted-foreground);
+    padding: 0 4px;
+    margin-top: 2px;
+}
+.talk-msg .meta .link {
+    color: var(--accent);
+    cursor: pointer;
+    text-decoration: none;
+    margin-left: 4px;
+}
+.talk-msg .meta .link:hover { text-decoration: underline; }
+
+/* card-style bubble for "Suggested move" */
+.talk-bubble-card {
+    background:
+        linear-gradient(135deg, hsla(var(--hue), 90%, 60%, 0.10), hsla(var(--hue-sec), 85%, 55%, 0.06)),
+        rgba(255, 255, 255, 0.04) !important;
+    border: 1px solid hsla(var(--hue), 90%, 65%, 0.30) !important;
+    padding: 14px 16px !important;
+}
+.talk-card-h {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 10px;
+    margin-bottom: 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+.talk-card-h .lbl {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+}
+.talk-card-h .conf {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--muted-foreground);
+}
+.talk-card-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 5px 0;
+    font-size: 13px;
+    color: var(--foreground);
+}
+.talk-card-row .val {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--accent);
+}
+.talk-card-foot {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    font-size: 12px;
+    color: var(--muted-foreground);
+    line-height: 1.5;
+    text-wrap: pretty;
+}
+
+/* typing indicator */
+.bubble-typing {
+    display: inline-flex !important;
+    align-items: center;
+    gap: 5px;
+    padding: 14px 18px !important;
+}
+.bubble-typing span {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--accent);
+    opacity: 0.5;
+    animation: typingBlink 1.2s ease-in-out infinite;
+}
+.bubble-typing span:nth-child(2) { animation-delay: 0.18s; }
+.bubble-typing span:nth-child(3) { animation-delay: 0.36s; }
+@keyframes typingBlink {
+    0%, 60%, 100% { opacity: 0.25; transform: translateY(0); }
+    30% { opacity: 1; transform: translateY(-3px); }
+}
+
+/* composer */
+.talk-chat-composer {
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    background: linear-gradient(180deg, transparent, rgba(0, 0, 0, 0.20));
+}
+.composer-input {
+    flex: 1;
+    padding: 11px 16px;
+    border-radius: 12px;
+    background: rgba(0, 0, 0, 0.35);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    font-size: 13px;
+    color: var(--muted-foreground);
+    display: flex;
+    align-items: center;
+    min-width: 0;
+}
+.composer-input .caret {
+    color: var(--accent);
+    font-weight: 200;
+    font-family: var(--font-mono);
+    margin-right: 6px;
+    animation: caretBlink 1s steps(2) infinite;
+}
+.composer-input .ph {
+    opacity: 0.6;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+@keyframes caretBlink {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0; }
+}
+.composer-tools {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.composer-tool {
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: var(--muted-foreground);
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+    transition: all 0.15s;
+}
+.composer-tool:hover {
+    color: var(--foreground);
+    border-color: rgba(255, 255, 255, 0.18);
+    background: rgba(255, 255, 255, 0.07);
+}
+.composer-tool svg { width: 17px; height: 17px; }
+.composer-send {
+    width: 38px; height: 38px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    border: none;
+    color: white;
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+    box-shadow: 0 4px 14px var(--glow);
+    transition: filter 0.15s, transform 0.15s;
+}
+.composer-send:hover { filter: brightness(1.1); transform: translateY(-1px); }
+.composer-send svg { width: 17px; height: 17px; }
+
+/* ─────────────────────────── RAIL ─────────────────────────── */
+.talk-rail {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+.talk-rail-card {
+    padding: 22px 22px;
+    border-radius: 18px;
+    background:
+        linear-gradient(135deg, hsla(var(--hue), 80%, 55%, 0.08), hsla(var(--hue-sec), 80%, 55%, 0.04)),
+        rgba(20, 16, 42, 0.55);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(12px);
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+}
+.talk-rail-glyph {
+    width: 42px; height: 42px;
+    border-radius: 12px;
+    background: linear-gradient(135deg,
+        hsla(var(--hue), 90%, 60%, 0.22),
+        hsla(var(--hue-sec), 85%, 55%, 0.16));
+    border: 1px solid hsla(var(--hue), 90%, 65%, 0.28);
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+}
+.talk-rail-glyph svg {
+    width: 22px; height: 22px;
+    color: var(--accent);
+}
+.talk-rail-card h4 {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 16px;
+    color: var(--foreground);
+    margin: 0 0 6px;
+    letter-spacing: -0.005em;
+}
+.talk-rail-card p {
+    font-size: 13px;
+    color: var(--muted-foreground);
+    line-height: 1.55;
+    margin: 0;
+    text-wrap: pretty;
+}
+
+/* CTA card at the bottom of the rail */
+.talk-rail-cta {
+    flex-direction: column;
+    gap: 18px;
+    background:
+        radial-gradient(80% 60% at 50% 0%, hsla(var(--hue), 90%, 60%, 0.25), transparent 70%),
+        linear-gradient(135deg, hsla(var(--hue), 80%, 55%, 0.10), hsla(var(--hue-sec), 80%, 55%, 0.06)),
+        rgba(20, 16, 42, 0.65);
+    border-color: hsla(var(--hue), 90%, 65%, 0.36);
+    box-shadow: 0 0 30px hsla(var(--hue), 90%, 65%, 0.18);
+    margin-top: auto;
+}
+.talk-rail-cta .lbl {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 10px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 8px;
+}
+.talk-rail-cta h4 {
+    font-size: 20px;
+    margin-bottom: 8px;
+}
+.talk-rail-cta .btn {
+    width: 100%;
+    justify-content: center;
+}

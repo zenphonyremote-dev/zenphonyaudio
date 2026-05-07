@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 300" width="1000" height="300">
+  <defs>
+    <linearGradient id="zenBar" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#3b3df0"></stop>
+      <stop offset="100%" stop-color="#8b5cf6"></stop>
+    </linearGradient>
+    
+  </defs>
+
+  
+  <g fill="url(#zenBar)">
+    <rect x="40" y="120" width="34" height="100" rx="17"></rect>
+    <rect x="84" y="80" width="34" height="180" rx="17"></rect>
+    <rect x="128" y="60" width="34" height="220" rx="17"></rect>
+    <rect x="172" y="100" width="34" height="160" rx="17"></rect>
+    <rect x="216" y="130" width="34" height="80" rx="17"></rect>
+  </g>
+
+  
+  <g stroke="#ffffff" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <polyline points="57,170 101,140 145,110 189,150 233,180"></polyline>
+  </g>
+  <g fill="#ffffff" stroke="#3b3df0" stroke-width="2">
+    <circle cx="57" cy="170" r="6"></circle>
+    <circle cx="101" cy="140" r="6"></circle>
+    <circle cx="145" cy="110" r="6"></circle>
+    <circle cx="189" cy="150" r="6"></circle>
+    <circle cx="233" cy="180" r="6"></circle>
+  </g>
+
+  
+  <text x="295" y="200" class="wm">Zenphony Audio</text>
+</svg>
