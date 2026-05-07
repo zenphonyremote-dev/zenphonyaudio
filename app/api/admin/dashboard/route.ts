@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
-import { getAuthUser } from "@/lib/auth-helpers"
 import { createClient as createAdminClient } from "@supabase/supabase-js"
+import { checkAdmin } from "@/lib/admin-auth"
 
 export const dynamic = "force-dynamic"
 
@@ -12,22 +12,17 @@ const PLAN_PRICE_USD: Record<string, number> = {
 }
 
 export async function GET() {
-  const { user } = await getAuthUser()
-  if (!user) return NextResponse.json({ error: "unauthorized" }, { status: 401 })
+  const check = await checkAdmin()
+  if (!check.ok) {
+    const status =
+      check.reason === "unauthorized" || check.reason === "expired" ? 401 : 403
+    return NextResponse.json({ error: check.reason }, { status })
+  }
 
   const supabase = createAdminClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!,
   )
-
-  const me = await supabase
-    .from("profiles")
-    .select("is_admin")
-    .eq("id", user.id)
-    .single()
-  if (me.error || !me.data?.is_admin) {
-    return NextResponse.json({ error: "forbidden" }, { status: 403 })
-  }
 
   const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
   const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
@@ -65,7 +60,7 @@ export async function GET() {
   }
 
   const minutes_30d = (snapshotRes.data ?? []).reduce(
-    (s, r) => s + (Number((r as any).minutes_used) || 0),
+    (s, r) => s + (Number((r as { minutes_used?: unknown }).minutes_used) || 0),
     0,
   )
 

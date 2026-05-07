@@ -77,6 +77,21 @@ export const auth = betterAuth({
     },
   },
 
+  // Rate limit auth endpoints to slow brute-force / credential stuffing.
+  // Memory backend is fine for a single-region Vercel deploy. If we later
+  // scale to multiple regions, swap to a distributed backend.
+  rateLimit: {
+    enabled: true,
+    window: 60,
+    max: 100,
+    customRules: {
+      "/sign-in/email": { window: 60, max: 5 },
+      "/sign-up/email": { window: 300, max: 3 },
+      "/forget-password": { window: 600, max: 3 },
+      "/reset-password": { window: 600, max: 3 },
+    },
+  },
+
   trustedOrigins: [
     process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3005",
   ],

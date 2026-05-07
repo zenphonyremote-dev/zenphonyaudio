@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Zenphony Audio — Admin Hub</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="/css/colors_and_type.css?v=6">
+<link rel="stylesheet" href="/css/components.css?v=6">
+<link rel="stylesheet" href="/css/site.css?v=6">
+<link rel="stylesheet" href="/css/account.css?v=14">
+<link rel="stylesheet" href="/css/brand.css?v=3">
+<link rel="stylesheet" href="/css/admin.css?v=4">
+<link rel="stylesheet" href="/css/admin-phase2.css?v=2">
+<link rel="stylesheet" href="/css/admin-phase4.css?v=1">
+<link rel="stylesheet" href="/css/admin-phase5.css?v=1">
+<link rel="stylesheet" href="/css/admin-refunds.css?v=1">
+<link rel="stylesheet" href="/css/admin-support.css?v=1">
+<link rel="stylesheet" href="/css/admin-personas.css?v=1">
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+</head>
+<body class="theme-velvet admin">
+<!-- Admin gate is enforced server-side by app/ZenMode/route.ts (session +
+     8h TTL + profiles.is_admin). If you're seeing this HTML, you're already
+     authorized. Bundle scripts are served by app/api/admin/asset/[name]
+     which re-validates on every fetch. -->
+<div class="page-aurora"><div class="blob-3"></div><div class="blob-4"></div><div class="blob-5"></div><div class="grain"></div></div>
+
+<div id="root"></div>
+
+<script type="text/babel" src="/tweaks-panel.jsx"></script>
+<script type="text/babel" src="/api/admin/asset/admin-helpers.jsx"></script>
+<script type="text/babel" src="/api/admin/asset/admin-personas.jsx"></script>
+<script type="text/babel" src="/api/admin/asset/admin-phase2.jsx"></script>
+<script type="text/babel" src="/api/admin/asset/admin-phase3.jsx"></script>
+<script type="text/babel" src="/api/admin/asset/admin-phase4.jsx"></script>
+<script type="text/babel" src="/api/admin/asset/admin-phase5.jsx"></script>
+<script type="text/babel" src="/api/admin/asset/admin-refunds.jsx"></script>
+<script type="text/babel" src="/api/admin/asset/admin-support.jsx"></script>
+<script type="text/babel" src="/api/admin/asset/admin.jsx"></script>
+</body>
+</html>

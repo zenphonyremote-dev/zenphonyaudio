@@ -11,16 +11,9 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
-  const sessionToken = request.cookies.get("better-auth.session_token")?.value
-    || request.cookies.get("__Secure-better-auth.session_token")?.value
-    || request.cookies.get("better-auth.session")?.value
-    || request.cookies.get("__Secure-better-auth.session")?.value
-
-  // Defensive gate on /ZenMode so anonymous visitors don't see the admin shell flash.
-  // app/api/admin/check-access does the real is_admin enforcement.
-  if (pathname === "/ZenMode" && !sessionToken) {
-    return NextResponse.redirect(new URL("/account", request.url))
-  }
+  // /ZenMode is served by app/ZenMode/route.ts which does its own
+  // server-side admin gate (session presence + 8h TTL + profiles.is_admin).
+  // No middleware-level redirect is needed.
 
   return NextResponse.next()
 }

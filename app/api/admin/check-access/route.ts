@@ -1,29 +1,17 @@
 import { NextResponse } from "next/server"
-import { getAuthUser } from "@/lib/auth-helpers"
-import { createClient as createAdminClient } from "@supabase/supabase-js"
+import { checkAdmin } from "@/lib/admin-auth"
 
 export const dynamic = "force-dynamic"
 
 export async function GET() {
-  const { user } = await getAuthUser()
-  if (!user) {
-    return NextResponse.json({ isAdmin: false }, { status: 401 })
+  const check = await checkAdmin()
+  if (!check.ok) {
+    const status =
+      check.reason === "unauthorized" || check.reason === "expired" ? 401 : 403
+    return NextResponse.json(
+      { isAdmin: false, reason: check.reason },
+      { status },
+    )
   }
-
-  const supabase = createAdminClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  )
-
-  const { data, error } = await supabase
-    .from("profiles")
-    .select("is_admin, email")
-    .eq("id", user.id)
-    .single()
-
-  if (error || !data || !data.is_admin) {
-    return NextResponse.json({ isAdmin: false }, { status: 403 })
-  }
-
-  return NextResponse.json({ isAdmin: true, email: data.email })
+  return NextResponse.json({ isAdmin: true, email: check.user.email })
 }
