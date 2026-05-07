@@ -19,7 +19,7 @@ const nextConfig = {
       { source: '/', destination: '/index.html' },
       // Clean URLs for the new static pages
       { source: '/account', destination: '/account.html' },
-      { source: '/admin', destination: '/admin.html' },
+      { source: '/ZenMode', destination: '/zenmode.html' },
       // Legacy paths the plugin and inbound links still hit
       { source: '/login', destination: '/account.html' },
       { source: '/signup', destination: '/account.html' },

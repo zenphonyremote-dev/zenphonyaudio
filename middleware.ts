@@ -16,9 +16,9 @@ export async function middleware(request: NextRequest) {
     || request.cookies.get("better-auth.session")?.value
     || request.cookies.get("__Secure-better-auth.session")?.value
 
-  // Defensive gate on /admin so anonymous visitors don't see the admin shell flash.
+  // Defensive gate on /ZenMode so anonymous visitors don't see the admin shell flash.
   // app/api/admin/check-access does the real is_admin enforcement.
-  if (pathname === "/admin" && !sessionToken) {
+  if (pathname === "/ZenMode" && !sessionToken) {
     return NextResponse.redirect(new URL("/account", request.url))
   }
 
