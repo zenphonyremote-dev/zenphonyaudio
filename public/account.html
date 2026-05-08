@@ -290,6 +290,31 @@ function AccountHeader({ user, onSignOut, section, setSection }) {
 /* ════════════════════════════════════════════════════════════════════════
    PROFILE / SETTINGS
    ════════════════════════════════════════════════════════════════════════ */
+/* IANA time-zone list — modern browsers expose all ~430 zones via
+   Intl.supportedValuesOf; older ones get a curated common-zone fallback. */
+const TIMEZONES = (() => {
+  try {
+    if (typeof Intl !== 'undefined' && typeof Intl.supportedValuesOf === 'function') {
+      const list = Intl.supportedValuesOf('timeZone');
+      if (list && list.length) return list;
+    }
+  } catch (_) {}
+  return [
+    'Pacific/Honolulu','America/Anchorage','America/Los_Angeles','America/Denver',
+    'America/Phoenix','America/Chicago','America/New_York','America/Toronto',
+    'America/Halifax','America/Sao_Paulo','Atlantic/Azores','Europe/London',
+    'Europe/Paris','Europe/Berlin','Europe/Athens','Europe/Moscow',
+    'Africa/Cairo','Africa/Johannesburg','Asia/Dubai','Asia/Kolkata',
+    'Asia/Bangkok','Asia/Singapore','Asia/Shanghai','Asia/Tokyo','Asia/Seoul',
+    'Australia/Perth','Australia/Sydney','Pacific/Auckland','UTC'
+  ];
+})();
+
+function guessTimeZone() {
+  try { return Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'; }
+  catch (_) { return 'UTC'; }
+}
+
 function Settings({ user, sessionEmail, theme, setTheme, settingsTab, setSettingsTab, onSignOut }) {
   // Billing/usage data fetched from API.
   const [subDetails, setSubDetails] = useState(null);
@@ -298,6 +323,18 @@ function Settings({ user, sessionEmail, theme, setTheme, settingsTab, setSetting
   const [billingLoading, setBillingLoading] = useState(false);
   const [busyAction, setBusyAction] = useState(null); // string id of in-flight button
   const [billingError, setBillingError] = useState('');
+
+  // Profile data + edit form. Fetched once on mount; PATCH back on Save.
+  const [profile, setProfile] = useState(null);
+  const [profileForm, setProfileForm] = useState(null);
+  const [profileSaving, setProfileSaving] = useState(false);
+  const setField = (k, v) => setProfileForm(f => ({ ...(f || {}), [k]: v }));
+  const profileDirty = (() => {
+    if (!profile || !profileForm) return false;
+    return ['full_name','handle','bio','company','timezone'].some(
+      k => (profileForm[k] || '') !== (profile[k] || '')
+    );
+  })();
 
   // Lightweight inline toast.
   const showToast = (msg, kind) => {
@@ -386,6 +423,79 @@ function Settings({ user, sessionEmail, theme, setTheme, settingsTab, setSetting
   });
   const flip = (k) => setToggles(t => ({ ...t, [k]: !t[k] }));
 
+  // Fetch profile once on mount.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await window.api('/api/profile');
+        if (!res.ok || cancelled) return;
+        const j = await res.json();
+        if (cancelled || !j.profile) return;
+        setProfile(j.profile);
+        setProfileForm({
+          full_name: j.profile.full_name || '',
+          handle:    j.profile.handle    || '',
+          bio:       j.profile.bio       || '',
+          company:   j.profile.company   || '',
+          timezone:  j.profile.timezone  || guessTimeZone(),
+        });
+      } catch (_) { /* leave profile null */ }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
+  const cancelProfileEdit = () => {
+    if (!profile) return;
+    setProfileForm({
+      full_name: profile.full_name || '',
+      handle:    profile.handle    || '',
+      bio:       profile.bio       || '',
+      company:   profile.company   || '',
+      timezone:  profile.timezone  || guessTimeZone(),
+    });
+  };
+
+  const saveProfile = async () => {
+    if (!profileForm || !profileDirty || profileSaving) return;
+    setProfileSaving(true);
+    try {
+      const patch = {};
+      for (const k of ['full_name','handle','bio','company','timezone']) {
+        if ((profileForm[k] || '') !== (profile?.[k] || '')) {
+          patch[k] = profileForm[k] || null;
+        }
+      }
+      const res = await window.api('/api/profile', {
+        method: 'PATCH',
+        body: JSON.stringify(patch),
+      });
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}));
+        const msg = j.error === 'handle_taken'    ? 'That handle is already taken.'
+                  : j.error === 'invalid_timezone' ? 'Invalid time zone selected.'
+                  : (typeof j.error === 'string' && j.error)
+                    || ('Save failed (' + res.status + ')');
+        throw new Error(msg);
+      }
+      const j = await res.json();
+      setProfile(j.profile);
+      setProfileForm({
+        full_name: j.profile.full_name || '',
+        handle:    j.profile.handle    || '',
+        bio:       j.profile.bio       || '',
+        company:   j.profile.company   || '',
+        timezone:  j.profile.timezone  || guessTimeZone(),
+      });
+      showToast('Profile saved.');
+    } catch (err) {
+      console.error('[saveProfile]', err);
+      showToast(err.message || 'Could not save profile.', 'error');
+    } finally {
+      setProfileSaving(false);
+    }
+  };
+
   return (
     <div className="app-main">
       <div className="app-topbar">
@@ -394,18 +504,28 @@ function Settings({ user, sessionEmail, theme, setTheme, settingsTab, setSetting
           <div className="sub">Identity, devices, and billing for your Zenphony Audio account.</div>
         </div>
         <div className="spacer"></div>
-        <button className="btn-secondary">Cancel</button>
-        <button className="btn btn-primary">Save changes</button>
+        <button
+          className="btn-secondary"
+          onClick={cancelProfileEdit}
+          disabled={!profileDirty || profileSaving}
+          style={{ opacity: profileDirty && !profileSaving ? 1 : 0.5, cursor: profileDirty && !profileSaving ? 'pointer' : 'default' }}
+        >Cancel</button>
+        <button
+          className="btn btn-primary"
+          onClick={saveProfile}
+          disabled={!profileDirty || profileSaving}
+          style={{ opacity: profileDirty && !profileSaving ? 1 : 0.5, cursor: profileDirty && !profileSaving ? 'pointer' : 'default' }}
+        >{profileSaving ? 'Saving…' : 'Save changes'}</button>
       </div>
 
       {/* Profile hero */}
       <div className="profile-hero glass">
         <div className="profile-avatar">
-          <div className="inner">{user.split(' ').map(s => s[0]).join('').slice(0,2)}</div>
+          <div className="inner">{((profile?.full_name || user) || '').split(/\s+/).filter(Boolean).map(s => s[0]).join('').slice(0,2).toUpperCase() || 'U'}</div>
         </div>
         <div className="profile-meta">
-          <h1>{user}</h1>
-          <div className="handle">@{user.toLowerCase().replace(/\s+/g, '')} · maya@velvetstatic.fm</div>
+          <h1>{profile?.full_name || user}</h1>
+          <div className="handle">{profile?.handle ? '@' + profile.handle + ' · ' : ''}{sessionEmail || profile?.email || ''}</div>
           <div className="tags">
             <span className="profile-tag"><span className="dot"></span> Pro plan</span>
             <span className="profile-tag">Velvet theme</span>
@@ -441,25 +561,57 @@ function Settings({ user, sessionEmail, theme, setTheme, settingsTab, setSetting
             <div className="field-grid-2">
               <div className="field">
                 <label className="field-label">Display name</label>
-                <input className="field-input" defaultValue={user} />
+                <input
+                  className="field-input"
+                  value={profileForm?.full_name || ''}
+                  onChange={e => setField('full_name', e.target.value)}
+                  maxLength={80}
+                  placeholder="Your name"
+                />
               </div>
               <div className="field">
                 <label className="field-label">Handle</label>
-                <input className="field-input" defaultValue="@mayareyes" />
+                <input
+                  className="field-input"
+                  value={profileForm?.handle ? '@' + profileForm.handle : ''}
+                  onChange={e => setField('handle', e.target.value.replace(/^@+/, ''))}
+                  maxLength={33}
+                  placeholder="@yourhandle"
+                />
               </div>
             </div>
             <div className="field">
               <label className="field-label">Bio</label>
-              <input className="field-input" defaultValue="Mix engineer at Velvet Static. R&B, jazz, broken-piano stuff." />
+              <input
+                className="field-input"
+                value={profileForm?.bio || ''}
+                onChange={e => setField('bio', e.target.value)}
+                maxLength={280}
+                placeholder="One line about your work."
+              />
             </div>
             <div className="field-grid-2">
               <div className="field">
                 <label className="field-label">Studio</label>
-                <input className="field-input" defaultValue="Velvet Static Studio" />
+                <input
+                  className="field-input"
+                  value={profileForm?.company || ''}
+                  onChange={e => setField('company', e.target.value)}
+                  maxLength={80}
+                  placeholder="Studio or company"
+                />
               </div>
               <div className="field">
                 <label className="field-label">Time zone</label>
-                <input className="field-input" defaultValue="(GMT−5) New York" />
+                <select
+                  className="field-input"
+                  value={profileForm?.timezone || guessTimeZone()}
+                  onChange={e => setField('timezone', e.target.value)}
+                >
+                  {TIMEZONES.map(tz => (
+                    <option key={tz} value={tz}>{tz.replace(/_/g, ' ')}</option>
+                  ))}
+                </select>
               </div>
             </div>
             <div className="set-row">
