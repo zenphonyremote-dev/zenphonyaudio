@@ -1,0 +1,74 @@
+import { NextRequest, NextResponse } from "next/server"
+import { createClient, SupabaseClient } from "@supabase/supabase-js"
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "GET, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization",
+}
+
+function json(body: unknown, init?: { status?: number }) {
+  return NextResponse.json(body, { ...init, headers: corsHeaders })
+}
+
+export async function OPTIONS() {
+  return NextResponse.json({}, { headers: corsHeaders })
+}
+
+let supabaseAdmin: SupabaseClient | null = null
+function getSupabaseAdmin() {
+  if (!supabaseAdmin) {
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const key = process.env.SUPABASE_SERVICE_ROLE_KEY
+    if (!url || !key) {
+      throw new Error("Missing Supabase configuration")
+    }
+    supabaseAdmin = createClient(url, key)
+  }
+  return supabaseAdmin
+}
+
+export async function GET(request: NextRequest) {
+  try {
+    const apiKey = request.nextUrl.searchParams.get("api_key")
+    if (!apiKey) {
+      return json(
+        { success: false, error: "missing_api_key" },
+        { status: 400 }
+      )
+    }
+
+    const admin = getSupabaseAdmin()
+    const { data, error } = await admin.rpc("list_machines_via_api_key", {
+      p_api_key: apiKey,
+    })
+
+    if (error) {
+      console.error("[plugin/machines/list] RPC error:", error)
+      return json(
+        { success: false, error: "rpc_failed", detail: error.message },
+        { status: 500 }
+      )
+    }
+
+    const result = (data ?? {}) as {
+      success?: boolean
+      error?: string
+    }
+
+    if (result.error === "invalid_api_key") {
+      return json(result, { status: 401 })
+    }
+    if (result.error === "missing_api_key") {
+      return json(result, { status: 400 })
+    }
+
+    return json(result, { status: 200 })
+  } catch (err) {
+    console.error("[plugin/machines/list] Unexpected error:", err)
+    return json(
+      { success: false, error: "internal_error" },
+      { status: 500 }
+    )
+  }
+}
