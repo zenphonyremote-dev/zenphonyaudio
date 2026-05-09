@@ -26,7 +26,7 @@
 -- 1. activated_machines table
 CREATE TABLE IF NOT EXISTS public.activated_machines (
   id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id         UUID REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
+  user_id         TEXT REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
   machine_id_hash TEXT NOT NULL,
   hostname        TEXT,
   app_version     TEXT,
@@ -48,13 +48,11 @@ CREATE INDEX IF NOT EXISTS idx_activated_machines_user_id
 ALTER TABLE public.usage_log
   ADD COLUMN IF NOT EXISTS machine_id_hash TEXT;
 
--- 3. RLS: users read their own
+-- 3. RLS: enabled with no permissive policies. Access is via SECURITY DEFINER
+-- RPCs (register/list/revoke) which bypass RLS. Direct table access goes
+-- through the website API routes (service role, which bypasses RLS).
+-- This mirrors the Better Auth migration 006 pattern.
 ALTER TABLE public.activated_machines ENABLE ROW LEVEL SECURITY;
-
-DROP POLICY IF EXISTS "Users can read own activated machines" ON public.activated_machines;
-CREATE POLICY "Users can read own activated machines"
-  ON public.activated_machines FOR SELECT
-  USING (auth.uid() = user_id);
 
 -- 4. register_machine_via_api_key RPC
 --    Validates api_key, enforces tier limit, inserts active row.
@@ -68,7 +66,7 @@ CREATE OR REPLACE FUNCTION public.register_machine_via_api_key(
 )
 RETURNS JSON AS $$
 DECLARE
-  v_user_id        UUID;
+  v_user_id        TEXT;
   v_plan           TEXT;
   v_limit          INT;
   v_current_count  INT;
@@ -171,7 +169,7 @@ GRANT EXECUTE ON FUNCTION public.register_machine_via_api_key(TEXT, TEXT, TEXT, 
 CREATE OR REPLACE FUNCTION public.list_machines_via_api_key(p_api_key TEXT)
 RETURNS JSON AS $$
 DECLARE
-  v_user_id  UUID;
+  v_user_id  TEXT;
   v_plan     TEXT;
   v_limit    INT;
   v_machines JSON;
@@ -222,7 +220,7 @@ CREATE OR REPLACE FUNCTION public.revoke_machine_via_api_key(
 )
 RETURNS JSON AS $$
 DECLARE
-  v_user_id UUID;
+  v_user_id TEXT;
   v_count   INT;
 BEGIN
   IF p_api_key IS NULL OR p_machine_id_hash IS NULL THEN
