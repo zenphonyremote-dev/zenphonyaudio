@@ -678,38 +678,95 @@ function Settings({ user, sessionEmail, theme, setTheme, settingsTab, setSetting
         </div>
       )}
 
-      {settingsTab === 'devices' && (
-        <div className="set-section glass">
-          <div className="set-section-h">
-            <div className="label">▎ Devices · 2 of 3 active</div>
-            <h3 className="lb-h3">
-              Where <img className="lb-inline-wordmark" src="assets/listen-buddy-wordmark.svg" alt="Listen Buddy" /> is installed
-            </h3>
-          </div>
-          {[
-            { name: 'M3 Max · Studio', meta: 'macOS 15.1 · Logic Pro 11.2 · LB 1.0.4', state: 'live' },
-            { name: 'Mac Studio · Live Room', meta: 'macOS 14.6 · Pro Tools 2025.3 · LB 1.0.3', state: 'idle' },
-            { name: 'Genelec 8341A SAM Pair', meta: 'Calibrated −0.6 LU · Apr 22', state: 'linked' }
-          ].map((d, i) => (
-            <div className="device" key={i}>
-              <div className="icon"><Icon name={i === 2 ? 'speaker' : 'laptop'} /></div>
-              <div>
-                <div className="name">{d.name}</div>
-                <div className="info">{d.meta}</div>
-              </div>
-              {d.state === 'live'
-                ? <div className="live"><span className="dot"></span> Live</div>
-                : <div style={{ display: 'flex', gap: 8 }}>
-                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--muted-foreground)', alignSelf: 'center' }}>{d.state}</span>
-                    <button className="btn-secondary">Revoke</button>
-                  </div>}
+      {settingsTab === 'devices' && (() => {
+        // Live machines from /api/plugin/machines/list. Empty for new accounts.
+        const [machines, setMachines] = useState(null);
+        const [machineLimit, setMachineLimit] = useState(null);
+        const [revokingHash, setRevokingHash] = useState(null);
+
+        const refreshMachines = async () => {
+          if (!profile?.api_key) { setMachines([]); setMachineLimit(0); return; }
+          try {
+            const r = await fetch(`/api/plugin/machines/list?api_key=${encodeURIComponent(profile.api_key)}`);
+            const j = await r.json();
+            if (j && j.success) {
+              setMachines(j.machines || []);
+              setMachineLimit(j.machine_limit || 1);
+            } else {
+              setMachines([]);
+              setMachineLimit(0);
+            }
+          } catch (_) {
+            setMachines([]);
+            setMachineLimit(0);
+          }
+        };
+        useEffect(() => { refreshMachines(); }, [profile?.api_key]);
+
+        const handleRevoke = async (hash) => {
+          if (!profile?.api_key || !hash) return;
+          if (!window.confirm('Deactivate this Mac? Listen Buddy will stop authenticating on it until you activate again.')) return;
+          setRevokingHash(hash);
+          try {
+            await fetch('/api/plugin/machines/revoke', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ api_key: profile.api_key, machine_id_hash: hash })
+            });
+            await refreshMachines();
+          } catch (_) {}
+          setRevokingHash(null);
+        };
+
+        const machineList = machines || [];
+        const headerLabel = machineList.length === 0
+          ? '▎ Devices · None activated yet'
+          : `▎ Devices · ${machineList.length} of ${machineLimit || 1} active`;
+
+        return (
+          <div className="set-section glass">
+            <div className="set-section-h">
+              <div className="label">{headerLabel}</div>
+              <h3 className="lb-h3">
+                Where <img className="lb-inline-wordmark" src="assets/listen-buddy-wordmark.svg" alt="Listen Buddy" /> is installed
+              </h3>
             </div>
-          ))}
-          <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-            <button className="btn btn-outline"><Icon name="plus" /> Authorize new device</button>
+            {machines === null && (
+              <div style={{ color: 'var(--muted-foreground)', fontSize: 13, padding: '12px 0' }}>Checking…</div>
+            )}
+            {machines !== null && machineList.length === 0 && (
+              <div style={{ color: 'var(--muted-foreground)', fontSize: 13, padding: '12px 0', lineHeight: 1.5 }}>
+                You haven't activated Listen Buddy on any Macs yet. Download the Software Hub
+                from the Downloads tab, sign in with this account, and click <strong>Activate this Mac</strong>.
+              </div>
+            )}
+            {machineList.map((d) => {
+              const niceTime = d.last_seen_at ? new Date(d.last_seen_at).toLocaleString() : '—';
+              const meta = `${d.source === 'hub' ? 'Hub' : 'Plugin'} · v${d.app_version || '?'} · last seen ${niceTime}`;
+              const isRevoking = revokingHash === d.machine_id_hash;
+              return (
+                <div className="device" key={d.machine_id_hash}>
+                  <div className="icon"><Icon name="laptop" /></div>
+                  <div>
+                    <div className="name">{d.hostname || 'Unnamed Mac'}</div>
+                    <div className="info">{meta}</div>
+                  </div>
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <button className="btn-secondary"
+                            disabled={isRevoking}
+                            onClick={() => handleRevoke(d.machine_id_hash)}>
+                      {isRevoking ? 'Deactivating…' : 'Deactivate'}
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+            <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid rgba(255,255,255,0.06)', fontSize: 12, color: 'var(--muted-foreground)' }}>
+              Devices are activated from inside the Software Hub on each Mac.
+            </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {settingsTab === 'downloads' && (
         <div style={{display:'flex',flexDirection:'column',gap:24}}>
@@ -750,9 +807,11 @@ function Settings({ user, sessionEmail, theme, setTheme, settingsTab, setSetting
           { id: 'pro',   name: 'Pro',   price: 29.99, minutes: 240, blurb: 'Built for working sessions. Four hours.' },
           { id: 'max',   name: 'Max',   price: 69.99, minutes: 700, blurb: 'Studio-grade headroom plus priority support.' }
         ];
-        const currentPlanId = 'pro';
-        const currentIdx = plans.findIndex(p => p.id === currentPlanId);
+        const currentPlanId = profile?.subscription_plan || 'free';
+        const currentIdx = Math.max(0, plans.findIndex(p => p.id === currentPlanId));
         const currentPlan = plans[currentIdx];
+        const renewLabel = profile?.subscription_period === 'yearly' ? 'per year' : 'per month';
+        const isFree = currentPlanId === 'free';
         const topUps = [
           { id: 'tu-20',  name: '20 min',  price: 3.99,  perMin: '$0.20/min', note: 'One-off top-up for a long session.' },
           { id: 'tu-60',  name: '60 min',  price: 9.99,  perMin: '$0.17/min', note: 'Most popular. Roughly an album side.', badge: 'Popular' },
@@ -766,14 +825,18 @@ function Settings({ user, sessionEmail, theme, setTheme, settingsTab, setSetting
             <h2 className="bill2-h">Your plan</h2>
             <div className="bill2-card bill2-current">
               <div className="b2c-row">
-                <div className="b2c-name">Pro plan</div>
-                <div className="b2c-price">$29.99 <span>per month</span></div>
+                <div className="b2c-name">{currentPlan.name} plan</div>
+                <div className="b2c-price">{isFree ? <>Free</> : <>${currentPlan.price} <span>{renewLabel}</span></>}</div>
               </div>
-              <div className="b2c-meta">240 minutes per month · Renews May 22, 2026 · Visa ending 4019</div>
+              <div className="b2c-meta">
+                {currentPlan.minutes} minutes per month
+                {!isFree && <> · {profile?.subscription_status === 'active' ? 'Active subscription' : (profile?.subscription_status || 'No subscription')}</>}
+              </div>
               <div className="b2c-actions">
-                <button className="b2-btn b2-btn-quiet">Switch to yearly (save 20%)</button>
-                <button className="b2-btn b2-btn-quiet">Update payment method</button>
-                <button className="b2-btn b2-btn-quiet b2-btn-danger">Cancel plan</button>
+                {!isFree && <button className="b2-btn b2-btn-quiet">Switch to yearly (save 20%)</button>}
+                {!isFree && <button className="b2-btn b2-btn-quiet">Update payment method</button>}
+                {!isFree && <button className="b2-btn b2-btn-quiet b2-btn-danger">Cancel plan</button>}
+                {isFree && <span style={{ color: 'var(--muted-foreground)', fontSize: 13 }}>Choose a paid plan below to unlock more minutes.</span>}
               </div>
             </div>
 
@@ -876,11 +939,15 @@ function Settings({ user, sessionEmail, theme, setTheme, settingsTab, setSetting
 
       {settingsTab === 'usage' && (() => {
         // Mock 30-day usage series (minutes per day). Total ≈ 142 min over 30 days.
-        const usageDaily = [3,2,4,0,2,5,3,4,2,0,3,4,5,2,1,4,3,2,0,5,4,2,3,4,5,2,1,3,2,4];
-        const totalMonth = usageDaily.reduce((a,b) => a+b, 0);
-        const last90Avg = 88; // average minutes/month over last 90 days
-        const peak = 112;      // peak month
-        const limit = 120;     // Pro limit
+        // Real data from profile. New accounts = all zeros, no fake history.
+        const usageDaily = (profile?.usage_daily && profile.usage_daily.length === 30)
+          ? profile.usage_daily
+          : new Array(30).fill(0);
+        const totalMonth = profile?.listening_minutes_used || 0;
+        const last90Avg = profile?.last_90d_avg || 0;
+        const peak = profile?.peak_month_minutes || 0;
+        const limit = profile?.listening_minutes_limit ||
+          ({ free: 5, basic: 30, pro: 120, max: 350 }[profile?.subscription_plan] || 5);
         const max = Math.max(...usageDaily, 12);
         const W = 660, H = 180, PAD = { l: 36, r: 16, t: 14, b: 24 };
         const innerW = W - PAD.l - PAD.r, innerH = H - PAD.t - PAD.b;
@@ -899,8 +966,8 @@ function Settings({ user, sessionEmail, theme, setTheme, settingsTab, setSetting
           { id: 'max',   name: 'Max',   minutes: 700, price: 69.99, msgs: 'Unlimited Listen Buddy chat' }
         ];
         const planMaxMin = 700;
-        const currentPlanId = 'pro';
-        const recommendedPlanId = 'pro'; // Pro fits well — average 138, peak 168, limit 240
+        const currentPlanId = profile?.subscription_plan || 'free';
+        const recommendedPlanId = currentPlanId; // No recommendation engine yet — show current as recommended
 
         return (
           <div className="settings-grid usage-grid">
