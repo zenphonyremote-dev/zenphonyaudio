@@ -43,22 +43,39 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'No email found in session' }, { status: 400 })
     }
 
-    // Find user by email in Better Auth user table
+    // Find user by email in Better Auth user table.
+    // Use ilike for case-insensitive match (Stripe sometimes returns
+    // a different casing than Better Auth stored on signup).
     const { data: users, error: listError } = await supabase
       .from('user')
       .select('id, email')
-      .eq('email', email)
+      .ilike('email', email)
       .limit(1)
 
     if (listError) {
-      console.error('Error finding user:', listError)
-      return NextResponse.json({ error: 'Failed to find user' }, { status: 500 })
+      console.error('[verify] user lookup failed for email', email, listError)
+      return NextResponse.json({ error: `Failed to find user (${listError.message})` }, { status: 500 })
     }
 
-    const user = users?.[0]
+    let user = users?.[0]
+
+    // Fallback: try profiles table by email if "user" lookup missed (rare,
+    // happens if Better Auth user row was deleted but profile lingers).
+    if (!user) {
+      const { data: profileByEmail } = await supabase
+        .from('profiles')
+        .select('id, email')
+        .ilike('email', email)
+        .limit(1)
+        .maybeSingle()
+      if (profileByEmail) {
+        user = { id: profileByEmail.id, email: profileByEmail.email }
+      }
+    }
 
     if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 })
+      console.error('[verify] no user/profile found for email', email)
+      return NextResponse.json({ error: `No account found for ${email}. Sign in to your Zenphony account first, then complete checkout.` }, { status: 404 })
     }
 
     if (type === 'topup') {
@@ -108,25 +125,44 @@ export async function POST(request: NextRequest) {
         max: 700,
       }
 
-      const { error: updateError } = await supabase
+      const updatePayload: Record<string, any> = {
+        subscription_plan: planId,
+        subscription_status: 'active',
+        subscription_period: billingPeriod,
+        listening_minutes_limit: minutesMap[planId] || 5,
+        listening_minutes_used: 0,
+        monthly_minutes: minutesMap[planId] || 5,
+        subscription_started_at: new Date().toISOString(),
+        chat_tokens_limit: -1, // Paid plans get unlimited chat
+      }
+      if (session.customer) updatePayload.stripe_customer_id = session.customer as string
+      if (session.subscription) updatePayload.stripe_subscription_id = session.subscription as string
+
+      const { data: updateData, error: updateError } = await supabase
         .from('profiles')
-        .update({
-          subscription_plan: planId,
-          subscription_status: 'active',
-          subscription_period: billingPeriod,
-          listening_minutes_limit: minutesMap[planId] || 5,
-          listening_minutes_used: 0,
-          monthly_minutes: minutesMap[planId] || 5,
-          stripe_customer_id: session.customer as string || undefined,
-          stripe_subscription_id: session.subscription as string || undefined,
-          subscription_started_at: new Date().toISOString(),
-          chat_tokens_limit: -1, // Paid plans get unlimited chat
-        })
+        .update(updatePayload)
         .eq('id', user.id)
+        .select('id, subscription_plan')
 
       if (updateError) {
-        console.error('Error updating profile:', updateError)
-        return NextResponse.json({ error: 'Failed to update profile' }, { status: 500 })
+        console.error('[verify] profile update failed for user', user.id, updateError)
+        return NextResponse.json({ error: `Failed to update profile (${updateError.message})` }, { status: 500 })
+      }
+
+      // If no rows were updated, the profile row might be missing — upsert.
+      if (!updateData || updateData.length === 0) {
+        console.warn('[verify] update touched 0 rows; upserting profile for user', user.id)
+        const { error: upsertError } = await supabase
+          .from('profiles')
+          .upsert({
+            id: user.id,
+            email: user.email,
+            ...updatePayload,
+          }, { onConflict: 'id' })
+        if (upsertError) {
+          console.error('[verify] profile upsert failed for user', user.id, upsertError)
+          return NextResponse.json({ error: `Failed to upsert profile (${upsertError.message})` }, { status: 500 })
+        }
       }
 
       return NextResponse.json({
