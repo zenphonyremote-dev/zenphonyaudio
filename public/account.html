@@ -259,6 +259,24 @@ function AuthScreen({ mode, setMode, onSignIn }) {
    ACCOUNT HEADER — slim top bar shared across settings views
    ════════════════════════════════════════════════════════════════════════ */
 function AccountHeader({ user, onSignOut, section, setSection }) {
+  // Fetch profile so the plan chip reflects the actual user, not a hardcoded value.
+  const [profile, setProfile] = useState(null);
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await window.api('/api/profile');
+        if (!res.ok) return;
+        const j = await res.json();
+        if (!cancelled && j && j.profile) setProfile(j.profile);
+      } catch (_) {}
+    })();
+    return () => { cancelled = true; };
+  }, []);
+  const planId = profile?.subscription_plan || 'free';
+  const planLabel = { free: 'Free', basic: 'Basic', pro: 'Pro', max: 'Max' }[planId] || 'Free';
+  const period = profile?.subscription_period === 'yearly' ? 'yearly' : 'monthly';
+  const isFree = planId === 'free';
   return (
     <header className="acct-head">
       <BrandMark />
@@ -272,18 +290,109 @@ function AccountHeader({ user, onSignOut, section, setSection }) {
         <Initials name={user} size={32} />
         <div className="who">
           <div className="name">{user}</div>
-          <div className="plan-chip" title="Pro plan · $29.99/mo">
+          <div className="plan-chip" title={isFree ? 'Free plan' : `${planLabel} plan · ${period}`}>
             <span className="plan-chip-glyph" aria-hidden="true">
               <svg viewBox="0 0 12 12" width="10" height="10"><path d="M6 1 L11 6 L6 11 L1 6 Z" fill="currentColor"/></svg>
             </span>
-            <span className="plan-chip-tier">Pro</span>
-            <span className="plan-chip-sep">·</span>
-            <span className="plan-chip-cycle">monthly</span>
+            <span className="plan-chip-tier">{planLabel}</span>
+            {!isFree && <><span className="plan-chip-sep">·</span><span className="plan-chip-cycle">{period}</span></>}
           </div>
         </div>
       </div>
       <button className="btn-secondary" onClick={onSignOut} title="Sign out"><Icon name="out" /> Sign out</button>
     </header>
+  );
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   DEVICES TAB — live machines from /api/plugin/machines/list
+   ════════════════════════════════════════════════════════════════════════ */
+function DevicesTab({ profile }) {
+  const [machines, setMachines] = useState(null);
+  const [machineLimit, setMachineLimit] = useState(null);
+  const [revokingHash, setRevokingHash] = useState(null);
+
+  const refreshMachines = async () => {
+    if (!profile?.api_key) { setMachines([]); setMachineLimit(0); return; }
+    try {
+      const r = await fetch(`/api/plugin/machines/list?api_key=${encodeURIComponent(profile.api_key)}`);
+      const j = await r.json();
+      if (j && j.success) {
+        setMachines(j.machines || []);
+        setMachineLimit(j.machine_limit || 1);
+      } else {
+        setMachines([]);
+        setMachineLimit(0);
+      }
+    } catch (_) {
+      setMachines([]);
+      setMachineLimit(0);
+    }
+  };
+  useEffect(() => { refreshMachines(); }, [profile?.api_key]);
+
+  const handleRevoke = async (hash) => {
+    if (!profile?.api_key || !hash) return;
+    if (!window.confirm('Deactivate this Mac? Listen Buddy will stop authenticating on it until you activate again.')) return;
+    setRevokingHash(hash);
+    try {
+      await fetch('/api/plugin/machines/revoke', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ api_key: profile.api_key, machine_id_hash: hash })
+      });
+      await refreshMachines();
+    } catch (_) {}
+    setRevokingHash(null);
+  };
+
+  const machineList = machines || [];
+  const headerLabel = machineList.length === 0
+    ? '▎ Devices · None activated yet'
+    : `▎ Devices · ${machineList.length} of ${machineLimit || 1} active`;
+
+  return (
+    <div className="set-section glass">
+      <div className="set-section-h">
+        <div className="label">{headerLabel}</div>
+        <h3 className="lb-h3">
+          Where <img className="lb-inline-wordmark" src="assets/listen-buddy-wordmark.svg" alt="Listen Buddy" /> is installed
+        </h3>
+      </div>
+      {machines === null && (
+        <div style={{ color: 'var(--muted-foreground)', fontSize: 13, padding: '12px 0' }}>Checking…</div>
+      )}
+      {machines !== null && machineList.length === 0 && (
+        <div style={{ color: 'var(--muted-foreground)', fontSize: 13, padding: '12px 0', lineHeight: 1.5 }}>
+          You haven't activated Listen Buddy on any Macs yet. Download the Software Hub
+          from the Downloads tab, sign in with this account, and click <strong>Activate this Mac</strong>.
+        </div>
+      )}
+      {machineList.map((d) => {
+        const niceTime = d.last_seen_at ? new Date(d.last_seen_at).toLocaleString() : '—';
+        const meta = `${d.source === 'hub' ? 'Hub' : 'Plugin'} · v${d.app_version || '?'} · last seen ${niceTime}`;
+        const isRevoking = revokingHash === d.machine_id_hash;
+        return (
+          <div className="device" key={d.machine_id_hash}>
+            <div className="icon"><Icon name="laptop" /></div>
+            <div>
+              <div className="name">{d.hostname || 'Unnamed Mac'}</div>
+              <div className="info">{meta}</div>
+            </div>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button className="btn-secondary"
+                      disabled={isRevoking}
+                      onClick={() => handleRevoke(d.machine_id_hash)}>
+                {isRevoking ? 'Deactivating…' : 'Deactivate'}
+              </button>
+            </div>
+          </div>
+        );
+      })}
+      <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid rgba(255,255,255,0.06)', fontSize: 12, color: 'var(--muted-foreground)' }}>
+        Devices are activated from inside the Software Hub on each Mac.
+      </div>
+    </div>
   );
 }
 
@@ -527,10 +636,10 @@ function Settings({ user, sessionEmail, theme, setTheme, settingsTab, setSetting
           <h1>{profile?.full_name || user}</h1>
           <div className="handle">{profile?.handle ? '@' + profile.handle + ' · ' : ''}{sessionEmail || profile?.email || ''}</div>
           <div className="tags">
-            <span className="profile-tag"><span className="dot"></span> Pro plan</span>
-            <span className="profile-tag">Velvet theme</span>
-            <span className="profile-tag">Mix engineer</span>
-            <span className="profile-tag">Joined Jan '26</span>
+            <span className="profile-tag"><span className="dot"></span> {({ free: 'Free', basic: 'Basic', pro: 'Pro', max: 'Max' }[profile?.subscription_plan] || 'Free')} plan</span>
+            {profile?.created_at && (
+              <span className="profile-tag">Joined {new Date(profile.created_at).toLocaleString('en-US', { month: 'short', year: 'numeric' })}</span>
+            )}
           </div>
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'flex-end' }}>
@@ -678,95 +787,7 @@ function Settings({ user, sessionEmail, theme, setTheme, settingsTab, setSetting
         </div>
       )}
 
-      {settingsTab === 'devices' && (() => {
-        // Live machines from /api/plugin/machines/list. Empty for new accounts.
-        const [machines, setMachines] = useState(null);
-        const [machineLimit, setMachineLimit] = useState(null);
-        const [revokingHash, setRevokingHash] = useState(null);
-
-        const refreshMachines = async () => {
-          if (!profile?.api_key) { setMachines([]); setMachineLimit(0); return; }
-          try {
-            const r = await fetch(`/api/plugin/machines/list?api_key=${encodeURIComponent(profile.api_key)}`);
-            const j = await r.json();
-            if (j && j.success) {
-              setMachines(j.machines || []);
-              setMachineLimit(j.machine_limit || 1);
-            } else {
-              setMachines([]);
-              setMachineLimit(0);
-            }
-          } catch (_) {
-            setMachines([]);
-            setMachineLimit(0);
-          }
-        };
-        useEffect(() => { refreshMachines(); }, [profile?.api_key]);
-
-        const handleRevoke = async (hash) => {
-          if (!profile?.api_key || !hash) return;
-          if (!window.confirm('Deactivate this Mac? Listen Buddy will stop authenticating on it until you activate again.')) return;
-          setRevokingHash(hash);
-          try {
-            await fetch('/api/plugin/machines/revoke', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ api_key: profile.api_key, machine_id_hash: hash })
-            });
-            await refreshMachines();
-          } catch (_) {}
-          setRevokingHash(null);
-        };
-
-        const machineList = machines || [];
-        const headerLabel = machineList.length === 0
-          ? '▎ Devices · None activated yet'
-          : `▎ Devices · ${machineList.length} of ${machineLimit || 1} active`;
-
-        return (
-          <div className="set-section glass">
-            <div className="set-section-h">
-              <div className="label">{headerLabel}</div>
-              <h3 className="lb-h3">
-                Where <img className="lb-inline-wordmark" src="assets/listen-buddy-wordmark.svg" alt="Listen Buddy" /> is installed
-              </h3>
-            </div>
-            {machines === null && (
-              <div style={{ color: 'var(--muted-foreground)', fontSize: 13, padding: '12px 0' }}>Checking…</div>
-            )}
-            {machines !== null && machineList.length === 0 && (
-              <div style={{ color: 'var(--muted-foreground)', fontSize: 13, padding: '12px 0', lineHeight: 1.5 }}>
-                You haven't activated Listen Buddy on any Macs yet. Download the Software Hub
-                from the Downloads tab, sign in with this account, and click <strong>Activate this Mac</strong>.
-              </div>
-            )}
-            {machineList.map((d) => {
-              const niceTime = d.last_seen_at ? new Date(d.last_seen_at).toLocaleString() : '—';
-              const meta = `${d.source === 'hub' ? 'Hub' : 'Plugin'} · v${d.app_version || '?'} · last seen ${niceTime}`;
-              const isRevoking = revokingHash === d.machine_id_hash;
-              return (
-                <div className="device" key={d.machine_id_hash}>
-                  <div className="icon"><Icon name="laptop" /></div>
-                  <div>
-                    <div className="name">{d.hostname || 'Unnamed Mac'}</div>
-                    <div className="info">{meta}</div>
-                  </div>
-                  <div style={{ display: 'flex', gap: 8 }}>
-                    <button className="btn-secondary"
-                            disabled={isRevoking}
-                            onClick={() => handleRevoke(d.machine_id_hash)}>
-                      {isRevoking ? 'Deactivating…' : 'Deactivate'}
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
-            <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid rgba(255,255,255,0.06)', fontSize: 12, color: 'var(--muted-foreground)' }}>
-              Devices are activated from inside the Software Hub on each Mac.
-            </div>
-          </div>
-        );
-      })()}
+      {settingsTab === 'devices' && <DevicesTab profile={profile} />}
 
       {settingsTab === 'downloads' && (
         <div style={{display:'flex',flexDirection:'column',gap:24}}>
@@ -977,7 +998,7 @@ function Settings({ user, sessionEmail, theme, setTheme, settingsTab, setSetting
               <div className="set-section-h">
                 <div className="label">▎ This month</div>
                 <h3>{totalMonth} of {limit} minutes</h3>
-                <p>30-day rolling. Resets May 22, 2026 · Pro plan · $29.99/mo</p>
+                <p>30-day rolling · {({ free: 'Free', basic: 'Basic', pro: 'Pro', max: 'Max' }[currentPlanId] || 'Free')} plan{currentPlanId !== 'free' ? ` · $${({ free: 0, basic: 7.99, pro: 29.99, max: 69.99 }[currentPlanId])}/mo` : ''}</p>
               </div>
               <div className="plan-bar"><div className="fill" style={{ width: `${Math.min(totalMonth/limit*100, 100)}%` }}></div></div>
               <div className="plan-meta">
