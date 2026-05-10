@@ -13511,7 +13511,19 @@ body.lb-demo .lb-talk-btn, body.lb-demo .talk-btn,
 body.lb-demo .chip {
     pointer-events: none !important;
     cursor: default !important;
-    opacity: 0.72;
+    opacity: 0.55;
+    filter: grayscale(0.4);
+}
+/* Analyze button: clearly disabled — strong dim + no gradient pulse */
+body.lb-demo .tb-btn.primary,
+body.lb-demo #analyzeBtn {
+    pointer-events: none !important;
+    cursor: not-allowed !important;
+    opacity: 0.45 !important;
+    filter: grayscale(0.75) !important;
+    animation: none !important;
+    background: rgba(120, 100, 160, 0.18) !important;
+    box-shadow: none !important;
 }
 /* Buddy selector + theme pills + analysis cards stay fully interactive */
 body.lb-demo .buddy-trigger,
@@ -13556,41 +13568,73 @@ body.lb-demo #lb-resize-diag {
     if (!inIframe) return;
 
     document.body.classList.add('lb-demo');
+    console.log('[LB-DEMO] lockdown active');
+
+    var populated = false;
 
     // simulateAnalysis() is the prototype's existing entry point that
     // injects sample impression copy + 6 insight cards. Re-poll until
     // it's defined (the React boot might not have wired it yet).
     function tryPopulate(retries) {
+        if (populated) return;
         retries = retries || 0;
         if (typeof window.simulateAnalysis === 'function') {
-            try { window.simulateAnalysis(); } catch(e) {}
+            try {
+                window.simulateAnalysis();
+                populated = true;
+                console.log('[LB-DEMO] analysis populated');
+            } catch(e) { console.warn('[LB-DEMO] simulateAnalysis threw', e); }
             return;
         }
-        if (retries < 40) setTimeout(function(){ tryPopulate(retries+1); }, 100);
+        if (retries < 80) setTimeout(function(){ tryPopulate(retries+1); }, 100);
     }
     function trySetFlubber(retries) {
         retries = retries || 0;
         if (typeof window.setVizMode === 'function') {
             try {
                 var btns = document.querySelectorAll('.viz-mode-btn');
-                window.setVizMode(1, btns[1]);
+                if (btns && btns[1]) window.setVizMode(1, btns[1]);
             } catch(e) {}
             return;
         }
-        if (retries < 40) setTimeout(function(){ trySetFlubber(retries+1); }, 100);
+        if (retries < 80) setTimeout(function(){ trySetFlubber(retries+1); }, 100);
+    }
+
+    function hardenAnalyzeBtn() {
+        var btn = document.getElementById('analyzeBtn');
+        if (btn) {
+            btn.setAttribute('disabled', 'disabled');
+            btn.setAttribute('aria-disabled', 'true');
+            btn.setAttribute('tabindex', '-1');
+            btn.removeAttribute('onclick');
+            btn.addEventListener('click', function(e){ e.preventDefault(); e.stopPropagation(); }, true);
+        }
+    }
+
+    function closeModals() {
+        ['authModal','loginModal','loginAnim','walkthroughWelcome',
+         'walkthroughOverlay','chatPopup','chatMinPill'].forEach(function(id){
+            var el = document.getElementById(id);
+            if (el) el.style.display = 'none';
+        });
     }
 
     function boot() {
         setTimeout(function(){
             trySetFlubber();
             tryPopulate();
-            // Force-close any modal that snuck in.
-            ['authModal','loginModal','loginAnim','walkthroughWelcome',
-             'walkthroughOverlay','chatPopup','chatMinPill'].forEach(function(id){
-                var el = document.getElementById(id);
-                if (el) el.style.display = 'none';
-            });
+            hardenAnalyzeBtn();
+            closeModals();
         }, 250);
+        // Second pass after window.load in case React mount was slow
+        window.addEventListener('load', function(){
+            setTimeout(function(){
+                trySetFlubber();
+                tryPopulate();
+                hardenAnalyzeBtn();
+                closeModals();
+            }, 400);
+        });
     }
     if (document.readyState === 'complete' || document.readyState === 'interactive') {
         boot();
