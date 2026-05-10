@@ -74,9 +74,12 @@ html,body{width:100%;height:100%;overflow:hidden;background:#0d0a14;font-family:
 /* ================================================================
    AURORA CANVAS
    ================================================================ */
-/* Aurora canvas — same fade-out + opacity as Aurora.jsx (default 0.4),
-   1s ease-in-out transition when theme changes. */
-.aurora-canvas{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;opacity:0.55;transition:opacity 1s ease-in-out}
+/* Aurora canvas — child of .plugin-frame so the corner blobs are clipped
+   to the plugin window itself, never bleeding past the chrome. Inherits
+   the plugin-frame's border-radius via overflow:hidden on the parent.
+   Opacity 0.85 + 'screen' composite (set in JS) gives that lit-from-
+   inside-the-window look, matching Aurora.jsx behavior. */
+.aurora-canvas{position:absolute;inset:0;width:100%;height:100%;z-index:0;pointer-events:none;opacity:0.85;transition:opacity 1s ease-in-out}
 
 /* ================================================================
    PLUGIN FRAME — 950x620 like real Listen Buddy
@@ -1044,9 +1047,13 @@ html,body{width:100%;height:100%;overflow:hidden;background:#0d0a14;font-family:
 </head>
 <body>
 
-<canvas class="aurora-canvas" id="auroraCanvas"></canvas>
-
 <div class="plugin-frame" id="pluginFrame">
+
+    <!-- Aurora canvas — sits INSIDE the plugin frame so the corner blobs
+         tint the chrome from underneath instead of bleeding around the
+         frame in the surrounding page bg. z-index 0 is below all chrome
+         so the bot icon, header text, action bar, etc. overlay cleanly. -->
+    <canvas class="aurora-canvas" id="auroraCanvas"></canvas>
 
     <!-- ===== HEADER ===== -->
     <div class="lb-header">
@@ -2653,7 +2660,19 @@ function drawViz(time) {
 // ================================================================
 const auroraCanvas = document.getElementById('auroraCanvas');
 const aCtx = auroraCanvas.getContext('2d');
-function resizeAurora(){auroraCanvas.width=window.innerWidth;auroraCanvas.height=window.innerHeight}
+function resizeAurora(){
+    // Match canvas internal resolution to its rendered size (×DPR for
+    // crisp gradients on Retina). Falls back to window dims if the
+    // canvas hasn't been laid out yet.
+    const r = auroraCanvas.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+    const cssW = r.width  || window.innerWidth;
+    const cssH = r.height || window.innerHeight;
+    auroraCanvas.width  = Math.round(cssW * dpr);
+    auroraCanvas.height = Math.round(cssH * dpr);
+    aCtx.setTransform(1, 0, 0, 1, 0, 0);
+    aCtx.scale(dpr, dpr);
+}
 resizeAurora();window.addEventListener('resize',resizeAurora);
 
 // Aurora blobs — corner-anchored, mirroring Aurora.jsx exactly:
@@ -2668,30 +2687,42 @@ const auroraBlobs = [
 ];
 let _auroraT = 0;
 function drawAurora(_unused){
-    const w = auroraCanvas.width, h = auroraCanvas.height;
+    // Draw in CSS-pixel space (ctx is already DPR-scaled in resizeAurora).
+    const r = auroraCanvas.getBoundingClientRect();
+    const w = r.width  || (auroraCanvas.width  / (window.devicePixelRatio || 1));
+    const h = r.height || (auroraCanvas.height / (window.devicePixelRatio || 1));
     const colors = cachedColors;
     _auroraT += 0.016;  // ~60 fps tick
 
-    // Soft motion-blur: low-alpha background fill instead of clearRect.
-    aCtx.fillStyle = 'rgba(26, 22, 37, 0.15)';
+    // Clear with a near-transparent fill — keeps a touch of motion blur
+    // but lets fresh blob colors stack at high saturation. Lower alpha
+    // than Aurora.jsx (0.15 → 0.05) since the canvas is now confined to
+    // the plugin frame and we want the colors to read through chrome.
+    aCtx.fillStyle = 'rgba(26, 22, 37, 0.05)';
     aCtx.fillRect(0, 0, w, h);
 
-    // Layer the 4 corner blobs additively
+    // Layer the 4 corner blobs additively. Radii scale with frame size
+    // so the blobs stay visually proportional whether the iframe is
+    // 1180px or 600px wide.
     aCtx.globalCompositeOperation = 'screen';
+    const baseScale = Math.max(0.55, Math.min(1.4, w / 960));
     auroraBlobs.forEach((b, i) => {
         const col = colors[i % colors.length];
-        // Breathing offset (Aurora.jsx: ±20px x, ±20px y at slow phase)
-        const ox = Math.sin(_auroraT * 0.40 + b.phase) * 20;
-        const oy = Math.cos(_auroraT * 0.30 + b.phase) * 20;
+        // Breathing offset (Aurora.jsx: ±20px x, ±20px y on slow trig)
+        const ox = Math.sin(_auroraT * 0.40 + b.phase) * 22;
+        const oy = Math.cos(_auroraT * 0.30 + b.phase) * 22;
         const x = b.baseX * w + ox;
         const y = b.baseY * h + oy;
-        // Pulsing radius (±15% on top of base)
-        const r = b.radius * (1 + Math.sin(_auroraT * b.pulseSpeed) * 0.15);
+        // Pulsing radius (±15% on top of frame-scaled base)
+        const r = b.radius * baseScale * (1 + Math.sin(_auroraT * b.pulseSpeed) * 0.15);
 
+        // Higher alpha stops than Aurora.jsx — punchy enough to read
+        // through the plugin chrome's glass backgrounds (was 60/30/10,
+        // now A0/60/22). Still gradient-falloff to transparent.
         const g = aCtx.createRadialGradient(x, y, 0, x, y, r);
-        g.addColorStop(0,   col + '60');
-        g.addColorStop(0.4, col + '30');
-        g.addColorStop(0.7, col + '10');
+        g.addColorStop(0,   col + 'A0');
+        g.addColorStop(0.4, col + '60');
+        g.addColorStop(0.7, col + '22');
         g.addColorStop(1,   'transparent');
         aCtx.fillStyle = g;
         aCtx.beginPath();
