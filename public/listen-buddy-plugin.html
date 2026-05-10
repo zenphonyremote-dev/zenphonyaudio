@@ -272,28 +272,96 @@ html,body{width:100%;height:100%;overflow:hidden;background:#0d0a14;font-family:
 .listen-switch.active .listen-nub{left:22px;background:#22c55e;box-shadow:0 0 8px rgba(34,197,94,.5)}
 
 /* Mode selector */
-.mode-select{
-    display:flex;align-items:center;gap:4px;position:relative;
+/* Mode dropdown — matches App.jsx live build (pill + chevron) */
+.mode-dd-wrap{position:relative;display:flex;align-items:center;gap:6px}
+.mode-dd-label{
+    font-size:9px;font-weight:500;letter-spacing:1px;text-transform:uppercase;
+    color:rgba(255,255,255,.35);font-family:'Montserrat','Outfit',sans-serif;
 }
-.mode-btn{
-    font-size:10px;font-weight:600;color:var(--muted-foreground);
-    background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);
-    padding:4px 10px;border-radius:6px;cursor:pointer;
-    transition:all .2s;letter-spacing:.5px;
+.mode-dd-btn{
+    display:inline-flex;align-items:center;gap:4px;
+    padding:4px 8px;border-radius:12px;border:0;background:transparent;
+    color:var(--lb-primary);font-size:10px;font-weight:600;cursor:pointer;
+    text-transform:capitalize;transition:all .2s ease-out;
 }
-.mode-btn:hover{background:rgba(255,255,255,.08)}
-.mode-btn.active{color:var(--lb-primary);border-color:rgba(168,85,247,.3);background:rgba(168,85,247,.08)}
+.mode-dd-btn:hover{background:rgba(168,85,247,.10)}
+.mode-dd-chev{width:10px;height:10px;opacity:.8;transition:transform .2s}
+.mode-dd-btn[aria-expanded="true"] .mode-dd-chev{transform:rotate(180deg)}
 
-/* Delivery QC badge */
-.qc-badge{
-    display:flex;align-items:center;gap:4px;
-    font-size:9px;font-weight:700;letter-spacing:.8px;
-    color:var(--muted-foreground);
-    padding:4px 8px;border-radius:12px;
-    background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);
-    cursor:pointer;transition:all .2s;
+.mode-dd-panel{
+    position:absolute;top:calc(100% + 6px);right:0;z-index:120;
+    min-width:140px;padding:4px;
+    background:rgba(30,25,40,.98);backdrop-filter:blur(20px);
+    -webkit-backdrop-filter:blur(20px);
+    border:1px solid rgba(255,255,255,.10);border-radius:12px;
+    box-shadow:0 8px 32px rgba(0,0,0,.4);
+    animation:lbDdFadeIn .15s ease-out;
 }
-.qc-badge:hover{border-color:var(--lb-primary);color:var(--lb-primary)}
+.mode-dd-opt{
+    display:block;width:100%;padding:8px 12px;
+    border:0;border-radius:8px;background:transparent;
+    font-size:11px;font-weight:500;color:rgba(255,255,255,.8);
+    text-align:left;text-transform:capitalize;cursor:pointer;
+    transition:all .15s ease;
+}
+.mode-dd-opt:hover{background:rgba(168,85,247,.20);color:var(--lb-primary)}
+.mode-dd-opt.is-active{
+    background:color-mix(in srgb,var(--lb-primary) 25%,transparent);
+    color:var(--lb-primary);font-weight:600;
+}
+
+/* QC dropdown — matches DeliveryDropdown.jsx (label + pill + grouped panel) */
+.qc-dd-wrap{position:relative;display:flex;align-items:center;gap:6px}
+.qc-dd-label{
+    font-size:9px;font-weight:500;letter-spacing:1px;text-transform:uppercase;
+    color:rgba(255,255,255,.35);font-family:'Montserrat','Outfit',sans-serif;
+}
+.qc-dd-btn{
+    display:inline-flex;align-items:center;gap:6px;
+    padding:5px 12px;border-radius:999px;border:0;background:transparent;
+    color:var(--lb-primary);font-size:10px;font-weight:500;cursor:pointer;
+    transition:transform .2s ease-out;
+}
+.qc-dd-btn:hover{transform:scale(1.05)}
+.qc-dd-chev{width:11px;height:11px;opacity:.8;transition:transform .2s}
+.qc-dd-btn[aria-expanded="true"] .qc-dd-chev{transform:rotate(180deg)}
+
+.qc-dd-panel{
+    position:absolute;top:calc(100% + 8px);right:0;z-index:120;
+    min-width:200px;max-height:300px;overflow-y:auto;
+    padding:6px;
+    background:rgba(30,25,40,.95);backdrop-filter:blur(20px);
+    -webkit-backdrop-filter:blur(20px);
+    border:1px solid rgba(255,255,255,.10);border-radius:12px;
+    box-shadow:0 8px 32px rgba(0,0,0,.4);
+    animation:lbDdFadeIn .15s ease-out;
+}
+.qc-dd-opt{
+    display:flex;justify-content:space-between;align-items:center;
+    width:100%;padding:8px 12px;
+    border:0;border-radius:8px;background:transparent;
+    font-size:11px;font-weight:400;color:rgba(255,255,255,.8);
+    text-align:left;cursor:pointer;transition:background .15s ease;
+}
+.qc-dd-opt:hover{background:rgba(255,255,255,.10)}
+.qc-dd-opt.is-active{color:var(--lb-primary);font-weight:600}
+.qc-dd-opt.qc-dd-none{font-weight:500;color:rgba(255,255,255,.6)}
+.qc-dd-lufs{
+    font-size:9px;color:rgba(255,255,255,.40);
+    font-family:'JetBrains Mono',monospace;margin-left:8px;
+}
+.qc-dd-group{
+    padding:8px 12px 4px;
+    font-size:9px;font-weight:600;letter-spacing:1px;text-transform:uppercase;
+    color:rgba(255,255,255,.35);
+    border-top:1px solid rgba(255,255,255,.06);margin-top:4px;
+}
+.qc-dd-group:first-of-type{border-top:0;margin-top:0}
+
+@keyframes lbDdFadeIn{
+    from{opacity:0;transform:translateY(-4px)}
+    to  {opacity:1;transform:translateY(0)}
+}
 
 /* Status indicators */
 .status-cluster{display:flex;align-items:center;gap:6px;margin-left:auto}
@@ -1058,16 +1126,47 @@ html,body{width:100%;height:100%;overflow:hidden;background:#0d0a14;font-family:
                 <div class="listen-nub"></div>
             </div>
         </div>
-        <!-- Mode -->
-        <div class="mode-select">
-            <button class="mode-btn active" data-mode="Mix" onclick="setMode(this)">MIX</button>
-            <button class="mode-btn" data-mode="Mastering" onclick="setMode(this)">MASTER</button>
-            <button class="mode-btn" data-mode="Production" onclick="setMode(this)">PROD</button>
-            <button class="mode-btn" data-mode="Podcast" onclick="setMode(this)">POD</button>
-            <button class="mode-btn" data-mode="Film" onclick="setMode(this)">FILM</button>
+        <!-- Mode dropdown — matches App.jsx live build (pill + chevron, panel below) -->
+        <div class="mode-dd-wrap" id="modeDdWrap">
+            <span class="mode-dd-label">MODE:</span>
+            <button class="mode-dd-btn" id="modeDdBtn" onclick="toggleModeDd(event)">
+                <span id="modeDdValue">Mix</span>
+                <svg class="mode-dd-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+            <div class="mode-dd-panel" id="modeDdPanel" hidden>
+                <button class="mode-dd-opt is-active" data-mode="mix"        onclick="setMode2('mix')">Mix</button>
+                <button class="mode-dd-opt"            data-mode="mastering"  onclick="setMode2('mastering')">Mastering</button>
+                <button class="mode-dd-opt"            data-mode="production" onclick="setMode2('production')">Production</button>
+                <button class="mode-dd-opt"            data-mode="podcast"    onclick="setMode2('podcast')">Podcast</button>
+                <button class="mode-dd-opt"            data-mode="film"       onclick="setMode2('film')">Film</button>
+                <button class="mode-dd-opt"            data-mode="commercial" onclick="setMode2('commercial')">Commercial</button>
+            </div>
         </div>
-        <!-- QC -->
-        <div class="qc-badge" onclick="toggleQcExpand()">QC: <span style="color:var(--lb-secondary)">Spotify</span></div>
+
+        <!-- QC dropdown — matches DeliveryDropdown.jsx (label + pill + grouped panel) -->
+        <div class="qc-dd-wrap" id="qcDdWrap">
+            <span class="qc-dd-label">QC:</span>
+            <button class="qc-dd-btn" id="qcDdBtn" onclick="toggleQcDd(event)">
+                <span id="qcDdValue">Spotify</span>
+                <svg class="qc-dd-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+            <div class="qc-dd-panel" id="qcDdPanel" hidden>
+                <button class="qc-dd-opt qc-dd-none" data-qc=""                  onclick="setQc2('','No QC')">No QC Check</button>
+                <div class="qc-dd-group">Streaming</div>
+                <button class="qc-dd-opt is-active" data-qc="spotify"            onclick="setQc2('spotify','Spotify')"><span>Spotify</span><span class="qc-dd-lufs">−14.0 LUFS</span></button>
+                <button class="qc-dd-opt"           data-qc="apple"              onclick="setQc2('apple','Apple Music')"><span>Apple Music</span><span class="qc-dd-lufs">−16.0 LUFS</span></button>
+                <button class="qc-dd-opt"           data-qc="youtube"            onclick="setQc2('youtube','YouTube')"><span>YouTube</span><span class="qc-dd-lufs">−14.0 LUFS</span></button>
+                <button class="qc-dd-opt"           data-qc="tidal"              onclick="setQc2('tidal','Tidal')"><span>Tidal</span><span class="qc-dd-lufs">−14.0 LUFS</span></button>
+                <div class="qc-dd-group">Broadcast</div>
+                <button class="qc-dd-opt"           data-qc="us_tv"              onclick="setQc2('us_tv','US TV')"><span>US TV Broadcast</span><span class="qc-dd-lufs">−24.0 LUFS</span></button>
+                <button class="qc-dd-opt"           data-qc="eu_tv"              onclick="setQc2('eu_tv','EU TV')"><span>EU TV Broadcast</span><span class="qc-dd-lufs">−23.0 LUFS</span></button>
+                <button class="qc-dd-opt"           data-qc="podcast_general"    onclick="setQc2('podcast_general','Podcast')"><span>Podcast (General)</span><span class="qc-dd-lufs">−16.0 LUFS</span></button>
+                <button class="qc-dd-opt"           data-qc="podcast_ad"         onclick="setQc2('podcast_ad','Podcast Ad')"><span>Podcast Ad</span><span class="qc-dd-lufs">−18.0 LUFS</span></button>
+                <div class="qc-dd-group">OTT / Theatrical</div>
+                <button class="qc-dd-opt"           data-qc="netflix"            onclick="setQc2('netflix','OTT/Stream')"><span>OTT (Netflix)</span><span class="qc-dd-lufs">−27.0 LUFS</span></button>
+                <button class="qc-dd-opt"           data-qc="theatrical"         onclick="setQc2('theatrical','Theatrical')"><span>Theatrical</span><span class="qc-dd-lufs">−31.0 LUFS</span></button>
+            </div>
+        </div>
         <!-- Status -->
         <div class="status-cluster">
             <div class="status-dot-live" id="statusDot"></div>
@@ -1598,19 +1697,76 @@ function toggleListen(){
     document.getElementById('vizDot').classList.toggle('off',!isListening);
     document.getElementById('vizStatus').textContent = isListening?'Live':'Idle';
 }
+// ===== Mode + QC dropdowns (matching live App.jsx + DeliveryDropdown.jsx) =====
 let currentModeName = 'Mix';
-function setMode(btn){
-    document.querySelectorAll('.mode-btn').forEach(b=>b.classList.remove('active'));
-    btn.classList.add('active');
-    currentModeName = btn.dataset.mode;
+function toggleModeDd(ev){
+    if (ev) ev.stopPropagation();
+    const panel = document.getElementById('modeDdPanel');
+    const btn   = document.getElementById('modeDdBtn');
+    const open  = !panel.hasAttribute('hidden');
+    if (open) { panel.setAttribute('hidden',''); btn.setAttribute('aria-expanded','false'); }
+    else      { panel.removeAttribute('hidden'); btn.setAttribute('aria-expanded','true'); closeQcDd(); }
+}
+function closeModeDd(){
+    const panel = document.getElementById('modeDdPanel');
+    const btn   = document.getElementById('modeDdBtn');
+    if (panel) panel.setAttribute('hidden','');
+    if (btn)   btn.setAttribute('aria-expanded','false');
+}
+function setMode2(modeKey){
+    const labels = {mix:'Mix', mastering:'Mastering', production:'Production',
+                    podcast:'Podcast', film:'Film', commercial:'Commercial'};
+    currentModeName = labels[modeKey] || 'Mix';
+    document.getElementById('modeDdValue').textContent = currentModeName;
+    document.querySelectorAll('.mode-dd-opt').forEach(o => {
+        o.classList.toggle('is-active', o.dataset.mode === modeKey);
+    });
     document.getElementById('sbMsg').textContent = 'Ready \u00b7 '+currentBuddy.label+' \u00b7 '+currentModeName+' Mode';
-    // Show brief loading transition
+    closeModeDd();
+    // Brief loading transition (matches the live plugin's mode-switch animation)
     const overlay = document.getElementById('loadingOverlay');
     document.getElementById('loadingText').textContent = 'Switching to '+currentModeName+'...';
     document.getElementById('loadingSub').textContent = '';
     overlay.style.display='flex';
     setTimeout(()=>{overlay.style.display='none'},600);
 }
+
+let currentQcLabel = 'Spotify';
+function toggleQcDd(ev){
+    if (ev) ev.stopPropagation();
+    const panel = document.getElementById('qcDdPanel');
+    const btn   = document.getElementById('qcDdBtn');
+    const open  = !panel.hasAttribute('hidden');
+    if (open) { panel.setAttribute('hidden',''); btn.setAttribute('aria-expanded','false'); }
+    else      { panel.removeAttribute('hidden'); btn.setAttribute('aria-expanded','true'); closeModeDd(); }
+}
+function closeQcDd(){
+    const panel = document.getElementById('qcDdPanel');
+    const btn   = document.getElementById('qcDdBtn');
+    if (panel) panel.setAttribute('hidden','');
+    if (btn)   btn.setAttribute('aria-expanded','false');
+}
+function setQc2(qcKey, displayName){
+    currentQcLabel = displayName;
+    document.getElementById('qcDdValue').textContent = displayName;
+    document.querySelectorAll('.qc-dd-opt').forEach(o => {
+        o.classList.toggle('is-active', o.dataset.qc === qcKey);
+    });
+    closeQcDd();
+}
+
+// Close dropdowns when clicking outside
+document.addEventListener('click', (e) => {
+    if (!e.target.closest('#modeDdWrap')) closeModeDd();
+    if (!e.target.closest('#qcDdWrap'))   closeQcDd();
+});
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') { closeModeDd(); closeQcDd(); }
+});
+
+// Legacy stub \u2014 old onclick="setMode(btn)" is gone but keep the function so any
+// older inline handler doesn't throw.
+function setMode(btn){ /* deprecated: use setMode2(modeKey) */ }
 function toggleCat(idx){
     const body = document.getElementById('catBody'+idx);
     const chev = document.getElementById('catChev'+idx);
