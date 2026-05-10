@@ -1,0 +1,2736 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Listen Buddy + ATLE Engine Prototype</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;700&family=Montserrat:wght@700;800&family=DM+Sans:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=Syne:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+/* ================================================================
+   LISTEN BUDDY THEME TOKENS — exact match from index.css
+   ================================================================ */
+:root {
+    --background: #1a1625;
+    --foreground: #e8e6ed;
+    --card: #211d2b;
+    --card-foreground: #e8e6ed;
+    --muted: #262131;
+    --muted-foreground: #8b8498;
+    --border: #3a3347;
+    --lb-primary: #a855f7;
+    --lb-primary-dim: #7c3aed;
+    --lb-secondary: #22d3ee;
+    --lb-secondary-dim: #06b6d4;
+    --lb-accent: #c084fc;
+    --lb-glow: rgba(168, 85, 247, 0.5);
+    --lb-surface: #211d2b;
+    --lb-surface-elevated: #2a2438;
+    /* ATLE engine vars */
+    --atle-fx: 0px; --atle-fy: 0px;
+    --atle-ang: 0deg; --atle-scale: 1; --atle-spin: 0;
+}
+.theme-sunset { --lb-primary:#f97316;--lb-primary-dim:#ea580c;--lb-secondary:#ec4899;--lb-secondary-dim:#db2777;--lb-glow:rgba(249,115,22,0.5);--lb-accent:#fb923c; }
+.theme-cyber { --lb-primary:#22c55e;--lb-primary-dim:#16a34a;--lb-secondary:#3b82f6;--lb-secondary-dim:#2563eb;--lb-glow:rgba(34,197,94,0.5);--lb-accent:#4ade80; }
+.theme-rosso { --lb-primary:#ef4444;--lb-primary-dim:#dc2626;--lb-secondary:#f97316;--lb-secondary-dim:#ea580c;--lb-glow:rgba(239,68,68,0.5);--lb-accent:#f87171; }
+.theme-amarillo { --lb-primary:#f59e0b;--lb-primary-dim:#d97706;--lb-secondary:#fbbf24;--lb-secondary-dim:#f59e0b;--lb-glow:rgba(245,158,11,0.5);--lb-accent:#fcd34d; }
+
+/* ================================================================
+   RESET
+   ================================================================ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden;background:#0d0a14;font-family:'Outfit','Inter',sans-serif;color:var(--foreground);-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility;user-select:none}
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--lb-primary-dim);border-radius:2px;opacity:.6}
+::-webkit-scrollbar-thumb:hover{background:var(--lb-primary)}
+
+/* ================================================================
+   AURORA CANVAS
+   ================================================================ */
+.aurora-canvas{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none}
+
+/* ================================================================
+   PLUGIN FRAME — 950x620 like real Listen Buddy
+   ================================================================ */
+.plugin-frame{
+    position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) translateZ(0);
+    width:960px;height:640px;
+    background:var(--background);border:1px solid var(--border);
+    border-radius:16px;box-shadow:0 40px 120px rgba(0,0,0,.7);
+    z-index:10;display:flex;flex-direction:column;overflow:hidden;
+    transition:width .4s cubic-bezier(.33,1,.68,1),height .4s cubic-bezier(.33,1,.68,1);
+}
+.plugin-frame.compact{width:530px;height:720px}
+
+/* ================================================================
+   HEADER — 56px compact / 64px expanded
+   ================================================================ */
+.lb-header{
+    display:flex;justify-content:space-between;align-items:center;
+    padding:0 16px;height:72px;flex-shrink:0;
+    background:rgba(26,22,37,.8);backdrop-filter:blur(12px);
+    border-bottom:1px solid rgba(255,255,255,.06);
+    position:relative;overflow:visible;z-index:100;
+}
+.compact .lb-header{height:62px}
+/* Flash overlay on buddy switch */
+.header-flash{
+    position:absolute;top:0;left:0;right:0;bottom:0;
+    pointer-events:none;opacity:0;z-index:2;
+    border-radius:16px 16px 0 0;
+}
+.header-flash.active{animation:flashFade .3s ease-out forwards}
+@keyframes flashFade{0%{opacity:.4}100%{opacity:0}}
+/* Subtle glow line */
+.header-glow{
+    position:absolute;bottom:0;left:0;right:0;height:1px;
+    background:linear-gradient(90deg,transparent,var(--lb-primary),var(--lb-secondary),transparent);
+    opacity:.3;
+}
+
+/* Header sections */
+.header-left{display:flex;align-items:center;gap:8px;min-width:120px}
+.header-center{display:flex;align-items:center;gap:6px;position:absolute;left:50%;transform:translateX(-50%)}
+.header-right{display:flex;align-items:center;gap:8px}
+
+/* Bot icon — ATLE-driven SVG mascot */
+.bot-icon{
+    width:56px;height:56px;position:relative;
+    flex-shrink:0;
+    /* ATLE: gentle physical float + scale breathing */
+    transform: translate(calc(var(--atle-fx) * 0.15), calc(var(--atle-fy) * 0.15))
+               scale(var(--atle-scale));
+    filter: drop-shadow(0 0 6px var(--lb-glow));
+}
+.bot-icon svg{width:100%;height:100%;display:block}
+
+/* Brand — ATLE Riemannian Text Boundary */
+.brand-text{
+    font-family:'Montserrat',sans-serif;font-size:20px;font-weight:800;
+    letter-spacing:calc(1.5px + var(--atle-scale) * 0.12px);
+    color:var(--foreground);
+    will-change:letter-spacing;
+    -webkit-font-smoothing:antialiased;
+}
+.compact .brand-text{font-size:16px}
+.version-badge{
+    font-family:'JetBrains Mono';font-size:9px;font-weight:700;
+    color:var(--muted-foreground);
+    letter-spacing:calc(1px + var(--atle-scale) * 0.06px);
+}
+
+/* ================================================================
+   BUDDY SELECTOR — pill trigger + dropdown + hovercards
+   ================================================================ */
+.buddy-trigger{
+    display:flex;align-items:center;gap:6px;
+    padding:6px 12px;border-radius:20px;cursor:pointer;
+    background:rgba(0,0,0,.25);border:1px solid transparent;
+    transition:all .2s;font-size:12px;font-weight:700;
+}
+.buddy-trigger:hover{background:rgba(0,0,0,.4)}
+.buddy-dot{width:6px;height:6px;border-radius:50%}
+.buddy-chevron{
+    width:10px;height:10px;transition:transform .2s;
+    fill:none;stroke:var(--muted-foreground);stroke-width:2;
+}
+.buddy-chevron.open{transform:rotate(180deg)}
+
+/* Dropdown */
+.buddy-dropdown{
+    position:fixed;z-index:10000;
+    background:rgba(30,25,40,.95);backdrop-filter:blur(20px);
+    border:1px solid rgba(255,255,255,.1);border-radius:10px;
+    padding:6px;min-width:130px;
+    box-shadow:0 8px 32px rgba(0,0,0,.4);
+    animation:ddFadeIn .2s ease-out;
+}
+@keyframes ddFadeIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+.buddy-option{
+    display:flex;align-items:center;gap:8px;
+    padding:8px 12px;border-radius:8px;cursor:pointer;
+    font-size:12px;font-weight:600;color:rgba(255,255,255,.6);
+    transition:background .15s;
+}
+.buddy-option:hover{background:rgba(255,255,255,.1)}
+.buddy-option.selected{color:#fff;font-weight:700}
+.buddy-option .tag{
+    font-size:9px;padding:1px 5px;border-radius:4px;
+    background:rgba(255,255,255,.08);color:rgba(255,255,255,.5);
+    margin-left:auto;
+}
+/* Hovercard */
+.buddy-hovercard{
+    position:fixed;z-index:10001;width:220px;padding:14px;
+    background:rgba(25,20,38,.97);backdrop-filter:blur(16px);
+    border:1px solid rgba(255,255,255,.1);border-radius:14px;
+    box-shadow:0 12px 40px rgba(0,0,0,.5);
+    animation:hcFadeIn .15s ease-out;pointer-events:none;
+}
+@keyframes hcFadeIn{from{opacity:0;transform:translateX(6px)}to{opacity:1;transform:translateX(0)}}
+.hc-header{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.hc-divider{height:1px;margin-bottom:8px}
+.hc-desc{font-size:11px;line-height:1.5;color:var(--muted-foreground)}
+
+/* Buddy notification popup */
+.buddy-notif{
+    position:fixed;z-index:10002;
+    top:80px;left:50%;transform:translateX(-50%) scale(.5);
+    background:rgba(20,16,32,.95);backdrop-filter:blur(20px);
+    border:1px solid rgba(255,255,255,.15);border-radius:16px;
+    padding:12px 24px;display:flex;align-items:center;gap:12px;
+    box-shadow:0 12px 40px rgba(0,0,0,.6);
+    opacity:0;pointer-events:none;transition:none;
+}
+.buddy-notif.show{
+    animation:notifSpring .4s cubic-bezier(.34,1.56,.64,1) forwards;
+}
+@keyframes notifSpring{to{opacity:1;transform:translateX(-50%) scale(1)}}
+.notif-progress{
+    position:absolute;bottom:0;left:0;height:2px;border-radius:0 0 16px 16px;
+    animation:notifProg 2s linear forwards;
+}
+@keyframes notifProg{from{width:100%}to{width:0%}}
+
+/* ================================================================
+   COMPACT TOGGLE
+   ================================================================ */
+.compact-toggle{
+    width:28px;height:28px;border-radius:8px;border:1px solid rgba(255,255,255,.1);
+    background:rgba(255,255,255,.04);cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
+    transition:background .2s;
+}
+.compact-toggle:hover{background:rgba(255,255,255,.1)}
+.compact-toggle svg{width:14px;height:14px;stroke:var(--muted-foreground);fill:none;stroke-width:2}
+
+/* User avatar */
+.user-btn{
+    width:30px;height:30px;border-radius:50%;
+    background:var(--lb-surface-elevated);border:1px solid var(--border);
+    display:flex;align-items:center;justify-content:center;
+    font-size:11px;font-weight:700;color:var(--muted-foreground);
+    cursor:pointer;transition:border-color .2s;
+}
+.user-btn:hover{border-color:var(--lb-primary)}
+
+/* ================================================================
+   ACTION BAR — analyze, listen, mode, delivery qc
+   ================================================================ */
+.action-bar{
+    display:flex;align-items:center;gap:8px;
+    padding:6px 16px;height:48px;flex-shrink:0;
+    border-bottom:1px solid rgba(255,255,255,.05);
+    background:rgba(0,0,0,.15);
+}
+.compact .action-bar{height:44px;flex-wrap:wrap;gap:6px;padding:6px 12px}
+
+/* Analyze button — ATLE conic border */
+.analyze-wrap{position:relative;padding:2px;border-radius:10px;flex-shrink:0}
+.analyze-border{
+    position:absolute;inset:0;border-radius:10px;pointer-events:none;
+    background:conic-gradient(from var(--atle-ang),var(--lb-primary),transparent 25%,transparent 75%,var(--lb-secondary));
+    -webkit-mask-image:linear-gradient(#fff 0 0),linear-gradient(#fff 0 0);
+    -webkit-mask-clip:padding-box,border-box;-webkit-mask-composite:destination-out;
+    padding:2px;
+}
+.analyze-btn{
+    position:relative;z-index:1;
+    background:linear-gradient(135deg,var(--lb-primary-dim),var(--lb-primary));
+    color:#fff;font-family:'Inter';font-size:12px;font-weight:700;
+    letter-spacing:.8px;padding:8px 20px;border:none;border-radius:8px;
+    cursor:pointer;box-shadow:0 0 16px var(--lb-glow);
+    transform:translate(calc(var(--atle-fx) * .3),calc(var(--atle-fy) * .3));
+    transition:box-shadow .2s;
+}
+.analyze-btn:hover{box-shadow:0 0 24px var(--lb-glow),0 0 32px var(--lb-glow)}
+.analyze-btn.analyzing{opacity:.7;cursor:wait}
+/* Sparkle on analyze */
+.analyze-sparkle{
+    position:absolute;top:-4px;right:-4px;width:16px;height:16px;
+    pointer-events:none;opacity:0;
+}
+.analyze-sparkle.show{animation:sparkleFloat .6s ease-out forwards}
+@keyframes sparkleFloat{0%{opacity:1;transform:scale(.5) translateY(0)}100%{opacity:0;transform:scale(1.2) translateY(-12px)}}
+
+/* Listen toggle */
+.listen-section{display:flex;align-items:center;gap:6px}
+.listen-label{font-size:10px;font-weight:600;color:var(--muted-foreground);letter-spacing:.5px}
+.listen-switch{
+    width:40px;height:20px;background:rgba(255,255,255,.08);
+    border-radius:10px;position:relative;cursor:pointer;
+    border:1px solid var(--border);transition:border-color .3s,box-shadow .3s;
+}
+.listen-switch.active{border-color:rgba(34,197,94,.5);box-shadow:0 0 8px rgba(34,197,94,.2)}
+.listen-nub{
+    position:absolute;top:2px;left:2px;width:14px;height:14px;
+    background:#fff;border-radius:50%;
+    transition:left .35s cubic-bezier(.33,1,.68,1),background .3s;
+    transform:scale(var(--atle-scale));
+    box-shadow:0 1px 4px rgba(0,0,0,.5);
+}
+.listen-switch.active .listen-nub{left:22px;background:#22c55e;box-shadow:0 0 8px rgba(34,197,94,.5)}
+
+/* Mode selector */
+.mode-select{
+    display:flex;align-items:center;gap:4px;position:relative;
+}
+.mode-btn{
+    font-size:10px;font-weight:600;color:var(--muted-foreground);
+    background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);
+    padding:4px 10px;border-radius:6px;cursor:pointer;
+    transition:all .2s;letter-spacing:.5px;
+}
+.mode-btn:hover{background:rgba(255,255,255,.08)}
+.mode-btn.active{color:var(--lb-primary);border-color:rgba(168,85,247,.3);background:rgba(168,85,247,.08)}
+
+/* Delivery QC badge */
+.qc-badge{
+    display:flex;align-items:center;gap:4px;
+    font-size:9px;font-weight:700;letter-spacing:.8px;
+    color:var(--muted-foreground);
+    padding:4px 8px;border-radius:12px;
+    background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);
+    cursor:pointer;transition:all .2s;
+}
+.qc-badge:hover{border-color:var(--lb-primary);color:var(--lb-primary)}
+
+/* Status indicators */
+.status-cluster{display:flex;align-items:center;gap:6px;margin-left:auto}
+.status-dot-live{
+    width:6px;height:6px;border-radius:50%;background:#22c55e;
+    box-shadow:0 0 8px rgba(34,197,94,.6);
+    transform:scale(calc(var(--atle-scale) * 1.15));
+}
+.status-dot-live.idle{background:rgba(255,255,255,.2);box-shadow:none}
+.status-text{font-family:'JetBrains Mono';font-size:9px;color:var(--muted-foreground);letter-spacing:calc(0.5px + var(--atle-scale) * 0.05px)}
+
+/* ================================================================
+   MAIN CONTENT — 3 columns expanded / stacked compact
+   ================================================================ */
+.main-content{display:flex;flex:1;overflow:hidden}
+.compact .main-content{flex-direction:column}
+
+/* LEFT COLUMN — metering panel (170px) */
+.left-col{
+    width:170px;flex-shrink:0;display:flex;flex-direction:column;
+    padding:8px;gap:6px;
+    border-right:1px solid rgba(255,255,255,.05);
+    overflow:hidden;
+}
+.compact .left-col{
+    width:100%;flex-direction:row;height:auto;
+    border-right:none;border-bottom:1px solid rgba(255,255,255,.05);
+    padding:6px 12px;gap:8px;align-items:stretch;
+}
+
+/* Glass card */
+.glass-card{
+    background:rgba(255,255,255,.04);backdrop-filter:blur(16px);
+    border:1px solid rgba(255,255,255,.06);border-radius:12px;
+    padding:10px;
+}
+
+/* Listening status card */
+.listen-status{display:flex;align-items:center;gap:8px}
+.listen-icon-box{
+    width:32px;height:32px;border-radius:8px;
+    display:flex;align-items:center;justify-content:center;
+    transition:all .3s;
+}
+.listen-icon-box.on{
+    background:linear-gradient(135deg,rgba(168,85,247,.3),rgba(34,211,238,.2));
+    box-shadow:0 0 15px var(--lb-glow);
+}
+.listen-icon-box.off{background:rgba(255,255,255,.05)}
+.listen-info .title{font-size:11px;font-weight:600;transition:color .3s}
+.listen-info .sub{font-size:9px;color:var(--muted-foreground)}
+
+/* Sound wave icon */
+.sound-bars{display:flex;align-items:flex-end;gap:1px;height:14px}
+.sound-bar{width:2px;background:var(--lb-primary);border-radius:1px;transition:height .15s}
+
+/* Talk with LB button */
+.talk-btn{
+    width:100%;display:flex;align-items:center;gap:8px;
+    padding:10px 12px;border-radius:12px;border:none;cursor:pointer;
+    background:linear-gradient(135deg,var(--lb-primary),var(--lb-secondary));
+    background-size:200% 200%;
+    box-shadow:0 0 20px var(--lb-glow),0 4px 12px rgba(0,0,0,.3);
+    transition:all .3s;position:relative;overflow:hidden;
+    flex-shrink:0;
+}
+.talk-btn:hover{transform:scale(1.02);filter:brightness(1.1)}
+.talk-btn:active{transform:scale(.98)}
+.talk-btn .label{font-size:10px;font-weight:700;color:#fff}
+.talk-btn .sublabel{font-size:7px;color:rgba(255,255,255,.7)}
+/* Shimmer */
+.talk-btn::after{
+    content:'';position:absolute;top:0;left:-100%;width:200%;height:100%;
+    background:linear-gradient(90deg,transparent,rgba(255,255,255,.15),transparent);
+    transition:left .6s;
+}
+.talk-btn:hover::after{left:100%}
+/* Live bars in button */
+.talk-bars{display:flex;align-items:flex-end;gap:1px;height:14px}
+.talk-bar{width:3px;background:#fff;border-radius:1.5px}
+
+/* Visualizer — WebGL 3D Radial Bars */
+.viz-wrap{
+    flex:1;display:flex;align-items:center;justify-content:center;
+    position:relative;min-height:0;
+    border-radius:12px;overflow:hidden;
+    image-rendering:auto;
+}
+.viz-wrap canvas{width:100%;height:100%;display:block;border-radius:12px}
+.viz-center{
+    position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+    text-align:center;pointer-events:none;z-index:2;
+}
+.viz-db{
+    font-family:'JetBrains Mono';font-size:18px;font-weight:700;
+    color:#fff;
+    text-shadow:0 0 20px rgba(0,243,255,.6),0 0 40px rgba(0,243,255,.3);
+    transform:scale(var(--atle-scale));
+}
+.viz-unit{font-size:8px;font-weight:600;letter-spacing:1.5px;color:rgba(255,255,255,.6)}
+/* Status badge on visualizer */
+.viz-badge{
+    position:absolute;top:6px;right:6px;z-index:2;
+    display:flex;align-items:center;gap:4px;
+    padding:2px 8px;border-radius:10px;
+    background:rgba(0,243,255,.1);font-size:9px;font-weight:600;
+    backdrop-filter:blur(8px);
+}
+.viz-badge-dot{width:5px;height:5px;border-radius:50%}
+.viz-badge-dot.on{background:#00f3ff;animation:pulse 1.5s infinite;box-shadow:0 0 6px #00f3ff}
+.viz-badge-dot.off{background:rgba(255,255,255,.3)}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.7;transform:scale(1.15)}}
+
+/* Viz mode switcher */
+.viz-modes{
+    position:absolute;bottom:6px;left:50%;transform:translateX(-50%);z-index:3;
+    display:flex;gap:3px;
+    background:rgba(0,0,0,.5);backdrop-filter:blur(8px);
+    border-radius:10px;padding:2px;border:1px solid rgba(255,255,255,.08);
+}
+.viz-mode-btn{
+    font-size:7px;font-weight:700;letter-spacing:.5px;
+    padding:3px 8px;border-radius:8px;border:none;cursor:pointer;
+    background:transparent;color:rgba(255,255,255,.4);
+    transition:all .2s;font-family:'JetBrains Mono';
+}
+.viz-mode-btn:hover{color:rgba(255,255,255,.7)}
+.viz-mode-btn.active{
+    background:rgba(168,85,247,.2);color:#fff;
+    box-shadow:0 0 8px rgba(168,85,247,.3);
+}
+
+/* Pearl-iridescent meter fills */
+.spec-meter-fill.pearl{
+    background:linear-gradient(90deg,
+        rgba(0,60,120,.8),
+        rgba(0,150,255,.9),
+        rgba(0,243,255,1),
+        rgba(180,0,255,.7),
+        rgba(0,243,255,.9)
+    );
+    background-size:300% 100%;
+    animation:pearlShimmer 3s linear infinite;
+}
+@keyframes pearlShimmer{0%{background-position:0% 50%}100%{background-position:300% 50%}}
+
+/* Mini spectrum pearl glow */
+.mini-bar.pearl{
+    background:linear-gradient(180deg,#00f3ff,rgba(180,0,255,.6),rgba(0,100,200,.3));
+}
+.mini-bar.pearl.hot{
+    box-shadow:0 0 8px rgba(0,243,255,.5),0 -4px 12px rgba(180,0,255,.3);
+}
+
+/* ================================================================
+   CENTER COLUMN — analysis panel
+   ================================================================ */
+.center-col{
+    flex:1;display:flex;flex-direction:column;
+    padding:8px 12px;overflow:hidden;
+    min-width:0;
+}
+.compact .center-col{padding:6px 12px;flex:1}
+
+/* Analysis scroll area */
+.analysis-scroll{
+    flex:1;overflow-y:auto;overflow-x:hidden;
+    padding-right:4px;
+}
+/* Section header */
+.section-hdr{
+    display:flex;align-items:center;gap:6px;margin-bottom:8px;
+}
+.section-hdr .dot{width:3px;height:14px;border-radius:2px;background:linear-gradient(180deg,var(--lb-primary),var(--lb-secondary))}
+.section-hdr .label{font-size:11px;font-weight:700;letter-spacing:calc(0.8px + var(--atle-scale) * 0.08px);color:var(--lb-primary)}
+
+/* Overall impression */
+.impression-box{
+    padding:10px 14px;border-radius:10px;margin-bottom:12px;
+    background:rgba(168,85,247,.05);border:1px solid rgba(168,85,247,.1);
+    font-size:12px;line-height:1.65;color:rgba(255,255,255,.85);
+    letter-spacing:calc(0px + var(--atle-scale) * 0.04px);
+}
+
+/* Traffic light summary */
+.traffic-light{
+    display:flex;align-items:center;gap:8px;
+    padding:8px 12px;border-radius:10px;margin-bottom:12px;
+    border:1px solid rgba(255,255,255,.06);
+}
+.tl-indicator{
+    width:10px;height:10px;border-radius:50%;flex-shrink:0;
+}
+.tl-indicator.great{background:#22c55e;box-shadow:0 0 8px rgba(34,197,94,.5)}
+.tl-indicator.good{background:#eab308;box-shadow:0 0 8px rgba(234,179,8,.5)}
+.tl-indicator.needs-work{background:#ef4444;box-shadow:0 0 8px rgba(239,68,68,.5)}
+.tl-text{font-size:11px;font-weight:600}
+.tl-count{font-size:9px;color:var(--muted-foreground);margin-left:auto;font-family:'JetBrains Mono'}
+
+/* Category card — ATLE levitating */
+.cat-card{
+    background:rgba(16,20,31,.5);
+    border:1px solid rgba(255,255,255,.06);border-radius:12px;
+    margin-bottom:8px;overflow:hidden;
+    backdrop-filter:blur(8px);
+    will-change:transform;
+    backface-visibility:hidden;
+    transform:translateY(calc(var(--atle-fy) * -1.5px))
+              rotateX(calc(var(--atle-fx) * .5deg))
+              rotateY(calc(var(--atle-fy) * .5deg))
+              translateZ(0);
+    box-shadow:0 calc(8px + var(--atle-fx) * 3px) 20px rgba(0,0,0,.4);
+    transition:border-color .2s;
+}
+.cat-card:hover{border-color:rgba(168,85,247,.2)}
+.cat-header{
+    display:flex;align-items:center;gap:8px;
+    padding:10px 14px;cursor:pointer;
+    transition:background .2s;
+}
+.cat-header:hover{background:rgba(255,255,255,.03)}
+.cat-icon{
+    width:28px;height:28px;border-radius:8px;
+    display:flex;align-items:center;justify-content:center;
+    font-size:13px;flex-shrink:0;
+}
+.cat-title{font-size:12px;font-weight:700;letter-spacing:calc(0.3px + var(--atle-scale) * 0.05px);flex:1}
+.cat-count{
+    font-size:9px;font-weight:700;padding:2px 6px;border-radius:8px;
+    background:rgba(255,255,255,.06);color:var(--muted-foreground);
+}
+.cat-chevron{
+    width:12px;height:12px;transition:transform .2s;
+    fill:none;stroke:var(--muted-foreground);stroke-width:2;
+}
+.cat-chevron.open{transform:rotate(180deg)}
+.cat-body{
+    padding:0 14px 12px;
+    font-size:12px;line-height:1.65;color:rgba(255,255,255,.8);
+    letter-spacing:calc(0px + var(--atle-scale) * 0.03px);
+    display:none;
+}
+.cat-body.open{display:block}
+
+/* QC Results */
+.qc-card{
+    border-radius:12px;overflow:hidden;margin-bottom:8px;
+    border:1px solid rgba(255,255,255,.06);
+}
+.qc-header{
+    display:flex;align-items:center;gap:10px;
+    padding:12px 14px;cursor:pointer;
+    transition:background .2s;
+}
+.qc-header:hover{background:rgba(255,255,255,.03)}
+.qc-icon-badge{
+    width:36px;height:36px;border-radius:10px;
+    display:flex;align-items:center;justify-content:center;
+    font-size:16px;
+}
+.qc-title{font-size:13px;font-weight:700;flex:1}
+.qc-status{
+    font-size:9px;font-weight:700;padding:2px 8px;border-radius:6px;letter-spacing:.8px;
+}
+.qc-body{padding:0 14px 14px;display:none}
+.qc-body.open{display:block}
+.qc-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.qc-metric{
+    padding:10px;border-radius:10px;
+    border:1px solid rgba(255,255,255,.06);
+}
+.qc-metric-label{font-size:9px;font-weight:700;letter-spacing:calc(1px + var(--atle-scale) * 0.06px);margin-bottom:4px}
+.qc-metric-val{font-family:'JetBrains Mono';font-size:18px;font-weight:700}
+.qc-metric-target{font-size:9px;color:var(--muted-foreground);margin-top:2px}
+.qc-metric-delta{
+    font-family:'JetBrains Mono';font-size:10px;font-weight:700;
+    padding:2px 6px;border-radius:4px;margin-top:4px;display:inline-block;
+}
+
+/* Suggestion chips */
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;padding:4px 0}
+.chip{
+    font-size:10px;font-weight:500;color:var(--foreground);
+    background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);
+    border-radius:20px;padding:5px 12px;cursor:pointer;
+    transition:all .2s;
+    transform:translateY(calc(var(--atle-fy) * -.8px)) translateZ(0);
+    will-change:transform;backface-visibility:hidden;
+}
+.chip:hover{background:rgba(168,85,247,.1);border-color:var(--lb-primary)}
+
+/* ================================================================
+   RIGHT COLUMN — spectrum panel (200px)
+   ================================================================ */
+.right-col{
+    width:200px;flex-shrink:0;display:flex;flex-direction:column;
+    padding:8px;gap:6px;
+    border-left:1px solid rgba(255,255,255,.05);
+    overflow-y:auto;
+}
+.compact .right-col{display:none}
+
+/* Spectrum glass cards */
+.spec-card{padding:10px}
+.spec-card .card-title{
+    font-size:9px;font-weight:700;letter-spacing:calc(1.2px + var(--atle-scale) * 0.06px);
+    color:var(--muted-foreground);margin-bottom:8px;
+}
+/* Loudness history canvas */
+.loudness-canvas{width:100%;height:50px;border-radius:6px;display:block}
+.lufs-readout{
+    display:flex;align-items:baseline;gap:4px;margin-top:4px;
+}
+.lufs-val{
+    font-family:'JetBrains Mono';font-size:20px;font-weight:700;
+    color:var(--lb-primary);
+    text-shadow:0 0 12px var(--lb-glow);
+}
+.lufs-unit{font-size:9px;color:var(--muted-foreground);font-weight:600}
+
+/* Meter bars */
+.spec-meter{display:flex;align-items:center;gap:6px;margin-bottom:6px}
+.spec-meter-label{font-size:9px;font-weight:600;color:var(--muted-foreground);min-width:32px;text-align:right}
+.spec-meter-track{
+    flex:1;height:5px;background:rgba(255,255,255,.06);
+    border-radius:3px;overflow:hidden;position:relative;
+}
+.spec-meter-fill{
+    height:100%;border-radius:3px;
+    background:linear-gradient(90deg,var(--lb-secondary-dim),var(--lb-primary));
+    transition:width .15s;position:relative;
+}
+/* ATLE shimmer on meter fills */
+.spec-meter-fill::after{
+    content:'';position:absolute;top:0;bottom:0;width:60%;
+    background:linear-gradient(90deg,transparent,rgba(255,255,255,.2),transparent);
+    transform:translateX(calc(var(--atle-fx) * 25));
+}
+.spec-meter-val{
+    font-family:'JetBrains Mono';font-size:9px;font-weight:700;
+    color:var(--foreground);min-width:36px;
+}
+
+/* Mini spectrum bars */
+.mini-spectrum{display:flex;align-items:flex-end;justify-content:space-between;height:32px;gap:2px;padding:0 2px}
+.mini-bar{
+    flex:1;border-radius:2px 2px 0 0;transition:height .3s;
+    background:linear-gradient(180deg,var(--lb-primary),rgba(34,211,238,.4));
+    min-height:3px;
+}
+
+/* Metrics list */
+.metric-row{
+    display:flex;justify-content:space-between;align-items:center;
+    padding:4px 0;border-bottom:1px solid rgba(255,255,255,.04);
+}
+.metric-row:last-child{border-bottom:none}
+.metric-label{font-size:9px;color:var(--muted-foreground)}
+.metric-val{font-family:'JetBrains Mono';font-size:10px;font-weight:700}
+
+/* Spatial map — ATLE-driven dots */
+.spatial-map{
+    width:100%;height:50px;border:1px solid rgba(255,255,255,.06);
+    background:rgba(0,0,0,.3);border-radius:8px;
+    position:relative;overflow:hidden;margin-top:4px;
+}
+.spatial-map::before{content:'';position:absolute;top:0;left:50%;width:1px;height:100%;background:rgba(255,255,255,.06)}
+.spatial-map::after{content:'';position:absolute;top:50%;left:0;width:100%;height:1px;background:rgba(255,255,255,.06)}
+.spatial-dot{
+    position:absolute;width:8px;height:8px;background:var(--lb-primary);border-radius:50%;
+    top:50%;left:50%;
+    transform:translate(calc(-50% + var(--atle-fx) * 12),calc(-50% + var(--atle-fy) * -12));
+    box-shadow:0 0 10px var(--lb-glow);
+}
+.spatial-dot-2{
+    position:absolute;width:6px;height:6px;background:var(--lb-secondary);border-radius:50%;
+    top:50%;left:50%;
+    transform:translate(calc(-50% - var(--atle-fy) * 10),calc(-50% + var(--atle-fx) * 8));
+    box-shadow:0 0 8px var(--lb-secondary);
+}
+.spatial-label{
+    position:absolute;top:3px;left:5px;
+    font-family:'JetBrains Mono';font-size:7px;color:var(--muted-foreground);letter-spacing:.8px;
+}
+
+/* ================================================================
+   STATUS BAR — 30px footer
+   ================================================================ */
+.status-bar{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:0 16px;height:30px;flex-shrink:0;
+    background:rgba(0,0,0,.25);
+    border-top:1px solid rgba(255,255,255,.05);
+}
+.sb-left{display:flex;align-items:center;gap:8px}
+.sb-left .icon{width:12px;height:12px;fill:none;stroke:var(--lb-primary);stroke-width:2}
+.sb-text{font-size:10px;font-weight:700;color:var(--lb-primary);letter-spacing:calc(0px + var(--atle-scale) * 0.06px)}
+.sb-msg{font-size:9px;color:var(--muted-foreground);font-family:'JetBrains Mono'}
+.sb-right{display:flex;align-items:center;gap:12px}
+.atle-readout{display:flex;gap:12px;font-family:'JetBrains Mono';font-size:9px;color:var(--muted-foreground)}
+.atle-val{color:var(--lb-secondary);font-weight:700}
+
+/* ================================================================
+   CHAT POPUP — draggable, minimizable
+   ================================================================ */
+.chat-popup{
+    position:fixed;z-index:9999;width:340px;
+    background:rgba(26,22,37,.95);backdrop-filter:blur(20px);
+    border:1px solid rgba(255,255,255,.1);border-radius:16px;
+    box-shadow:0 20px 60px rgba(0,0,0,.6);
+    display:flex;flex-direction:column;overflow:hidden;
+    animation:chatIn .3s ease-out;
+}
+@keyframes chatIn{from{opacity:0;transform:scale(.9) translateY(10px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.chat-header{
+    display:flex;align-items:center;gap:8px;
+    padding:10px 14px;cursor:grab;
+    border-bottom:1px solid rgba(255,255,255,.06);
+    background:rgba(0,0,0,.2);
+}
+.chat-header:active{cursor:grabbing}
+.chat-title{font-size:12px;font-weight:700;flex:1}
+.chat-ctrl{
+    width:24px;height:24px;border-radius:6px;border:none;
+    background:rgba(255,255,255,.06);cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
+    font-size:12px;color:var(--muted-foreground);
+    transition:background .2s;
+}
+.chat-ctrl:hover{background:rgba(255,255,255,.12)}
+.chat-messages{
+    flex:1;overflow-y:auto;padding:10px 14px;
+    display:flex;flex-direction:column;gap:8px;
+    max-height:300px;min-height:200px;
+}
+.msg{
+    max-width:85%;padding:8px 12px;border-radius:12px;
+    font-size:12px;line-height:1.5;word-wrap:break-word;
+}
+.msg.user{
+    align-self:flex-end;
+    background:linear-gradient(135deg,var(--lb-primary-dim),var(--lb-primary));
+    color:#fff;border-bottom-right-radius:4px;
+}
+.msg.bot{
+    align-self:flex-start;
+    background:rgba(255,255,255,.06);color:var(--foreground);
+    border-bottom-left-radius:4px;
+}
+.msg.thinking{opacity:.6;font-style:italic}
+.chat-input-row{
+    display:flex;gap:6px;padding:10px 14px;
+    border-top:1px solid rgba(255,255,255,.06);
+}
+.chat-input{
+    flex:1;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);
+    border-radius:8px;padding:8px 12px;color:var(--foreground);
+    font-family:'Inter';font-size:12px;outline:none;
+}
+.chat-input:focus{border-color:var(--lb-primary)}
+.chat-send{
+    padding:8px 14px;border-radius:8px;border:none;
+    background:var(--lb-primary);color:#fff;font-weight:700;
+    font-size:11px;cursor:pointer;transition:background .2s;
+}
+.chat-send:hover{background:var(--lb-primary-dim)}
+/* Minimized pill */
+.chat-min-pill{
+    position:fixed;bottom:16px;right:16px;z-index:9998;
+    padding:8px 16px;border-radius:20px;cursor:pointer;
+    background:rgba(26,22,37,.9);backdrop-filter:blur(12px);
+    border:1px solid rgba(255,255,255,.1);
+    box-shadow:0 4px 20px rgba(0,0,0,.4);
+    font-size:11px;font-weight:600;color:var(--foreground);
+    display:flex;align-items:center;gap:6px;
+    transition:background .2s;
+}
+.chat-min-pill:hover{background:rgba(26,22,37,1)}
+
+/* ================================================================
+   LOADING OVERLAY
+   ================================================================ */
+.loading-overlay{
+    position:absolute;inset:0;z-index:1000;
+    background:rgba(26,22,37,.95);backdrop-filter:blur(8px);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    gap:16px;
+}
+.loading-overlay .wave-bars{display:flex;align-items:flex-end;gap:3px;height:50px}
+.loading-overlay .wave-bar{
+    width:4px;border-radius:2px;
+    background:linear-gradient(180deg,var(--lb-primary),var(--lb-secondary));
+    animation:waveBar 1.2s ease-in-out infinite;
+}
+@keyframes waveBar{0%,100%{height:8px;opacity:.3}50%{height:40px;opacity:1}}
+.loading-text{font-size:13px;font-weight:600;color:var(--foreground)}
+.loading-sub{font-size:10px;color:var(--muted-foreground)}
+
+/* ================================================================
+   ATLE CONTROLS — bottom strip
+   ================================================================ */
+.atle-strip{
+    position:fixed;bottom:16px;left:50%;transform:translateX(-50%);
+    z-index:100;display:flex;gap:10px;align-items:center;
+    background:rgba(10,10,20,.85);backdrop-filter:blur(16px);
+    border:1px solid rgba(255,255,255,.1);border-radius:20px;
+    padding:6px 16px;
+}
+.atle-strip-label{font-size:9px;font-weight:700;letter-spacing:1px;color:var(--muted-foreground);font-family:'JetBrains Mono'}
+.atle-pill{
+    font-size:9px;font-weight:700;letter-spacing:.8px;
+    padding:4px 12px;border-radius:12px;border:none;cursor:pointer;
+    transition:all .2s;font-family:'Inter';
+}
+.atle-pill.on{background:linear-gradient(135deg,var(--lb-primary),var(--lb-secondary));color:#fff;box-shadow:0 0 12px var(--lb-glow)}
+.atle-pill.off{background:rgba(255,255,255,.06);color:var(--muted-foreground)}
+.atle-slider-wrap{display:flex;align-items:center;gap:4px}
+.atle-slider{
+    -webkit-appearance:none;width:60px;background:transparent;
+}
+.atle-slider::-webkit-slider-runnable-track{height:3px;background:rgba(255,255,255,.1);border-radius:2px}
+.atle-slider::-webkit-slider-thumb{
+    -webkit-appearance:none;width:10px;height:10px;border-radius:50%;
+    background:var(--lb-secondary);margin-top:-3.5px;cursor:pointer;
+    box-shadow:0 0 8px var(--lb-secondary);
+}
+.atle-torque-val{font-family:'JetBrains Mono';font-size:9px;color:var(--lb-secondary);min-width:28px}
+
+/* Font tester strip */
+.font-strip{
+    position:fixed;bottom:50px;left:50%;transform:translateX(-50%);
+    z-index:100;display:flex;gap:6px;align-items:center;
+    background:rgba(10,10,20,.85);backdrop-filter:blur(16px);
+    border:1px solid rgba(255,255,255,.1);border-radius:20px;
+    padding:6px 14px;
+}
+.font-btn{
+    font-size:9px;font-weight:600;letter-spacing:.5px;
+    padding:4px 10px;border-radius:10px;border:none;cursor:pointer;
+    transition:all .2s;font-family:'Inter';
+    background:rgba(255,255,255,.06);color:rgba(255,255,255,.5);
+}
+.font-btn:hover{color:#fff;background:rgba(255,255,255,.12)}
+.font-btn.active{
+    background:linear-gradient(135deg,var(--lb-primary),var(--lb-secondary));
+    color:#fff;box-shadow:0 0 10px var(--lb-glow);
+}
+
+/* ================================================================
+   AUDIO PLAYER / FILE PICKER
+   ================================================================ */
+.player-section{
+    flex-shrink:0;display:flex;flex-direction:column;gap:4px;
+    padding:0 2px;
+}
+.file-picker-btn{
+    display:flex;align-items:center;gap:6px;
+    padding:8px 10px;border-radius:10px;border:1px dashed rgba(255,255,255,.12);
+    background:rgba(255,255,255,.02);cursor:pointer;
+    transition:all .2s;width:100%;
+}
+.file-picker-btn:hover{border-color:var(--lb-primary);background:rgba(168,85,247,.05)}
+.file-picker-btn .fp-icon{
+    width:28px;height:28px;border-radius:8px;
+    background:rgba(168,85,247,.12);
+    display:flex;align-items:center;justify-content:center;
+    flex-shrink:0;
+}
+.file-picker-btn .fp-icon svg{width:14px;height:14px;fill:none;stroke:var(--lb-primary);stroke-width:2}
+.file-picker-btn .fp-text{font-size:10px;font-weight:600;color:var(--muted-foreground)}
+.file-picker-btn .fp-name{font-size:10px;font-weight:600;color:var(--foreground);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100px}
+
+/* Transport controls */
+.transport{
+    display:flex;align-items:center;gap:6px;
+}
+.transport-btn{
+    width:28px;height:28px;border-radius:50%;border:none;
+    display:flex;align-items:center;justify-content:center;
+    cursor:pointer;transition:all .2s;flex-shrink:0;
+}
+.play-btn{
+    background:linear-gradient(135deg,var(--lb-primary),var(--lb-secondary));
+    box-shadow:0 0 12px var(--lb-glow);
+}
+.play-btn:hover{transform:scale(1.1);box-shadow:0 0 18px var(--lb-glow)}
+.play-btn:active{transform:scale(.95)}
+.play-btn svg{width:12px;height:12px;fill:#fff;stroke:none}
+.stop-btn{
+    background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);
+}
+.stop-btn:hover{background:rgba(255,255,255,.12)}
+.stop-btn svg{width:10px;height:10px;fill:var(--muted-foreground)}
+
+/* Progress bar */
+.progress-wrap{
+    flex:1;display:flex;flex-direction:column;gap:2px;min-width:0;
+}
+.progress-track{
+    width:100%;height:4px;background:rgba(255,255,255,.06);
+    border-radius:2px;overflow:hidden;cursor:pointer;position:relative;
+}
+.progress-fill{
+    height:100%;border-radius:2px;
+    background:linear-gradient(90deg,var(--lb-primary-dim),var(--lb-primary));
+    transition:width .1s;
+    /* ATLE shimmer */
+    position:relative;
+}
+.progress-fill::after{
+    content:'';position:absolute;top:0;bottom:0;width:40%;
+    background:linear-gradient(90deg,transparent,rgba(255,255,255,.3),transparent);
+    transform:translateX(calc(var(--atle-fx) * 20));
+}
+.progress-times{
+    display:flex;justify-content:space-between;
+    font-family:'JetBrains Mono';font-size:8px;color:var(--muted-foreground);
+}
+/* File name display */
+.file-name-row{
+    display:flex;align-items:center;gap:4px;
+    font-size:9px;color:var(--muted-foreground);
+    white-space:nowrap;overflow:hidden;
+}
+.file-name-row svg{width:10px;height:10px;fill:none;stroke:var(--lb-primary);stroke-width:2;flex-shrink:0}
+.file-name-row .fname{color:var(--foreground);font-weight:600;overflow:hidden;text-overflow:ellipsis}
+
+/* Compact mode player */
+.compact .player-section{
+    flex-direction:row;align-items:center;gap:8px;
+}
+.compact .file-picker-btn{width:auto;flex-shrink:0}
+.compact .transport{flex:1}
+
+/* LUFS glow animation */
+@keyframes lufsGlow{
+    0%,100%{text-shadow:0 0 8px var(--lb-glow)}
+    50%{text-shadow:0 0 20px var(--lb-glow),0 0 40px var(--lb-glow)}
+}
+.lufs-val.active{animation:lufsGlow 2s ease-in-out infinite}
+
+/* Theme pills in header */
+.theme-pills{display:flex;gap:4px}
+.theme-pill{
+    width:14px;height:14px;border-radius:50%;cursor:pointer;
+    border:2px solid transparent;transition:all .2s;
+}
+.theme-pill:hover{transform:scale(1.2)}
+.theme-pill.active{border-color:rgba(255,255,255,.5)}
+    </style>
+</head>
+<body>
+
+<canvas class="aurora-canvas" id="auroraCanvas"></canvas>
+
+<div class="plugin-frame" id="pluginFrame">
+
+    <!-- ===== HEADER ===== -->
+    <div class="lb-header">
+        <div class="header-flash" id="headerFlash"></div>
+        <div class="header-glow"></div>
+
+        <div class="header-left">
+            <span class="version-badge">v1.2.6</span>
+            <!-- Theme pills -->
+            <div class="theme-pills" id="themePills">
+                <div class="theme-pill active" data-t="ocean" style="background:linear-gradient(135deg,#a855f7,#22d3ee)" onclick="setTheme('ocean',this)"></div>
+                <div class="theme-pill" data-t="sunset" style="background:linear-gradient(135deg,#f97316,#ec4899)" onclick="setTheme('sunset',this)"></div>
+                <div class="theme-pill" data-t="cyber" style="background:linear-gradient(135deg,#22c55e,#3b82f6)" onclick="setTheme('cyber',this)"></div>
+                <div class="theme-pill" data-t="rosso" style="background:linear-gradient(135deg,#ef4444,#f97316)" onclick="setTheme('rosso',this)"></div>
+                <div class="theme-pill" data-t="amarillo" style="background:linear-gradient(135deg,#f59e0b,#fbbf24)" onclick="setTheme('amarillo',this)"></div>
+            </div>
+        </div>
+
+        <div class="header-center">
+            <div class="bot-icon" id="botIcon">
+                <svg viewBox="0 0 64 64" fill="none">
+                    <!-- Headphone band -->
+                    <path d="M10 30 Q10 12 32 12 Q54 12 54 30" stroke="#5a3590" stroke-width="5" stroke-linecap="round" fill="none"/>
+                    <!-- Left ear cup -->
+                    <rect x="4" y="25" width="13" height="20" rx="4" fill="#4a2d78"/>
+                    <rect x="6" y="28" width="9" height="14" rx="3" fill="#1aafbc"/>
+                    <!-- Right ear cup -->
+                    <rect x="47" y="25" width="13" height="20" rx="4" fill="#4a2d78"/>
+                    <rect x="49" y="28" width="9" height="14" rx="3" fill="#1aafbc"/>
+                    <!-- Head circle -->
+                    <circle cx="32" cy="34" r="18" fill="url(#headGrad)" stroke="rgba(180,160,220,0.3)" stroke-width="0.5"/>
+                    <!-- Face screen (big, prominent) -->
+                    <rect x="18" y="22" width="28" height="22" rx="6" fill="#0a1018"/>
+                    <!-- Eyes — ^ chevrons -->
+                    <path d="M24 36 L27 30 L30 36" stroke="#00ffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none" filter="url(#eyeGlow)">
+                        <animate attributeName="opacity" values="1;1;0;1" dur="3s" repeatCount="indefinite" keyTimes="0;0.9;0.95;1"/>
+                    </path>
+                    <path d="M34 36 L37 30 L40 36" stroke="#00ffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none" filter="url(#eyeGlow)">
+                        <animate attributeName="opacity" values="1;1;0;1" dur="3s" repeatCount="indefinite" keyTimes="0;0.9;0.95;1"/>
+                    </path>
+                    <!-- Smile -->
+                    <path d="M26 40 Q32 46 38 40" stroke="#22d3ee" stroke-width="2" stroke-linecap="round" fill="none" filter="url(#eyeGlow)"/>
+                    <!-- Music note -->
+                    <text x="50" y="16" font-size="10" fill="#22d3ee" style="font-family:sans-serif">&#9834;</text>
+                    <!-- Defs -->
+                    <defs>
+                        <radialGradient id="headGrad" cx="40%" cy="35%">
+                            <stop offset="0%" stop-color="#f0f1f5"/>
+                            <stop offset="60%" stop-color="#d8dae0"/>
+                            <stop offset="100%" stop-color="#a0a4b0"/>
+                        </radialGradient>
+                        <filter id="eyeGlow" x="-50%" y="-50%" width="200%" height="200%">
+                            <feGaussianBlur stdDeviation="1.5" result="blur"/>
+                            <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+                        </filter>
+                    </defs>
+                </svg>
+            </div>
+            <span class="brand-text">LISTEN BUDDY</span>
+        </div>
+
+        <div class="header-right">
+            <!-- Buddy selector -->
+            <div style="position:relative" id="buddyArea">
+                <div class="buddy-trigger" id="buddyTrigger" onclick="toggleBuddyDropdown()">
+                    <span class="buddy-dot" id="buddyDot" style="background:#ef4444;box-shadow:0 0 6px #ef4444"></span>
+                    <span id="buddyLabel" style="color:#ef4444">Rosso</span>
+                    <svg class="buddy-chevron" id="buddyChevron" viewBox="0 0 12 12"><polyline points="2,4 6,8 10,4"/></svg>
+                </div>
+            </div>
+            <!-- Plugin Scan -->
+            <div class="compact-toggle" title="Plugin Scan" onclick="simulateScan()">
+                <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="16" y1="16" x2="21" y2="21"/></svg>
+            </div>
+            <!-- User -->
+            <div class="user-btn" onclick="toggleUserMenu()">TM</div>
+            <!-- Compact toggle -->
+            <div class="compact-toggle" onclick="toggleCompact()" title="Toggle compact">
+                <svg viewBox="0 0 24 24" id="compactIcon"><polyline points="4,14 10,20 10,14"/><polyline points="20,10 14,4 14,10"/></svg>
+            </div>
+        </div>
+    </div>
+
+    <!-- Buddy notification popup -->
+    <div class="buddy-notif" id="buddyNotif">
+        <span style="font-size:18px" id="notifIcon"></span>
+        <div>
+            <div style="font-size:13px;font-weight:700" id="notifName"></div>
+            <div style="font-size:9px;color:var(--muted-foreground)" id="notifMode"></div>
+        </div>
+        <div class="notif-progress" id="notifProg"></div>
+    </div>
+
+    <!-- ===== ACTION BAR ===== -->
+    <div class="action-bar">
+        <!-- Analyze -->
+        <div class="analyze-wrap">
+            <div class="analyze-border"></div>
+            <button class="analyze-btn" id="analyzeBtn" onclick="simulateAnalysis()">ANALYZE</button>
+            <div class="analyze-sparkle" id="analyzeSparkle">&#10024;</div>
+        </div>
+        <!-- Listen -->
+        <div class="listen-section">
+            <span class="listen-label">LISTEN</span>
+            <div class="listen-switch active" id="listenSwitch" onclick="toggleListen()">
+                <div class="listen-nub"></div>
+            </div>
+        </div>
+        <!-- Mode -->
+        <div class="mode-select">
+            <button class="mode-btn active" data-mode="Mix" onclick="setMode(this)">MIX</button>
+            <button class="mode-btn" data-mode="Mastering" onclick="setMode(this)">MASTER</button>
+            <button class="mode-btn" data-mode="Production" onclick="setMode(this)">PROD</button>
+            <button class="mode-btn" data-mode="Podcast" onclick="setMode(this)">POD</button>
+            <button class="mode-btn" data-mode="Film" onclick="setMode(this)">FILM</button>
+        </div>
+        <!-- QC -->
+        <div class="qc-badge" onclick="toggleQcExpand()">QC: <span style="color:var(--lb-secondary)">Spotify</span></div>
+        <!-- Status -->
+        <div class="status-cluster">
+            <div class="status-dot-live" id="statusDot"></div>
+            <span class="status-text" id="statusText">AUDIO DETECTED</span>
+        </div>
+    </div>
+
+    <!-- ===== MAIN CONTENT ===== -->
+    <div class="main-content">
+
+        <!-- LEFT COLUMN — metering -->
+        <div class="left-col">
+            <!-- Listening status -->
+            <div class="glass-card">
+                <div class="listen-status">
+                    <div class="listen-icon-box on" id="listenIconBox">
+                        <div class="sound-bars" id="soundBars"></div>
+                    </div>
+                    <div class="listen-info">
+                        <div class="title" id="listenTitle" style="color:var(--lb-primary)">Listening</div>
+                        <div class="sub" id="listenSub">Capturing audio...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Talk with LB button -->
+            <button class="talk-btn" onclick="openChat()">
+                <div class="talk-bars">
+                    <div class="talk-bar" style="height:10px"></div>
+                    <div class="talk-bar" style="height:14px"></div>
+                    <div class="talk-bar" style="height:8px"></div>
+                </div>
+                <div>
+                    <div class="label">Talk with ListenBuddy</div>
+                    <div class="sublabel">Ask questions about your mix</div>
+                </div>
+            </button>
+
+            <!-- ATLE Pearl Visualizer (WebGL) -->
+            <div class="viz-wrap">
+                <canvas id="vizCanvas"></canvas>
+                <div class="viz-center">
+                    <div class="viz-db" id="vizDb">-14.2</div>
+                    <div class="viz-unit">LUFS</div>
+                </div>
+                <div class="viz-badge">
+                    <div class="viz-badge-dot on" id="vizDot"></div>
+                    <span style="font-size:9px;font-weight:600;color:var(--lb-primary)" id="vizStatus">Live</span>
+                </div>
+                <div class="viz-modes">
+                    <button class="viz-mode-btn active" onclick="setVizMode(0,this)">RADIAL</button>
+                    <button class="viz-mode-btn" onclick="setVizMode(1,this)">FLUBBER</button>
+                    <button class="viz-mode-btn" onclick="setVizMode(2,this)">INFINITY</button>
+                </div>
+            </div>
+
+            <!-- Audio Player / File Picker -->
+            <div class="player-section" id="playerSection">
+                <!-- File picker / drop zone -->
+                <div class="file-picker-btn" id="filePickerBtn" onclick="document.getElementById('audioFileInput').click()">
+                    <div class="fp-icon">
+                        <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                    </div>
+                    <div>
+                        <div class="fp-text" id="fpText">Drop audio or click to open</div>
+                        <div class="fp-name" id="fpName" style="display:none"></div>
+                    </div>
+                </div>
+                <input type="file" id="audioFileInput" accept="audio/*" style="display:none" onchange="handleFileSelect(this)">
+
+                <!-- Transport (shown when file loaded) -->
+                <div class="transport" id="transportBar" style="display:none">
+                    <button class="transport-btn play-btn" id="playBtn" onclick="togglePlay()">
+                        <svg viewBox="0 0 24 24" id="playIcon"><polygon points="5,3 19,12 5,21"/></svg>
+                    </button>
+                    <button class="transport-btn stop-btn" onclick="stopPlayback()">
+                        <svg viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12"/></svg>
+                    </button>
+                    <div class="progress-wrap">
+                        <div class="progress-track" onclick="seekAudio(event)">
+                            <div class="progress-fill" id="progressFill" style="width:0%"></div>
+                        </div>
+                        <div class="progress-times">
+                            <span id="timeElapsed">0:00</span>
+                            <span id="timeDuration">0:00</span>
+                        </div>
+                    </div>
+                </div>
+                <!-- File name row (shown when file loaded) -->
+                <div class="file-name-row" id="fileNameRow" style="display:none">
+                    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polygon points="10,8 16,12 10,16" fill="var(--lb-primary)" stroke="none"/></svg>
+                    <span class="fname" id="fileNameDisplay"></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- CENTER COLUMN — analysis -->
+        <div class="center-col">
+            <div class="analysis-scroll" id="analysisScroll">
+                <!-- Engineered by -->
+                <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">
+                    <span style="font-size:8px;color:var(--muted-foreground);letter-spacing:1px">ENGINEERED BY</span>
+                    <span style="font-size:10px;font-weight:800;background:linear-gradient(135deg,var(--lb-primary),var(--lb-secondary));-webkit-background-clip:text;-webkit-text-fill-color:transparent">ZENPHONY</span>
+                </div>
+
+                <!-- Overall impression -->
+                <div class="section-hdr"><div class="dot"></div><span class="label">OVERALL IMPRESSION</span></div>
+                <div class="impression-box" id="impressionBox">
+                    A confident, modern pop&hairsp;/&hairsp;R&amp;B mix. Low end has real weight on the kick and 808&nbsp;— sub sits cleanly around <span style="color:var(--lb-secondary)">45&nbsp;Hz</span> with the kick fundamental punching through near <span style="color:var(--lb-secondary)">80&nbsp;Hz</span>. The lead vocal carries the front of the mix without harshness; presence at <span style="color:var(--lb-secondary)">3&nbsp;kHz</span> is dialed in. Two small lifts would push it further: tighten <span style="color:var(--lb-secondary)">200&ndash;300&nbsp;Hz</span> by ~1.5&nbsp;dB to clear the low&dash;mid haze, and add a half&dash;dB shelf above <span style="color:var(--lb-secondary)">12&nbsp;kHz</span> for chorus air.
+                </div>
+
+                <!-- Traffic light -->
+                <div class="traffic-light">
+                    <div class="tl-indicator great"></div>
+                    <span class="tl-text" style="color:#22c55e">Great Mix</span>
+                    <span class="tl-count">12 insights &middot; 9 positive</span>
+                </div>
+
+                <!-- Category cards -->
+                <div id="categoryCards"></div>
+
+                <!-- QC Results -->
+                <div class="qc-card" id="qcCard">
+                    <div class="qc-header" onclick="toggleQcExpand()">
+                        <div class="qc-icon-badge" style="background:rgba(34,197,94,.15)">&#10003;</div>
+                        <div>
+                            <div class="qc-title">QC Check <span class="qc-status" style="background:rgba(34,197,94,.15);color:#22c55e">PASS</span></div>
+                            <div style="font-size:11px;color:var(--muted-foreground);margin-top:2px">Spotify Loud</div>
+                        </div>
+                        <svg class="cat-chevron" id="qcChevron" viewBox="0 0 12 12"><polyline points="2,4 6,8 10,4"/></svg>
+                    </div>
+                    <div class="qc-body" id="qcBody">
+                        <div style="height:1px;background:linear-gradient(90deg,transparent,var(--lb-primary),transparent);margin-bottom:12px;opacity:.3"></div>
+                        <div class="qc-grid">
+                            <div class="qc-metric" style="background:rgba(34,197,94,.05)">
+                                <div class="qc-metric-label" style="color:#22c55e">LOUDNESS</div>
+                                <div style="display:flex;align-items:center;gap:4px">
+                                    <span style="color:#22c55e;font-size:12px">&#10003;</span>
+                                    <span class="qc-status" style="background:rgba(34,197,94,.15);color:#22c55e">PASS</span>
+                                </div>
+                                <div class="qc-metric-val" style="color:#fff">-14.0</div>
+                                <div class="qc-metric-target">Target: -14.0 LUFS &plusmn;1.0</div>
+                                <div class="qc-metric-delta" style="background:rgba(34,197,94,.1);color:#22c55e">+0.0 LU</div>
+                            </div>
+                            <div class="qc-metric" style="background:rgba(34,197,94,.05)">
+                                <div class="qc-metric-label" style="color:#22c55e">TRUE PEAK</div>
+                                <div style="display:flex;align-items:center;gap:4px">
+                                    <span style="color:#22c55e;font-size:12px">&#10003;</span>
+                                    <span class="qc-status" style="background:rgba(34,197,94,.15);color:#22c55e">PASS</span>
+                                </div>
+                                <div class="qc-metric-val" style="color:#fff">-1.2</div>
+                                <div class="qc-metric-target">Target: -1.0 dBTP</div>
+                                <div class="qc-metric-delta" style="background:rgba(34,197,94,.1);color:#22c55e">-0.2 dB</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Suggestion chips -->
+                <div class="chips">
+                    <div class="chip" onclick="openChatWith(this.textContent)">What about the low end?</div>
+                    <div class="chip" onclick="openChatWith(this.textContent)">Compare to reference</div>
+                    <div class="chip" onclick="openChatWith(this.textContent)">EQ suggestions</div>
+                    <div class="chip" onclick="openChatWith(this.textContent)">Master bus chain</div>
+                    <div class="chip" onclick="openChatWith(this.textContent)">Fix the reverb tail</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT COLUMN — spectrum -->
+        <div class="right-col">
+            <!-- Loudness history -->
+            <div class="glass-card spec-card">
+                <div class="card-title">LOUDNESS HISTORY</div>
+                <canvas class="loudness-canvas" id="loudnessCanvas"></canvas>
+                <div class="lufs-readout">
+                    <span class="lufs-val active" id="lufsMain">-14.2</span>
+                    <span class="lufs-unit">LUFS</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;font-size:7px;color:var(--muted-foreground);margin-top:2px">
+                    <span>-30</span><span style="color:var(--lb-primary);font-weight:700">Target: -14</span><span>0</span>
+                </div>
+            </div>
+
+            <!-- Levels -->
+            <div class="glass-card spec-card">
+                <div class="card-title">LEVELS</div>
+                <div class="spec-meter">
+                    <span class="spec-meter-label">RMS L</span>
+                    <div class="spec-meter-track"><div class="spec-meter-fill pearl" id="rmsL" style="width:55%"></div></div>
+                    <span class="spec-meter-val" id="rmsLVal">-8.1</span>
+                </div>
+                <div class="spec-meter">
+                    <span class="spec-meter-label">RMS R</span>
+                    <div class="spec-meter-track"><div class="spec-meter-fill pearl" id="rmsR" style="width:52%"></div></div>
+                    <span class="spec-meter-val" id="rmsRVal">-8.4</span>
+                </div>
+                <div class="spec-meter">
+                    <span class="spec-meter-label">Peak</span>
+                    <div class="spec-meter-track"><div class="spec-meter-fill pearl" id="peakMeter" style="width:72%"></div></div>
+                    <span class="spec-meter-val" id="peakVal">-3.2</span>
+                </div>
+            </div>
+
+            <!-- Metrics -->
+            <div class="glass-card spec-card">
+                <div class="card-title">METRICS</div>
+                <div class="metric-row">
+                    <span class="metric-label">True Peak</span>
+                    <span class="metric-val" id="tpVal" style="color:#ef4444">-1.2 dBTP</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-label">Crest</span>
+                    <span class="metric-val" id="crestVal">8.4 dB</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-label">Correlation</span>
+                    <span class="metric-val" id="corrVal">0.92</span>
+                </div>
+            </div>
+
+            <!-- Mini spectrum -->
+            <div class="glass-card spec-card">
+                <div class="card-title">SPECTRUM</div>
+                <div class="mini-spectrum" id="miniSpectrum"></div>
+                <div style="display:flex;justify-content:space-between;font-size:7px;color:var(--muted-foreground);margin-top:4px;padding:0 2px">
+                    <span>Sub</span><span>Low</span><span>Mid</span><span>High</span>
+                </div>
+            </div>
+
+            <!-- Spatial map -->
+            <div class="glass-card spec-card" style="padding-bottom:6px">
+                <div class="card-title">PHASE TENSOR</div>
+                <div class="spatial-map">
+                    <div class="spatial-label">T1 / T2</div>
+                    <div class="spatial-dot"></div>
+                    <div class="spatial-dot-2"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== STATUS BAR ===== -->
+    <div class="status-bar">
+        <div class="sb-left">
+            <svg class="icon" viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/></svg>
+            <span class="sb-text">Listen Buddy v1.2.6</span>
+        </div>
+        <span class="sb-msg" id="sbMsg">Ready &middot; Rosso &middot; Mix Mode</span>
+        <div class="sb-right">
+            <div class="atle-readout">
+                <span>T1:<span class="atle-val" id="rdT1">0.0000</span></span>
+                <span>T2:<span class="atle-val" id="rdT2">0.0000</span></span>
+                <span>S:<span class="atle-val" id="rdS">1.000</span></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading overlay (hidden by default) -->
+    <div class="loading-overlay" id="loadingOverlay" style="display:none">
+        <div class="wave-bars" id="loadingWaveBars"></div>
+        <div class="loading-text" id="loadingText">Analyzing your track...</div>
+        <div class="loading-sub" id="loadingSub">Rosso is listening</div>
+        <button style="margin-top:12px;font-size:11px;color:var(--muted-foreground);background:none;border:1px solid rgba(255,255,255,.1);padding:6px 16px;border-radius:8px;cursor:pointer" onclick="cancelAnalysis()">Cancel</button>
+    </div>
+</div>
+
+<!-- Chat popup (hidden) -->
+<div class="chat-popup" id="chatPopup" style="display:none;right:40px;bottom:60px">
+    <div class="chat-header" id="chatDragHandle">
+        <span style="font-size:14px">&#129302;</span>
+        <span class="chat-title">Plugin Advisor</span>
+        <button class="chat-ctrl" onclick="minimizeChat()">&#8722;</button>
+        <button class="chat-ctrl" onclick="closeChat()">&#10005;</button>
+    </div>
+    <div class="chat-messages" id="chatMessages">
+        <div class="msg bot">Hey! I'm your Plugin Advisor. Ask me anything about your mix, mastering, or audio production.</div>
+    </div>
+    <div class="chat-input-row">
+        <input class="chat-input" id="chatInput" placeholder="Ask about your mix..." onkeydown="if(event.key==='Enter')sendChat()">
+        <button class="chat-send" onclick="sendChat()">Send</button>
+    </div>
+</div>
+<!-- Minimized chat pill (hidden) -->
+<div class="chat-min-pill" id="chatMinPill" style="display:none" onclick="restoreChat()">
+    <span>&#129302;</span> Plugin Advisor
+</div>
+
+<!-- Buddy dropdown (hidden, positioned dynamically) -->
+<div class="buddy-dropdown" id="buddyDropdown" style="display:none"></div>
+<!-- Buddy hovercard (hidden) -->
+<div class="buddy-hovercard" id="buddyHovercard" style="display:none"></div>
+
+<!-- ATLE controls strip -->
+<div class="atle-strip">
+    <span class="atle-strip-label">ATLE ENGINE</span>
+    <button class="atle-pill on" id="atleBtnOn" onclick="toggleAtle(true)">ON</button>
+    <button class="atle-pill off" id="atleBtnOff" onclick="toggleAtle(false)">OFF</button>
+    <div class="atle-slider-wrap">
+        <span class="atle-strip-label">TORQUE</span>
+        <input type="range" class="atle-slider" id="torqueSlider" min="0" max="5" step=".05" value="2">
+        <span class="atle-torque-val" id="torqueVal">2.00x</span>
+    </div>
+</div>
+
+<!-- Font: Outfit chosen, tester removed -->
+
+<script>
+// ================================================================
+// STATE
+// ================================================================
+const root = document.documentElement;
+const buddies = [
+    {id:'rosso',label:'Rosso',color:'#ef4444',tag:'Local',desc:'Local AI with warm personality. Runs entirely on your device via SuperEars + InstantNN + ZGIF pipeline.'},
+    {id:'amarillo',label:'Amarillo',color:'#f59e0b',tag:'Local',desc:'Local AI with bright personality. Same on-device pipeline with different creative perspective.'},
+    {id:'gpt',label:'Velvet',color:'#a855f7',tag:'Cloud',desc:'Cloud AI powered by GPT-4o Realtime. Detailed, articulate feedback via OpenAI.'},
+    {id:'gemini',label:'Verde',color:'#22c55e',tag:'Cloud',desc:'Cloud AI powered by Gemini 2.5 Flash. Fast, insightful analysis via Google.'},
+];
+let currentBuddy = buddies[0];
+let atleEnabled = true, userTorque = 2.0, isCompact = false, isListening = true;
+let buddyDropdownOpen = false, qcExpanded = false, chatOpen = false, chatMinimized = false;
+let cachedColors = ['#a855f7', '#22d3ee'];
+let _frameCount = 0;
+const startT = Date.now();
+
+// Audio player state (declared early so main loop can reference)
+let audioCtx = null, audioElement = null, isPlaying = false, hasFile = false;
+let simPlaying = true, simPosition = 47.3, simDuration = 214;
+const simFileName = 'Midnight_Drive_Master_v3.wav';
+
+// Category data for analysis cards.
+// Each `text` is rendered into the card body as innerHTML — inline <span style>
+// accents are used for the dB/Hz values so they read like a real plugin output.
+const HL = 'color:var(--lb-secondary);font-weight:500';
+const PARA = 'margin:0 0 8px;line-height:1.55;font-size:11.5px;color:var(--foreground)';
+const SUB = 'font-size:10px;color:var(--muted-foreground);text-transform:uppercase;letter-spacing:0.08em;margin:10px 0 4px;font-weight:600';
+const categories = [
+    {key:'low_end',icon:'&#128266;',color:'#3b82f6',label:'Low End',count:3,
+     text:`<p style="${PARA}">Sub-bass sits cleanly around <span style="${HL}">45&nbsp;Hz</span> with real weight, and the kick fundamental punches through near <span style="${HL}">80&nbsp;Hz</span> without masking the 808. Mono compatibility holds below <span style="${HL}">120&nbsp;Hz</span> — the side image is properly centered down low, no phase issues flagged.</p>
+     <p style="${PARA}">There's a soft build-up between <span style="${HL}">200&ndash;300&nbsp;Hz</span> that's adding a little low-mid haze. The groove still reads, but the transient definition could land harder on smaller speakers — phone, laptop, kitchen radio.</p>
+     <div style="${SUB}">Suggested move</div>
+     <p style="${PARA}">A narrow <span style="${HL}">&minus;1.5&nbsp;dB</span> dip centered at <span style="${HL}">240&nbsp;Hz</span> with Q&nbsp;~&nbsp;1.4 cleans up the haze without thinning the body. If you want more attack, also nudge <span style="${HL}">+1&nbsp;dB</span> at <span style="${HL}">3.5&nbsp;kHz</span> on the kick to bring the click forward.</p>`},
+
+    {key:'vocals',icon:'&#127908;',color:'#ec4899',label:'Vocals',count:2,
+     text:`<p style="${PARA}">Lead vocal sits forward without becoming abrasive — presence band <span style="${HL}">2&ndash;4&nbsp;kHz</span> is well-judged and the de-esser is catching sibilance cleanly. Performance phrasing is locked, and the doubles are panned tasteful (around 35% L/R). The chorus stack reads as one voice rather than four.</p>
+     <p style="${PARA}">Two soft spots: there's a tiny dip near <span style="${HL}">3.4&nbsp;kHz</span> that subtly dulls consonants on the verse, and the vocal's air shelf is conservative — bright enough for headphones, polite on car systems.</p>
+     <div style="${SUB}">Suggested move</div>
+     <p style="${PARA}">Try a half-dB lift at <span style="${HL}">3.4&nbsp;kHz</span> with a wide Q&nbsp;(~&nbsp;1) and a <span style="${HL}">+0.5&nbsp;dB</span> high shelf starting at <span style="${HL}">12&nbsp;kHz</span> for chorus air. The vocal won't feel processed, but it'll translate better in the car.</p>`},
+
+    {key:'dynamics',icon:'&#9889;',color:'#f59e0b',label:'Dynamics',count:2,
+     text:`<p style="${PARA}">Integrated loudness is sitting at <span style="${HL}">&minus;9.2&nbsp;LUFS</span> with a short-term peak of <span style="${HL}">&minus;7.8&nbsp;LUFS</span> in the chorus and true peaks under <span style="${HL}">&minus;1.0&nbsp;dBTP</span>. That's comfortably inside Spotify's <span style="${HL}">&minus;14&nbsp;LUFS</span> normalization window with margin to spare.</p>
+     <p style="${PARA}">Loudness range (LRA) is <span style="${HL}">7.2&nbsp;LU</span> — healthy crest factor across the chorus, vocal compression reads transparent. Master limiter is catching peaks cleanly without pumping; release looks tuned to the kick.</p>
+     <div style="${SUB}">Suggested move</div>
+     <p style="${PARA}">For multi-platform delivery render <span style="${HL}">&minus;14&nbsp;LUFS / &minus;1&nbsp;dBTP</span> for Spotify and <span style="${HL}">&minus;16&nbsp;LUFS</span> for Apple Music Sound Check from the same project — same EQ, just different ceilings on the limiter.</p>`},
+
+    {key:'stereo',icon:'&#128265;',color:'#22d3ee',label:'Stereo Field',count:2,
+     text:`<p style="${PARA}">Mono compatibility is strong — the side channel below <span style="${HL}">180&nbsp;Hz</span> is properly centered, kick&nbsp;/&nbsp;bass&nbsp;/&nbsp;808 all collapse without dropouts. Hi-hats spread wide (about ±70%) and the ambient FX bus pulls air to the sides nicely.</p>
+     <p style="${PARA}">Backing vocals are sitting closer to center than they probably should — the chorus could feel wider without losing the lead. Correlation reads <span style="${HL}">+0.74</span> overall — healthy.</p>
+     <div style="${SUB}">Suggested move</div>
+     <p style="${PARA}">Try an M/S widener on just the bvox bus at <span style="${HL}">+15%</span> side, or pan the doubles a touch wider <em>before</em> they hit the chorus reverb. Don't widen the lead vocal — it's where you want it.</p>`},
+
+    {key:'clarity',icon:'&#10024;',color:'#a855f7',label:'Clarity & Definition',count:2,
+     text:`<p style="${PARA}">Instruments occupy distinct frequency lanes — kick&nbsp;/&nbsp;bass&nbsp;/&nbsp;vocal aren't fighting, and the synth pad sits in its own pocket above <span style="${HL}">5&nbsp;kHz</span>. Transient definition reads clean across the kit; nothing is smeared by the master bus glue compressor.</p>
+     <p style="${PARA}">One spot: the snare's reverb tail bleeds into the next beat in the chorus, especially on the downbeat where the room mic is loudest. It's masking some of the snap on beat 2&nbsp;/&nbsp;4.</p>
+     <div style="${SUB}">Suggested move</div>
+     <p style="${PARA}">Shorten the snare's reverb tail by <span style="${HL}">~&nbsp;100&nbsp;ms</span> or sidechain-duck it under the next snare hit by <span style="${HL}">3&nbsp;dB</span>. The room will still feel present without bleeding into the next transient.</p>`},
+
+    {key:'references',icon:'&#127925;',color:'#22c55e',label:'Reference Tracks',count:1,
+     text:`<p style="${PARA}">Tonally and rhythmically nearest:</p>
+     <div style="display:flex;flex-direction:column;gap:6px;margin:6px 0 10px">
+       <div style="display:flex;justify-content:space-between;align-items:center;padding:7px 10px;border-radius:7px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06)">
+         <span style="font-size:11.5px;color:var(--foreground)">The Weeknd &mdash; <em>Blinding Lights</em></span>
+         <span style="font-size:9.5px;color:var(--lb-secondary);font-family:'JetBrains Mono',monospace">94% match</span>
+       </div>
+       <div style="display:flex;justify-content:space-between;align-items:center;padding:7px 10px;border-radius:7px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06)">
+         <span style="font-size:11.5px;color:var(--foreground)">Drake &mdash; <em>Hotline Bling</em></span>
+         <span style="font-size:9.5px;color:var(--lb-secondary);font-family:'JetBrains Mono',monospace">88% match</span>
+       </div>
+       <div style="display:flex;justify-content:space-between;align-items:center;padding:7px 10px;border-radius:7px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06)">
+         <span style="font-size:11.5px;color:var(--foreground)">Khalid &mdash; <em>Better</em></span>
+         <span style="font-size:9.5px;color:var(--lb-secondary);font-family:'JetBrains Mono',monospace">81% match</span>
+       </div>
+     </div>
+     <p style="${PARA}">Your low-end weight runs <span style="${HL}">~&nbsp;2&nbsp;dB hotter</span> below <span style="${HL}">60&nbsp;Hz</span> than the reference set. Consider a gentle <span style="${HL}">&minus;2&nbsp;dB</span> low-shelf at 60&nbsp;Hz on the master to pull it in line — or leave it if the bottom-heavy character is intentional.</p>`},
+];
+
+// ================================================================
+// INIT DOM ELEMENTS
+// ================================================================
+// Sound wave bars
+const soundBarsEl = document.getElementById('soundBars');
+for(let i=0;i<5;i++){const b=document.createElement('div');b.className='sound-bar';b.style.height=(8+Math.sin(i*1.2)*6)+'px';soundBarsEl.appendChild(b)}
+
+// Loading wave bars
+const loadWave = document.getElementById('loadingWaveBars');
+for(let i=0;i<12;i++){const b=document.createElement('div');b.className='wave-bar';b.style.animationDelay=(i*0.08)+'s';loadWave.appendChild(b)}
+
+// Mini spectrum bars
+const miniSpec = document.getElementById('miniSpectrum');
+for(let i=0;i<4;i++){const b=document.createElement('div');b.className='mini-bar pearl';b.style.height='20%';miniSpec.appendChild(b)}
+
+// Category cards
+const catContainer = document.getElementById('categoryCards');
+categories.forEach((cat,idx) => {
+    const card = document.createElement('div');
+    card.className = 'cat-card';
+    card.innerHTML = `
+        <div class="cat-header" onclick="toggleCat(${idx})">
+            <div class="cat-icon" style="background:${cat.color}20;color:${cat.color}">${cat.icon}</div>
+            <span class="cat-title">${cat.label}</span>
+            <span class="cat-count">${cat.count}</span>
+            <svg class="cat-chevron" id="catChev${idx}" viewBox="0 0 12 12"><polyline points="2,4 6,8 10,4"/></svg>
+        </div>
+        <div class="cat-body ${idx===0?'open':''}" id="catBody${idx}">
+            <div style="height:1px;background:linear-gradient(90deg,transparent,${cat.color},transparent);margin-bottom:10px;opacity:.2"></div>
+            ${cat.text}
+        </div>`;
+    catContainer.appendChild(card);
+    if(idx===0) document.getElementById('catChev0').classList.add('open');
+});
+
+// ================================================================
+// BUDDY SYSTEM
+// ================================================================
+function toggleBuddyDropdown(){
+    buddyDropdownOpen = !buddyDropdownOpen;
+    const dd = document.getElementById('buddyDropdown');
+    const chev = document.getElementById('buddyChevron');
+    if(!buddyDropdownOpen){dd.style.display='none';chev.classList.remove('open');return}
+    chev.classList.add('open');
+    const tr = document.getElementById('buddyTrigger').getBoundingClientRect();
+    dd.style.display='block';dd.style.top=(tr.bottom+8)+'px';dd.style.left=tr.left+'px';
+    dd.innerHTML = buddies.map(b => `
+        <div class="buddy-option ${b.id===currentBuddy.id?'selected':''}"
+             onmouseenter="showHovercard('${b.id}',this)" onmouseleave="hideHovercard()"
+             onclick="selectBuddy('${b.id}')">
+            <span class="buddy-dot" style="background:${b.color};box-shadow:0 0 6px ${b.color}"></span>
+            <span style="${b.id===currentBuddy.id?'color:'+b.color+';font-weight:700':''}">${b.label}</span>
+            <span class="tag">${b.tag}</span>
+        </div>`).join('');
+}
+function selectBuddy(id){
+    const b = buddies.find(x=>x.id===id); if(!b)return;
+    const prev = currentBuddy; currentBuddy = b;
+    buddyDropdownOpen = false;
+    document.getElementById('buddyDropdown').style.display='none';
+    document.getElementById('buddyChevron').classList.remove('open');
+    document.getElementById('buddyDot').style.background=b.color;
+    document.getElementById('buddyDot').style.boxShadow='0 0 6px '+b.color;
+    document.getElementById('buddyLabel').style.color=b.color;
+    document.getElementById('buddyLabel').textContent=b.label;
+    document.getElementById('buddyTrigger').style.borderColor=b.color+'40';
+    document.getElementById('sbMsg').textContent='Ready \u00b7 '+b.label+' \u00b7 '+currentModeName+' Mode';
+    hideHovercard();
+    // Flash
+    const flash = document.getElementById('headerFlash');
+    flash.style.background='radial-gradient(circle at 50% 50%,'+b.color+'40,transparent 70%)';
+    flash.classList.remove('active');void flash.offsetWidth;flash.classList.add('active');
+    // Notification
+    const notif = document.getElementById('buddyNotif');
+    notif.style.borderColor=b.color+'30';
+    document.getElementById('notifIcon').textContent = b.tag==='Local'?'\u{1F916}':'\u2601\uFE0F';
+    document.getElementById('notifName').textContent = b.label;
+    document.getElementById('notifName').style.color = b.color;
+    document.getElementById('notifMode').textContent = b.tag==='Local'?'On-Device AI':'Cloud AI';
+    document.getElementById('notifProg').style.background = b.color;
+    notif.classList.remove('show');void notif.offsetWidth;notif.classList.add('show');
+    setTimeout(()=>notif.classList.remove('show'),2200);
+    // Auto theme
+    if(b.id==='rosso')setTheme('rosso');
+    else if(b.id==='amarillo')setTheme('amarillo');
+    else if(b.id==='gpt')setTheme('ocean');
+    else if(b.id==='gemini')setTheme('cyber');
+}
+function showHovercard(id, el){
+    const b = buddies.find(x=>x.id===id);if(!b)return;
+    const hc = document.getElementById('buddyHovercard');
+    const r = el.getBoundingClientRect();
+    hc.style.display='block';
+    hc.style.top=r.top+'px';hc.style.left=(r.right+8)+'px';
+    hc.style.borderColor=b.color+'30';hc.style.boxShadow='0 0 20px '+b.color+'15';
+    hc.innerHTML=`<div class="hc-header"><span class="buddy-dot" style="background:${b.color};box-shadow:0 0 6px ${b.color};width:8px;height:8px"></span><span style="font-weight:700;color:${b.color}">${b.label}</span><span class="tag" style="font-size:9px;padding:1px 5px;border-radius:4px;background:rgba(255,255,255,.08);color:rgba(255,255,255,.5)">${b.tag}</span></div><div class="hc-divider" style="background:linear-gradient(90deg,${b.color}30,transparent)"></div><div class="hc-desc">${b.desc}</div>`;
+}
+function hideHovercard(){document.getElementById('buddyHovercard').style.display='none'}
+
+// Click outside to close dropdown
+document.addEventListener('click',e=>{
+    if(buddyDropdownOpen && !document.getElementById('buddyArea').contains(e.target) && !document.getElementById('buddyDropdown').contains(e.target)){
+        buddyDropdownOpen=false;document.getElementById('buddyDropdown').style.display='none';document.getElementById('buddyChevron').classList.remove('open');hideHovercard();
+    }
+});
+
+// ================================================================
+// THEME
+// ================================================================
+function setTheme(name,pill){
+    const frame = document.getElementById('pluginFrame');
+    frame.className = (isCompact?'plugin-frame compact':'plugin-frame') + (name!=='ocean'?' theme-'+name:'');
+    document.querySelectorAll('.theme-pill').forEach(p=>p.classList.toggle('active',p.dataset.t===name));
+    requestAnimationFrame(()=>{const cs=getComputedStyle(root);cachedColors=[cs.getPropertyValue('--lb-primary').trim(),cs.getPropertyValue('--lb-secondary').trim()]});
+}
+
+// ================================================================
+// INTERACTIONS
+// ================================================================
+function toggleCompact(){
+    isCompact=!isCompact;
+    document.getElementById('pluginFrame').classList.toggle('compact',isCompact);
+}
+function toggleListen(){
+    isListening=!isListening;
+    const sw = document.getElementById('listenSwitch');
+    sw.classList.toggle('active',isListening);
+    const box = document.getElementById('listenIconBox');
+    box.classList.toggle('on',isListening);box.classList.toggle('off',!isListening);
+    document.getElementById('listenTitle').textContent = isListening?'Listening':'Stopped';
+    document.getElementById('listenTitle').style.color = isListening?'var(--lb-primary)':'rgba(255,255,255,.5)';
+    document.getElementById('listenSub').textContent = isListening?'Capturing audio...':'Press play in DAW';
+    document.getElementById('statusDot').classList.toggle('idle',!isListening);
+    document.getElementById('statusText').textContent = isListening?'AUDIO DETECTED':'IDLE';
+    document.getElementById('vizDot').classList.toggle('on',isListening);
+    document.getElementById('vizDot').classList.toggle('off',!isListening);
+    document.getElementById('vizStatus').textContent = isListening?'Live':'Idle';
+}
+let currentModeName = 'Mix';
+function setMode(btn){
+    document.querySelectorAll('.mode-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    currentModeName = btn.dataset.mode;
+    document.getElementById('sbMsg').textContent = 'Ready \u00b7 '+currentBuddy.label+' \u00b7 '+currentModeName+' Mode';
+    // Show brief loading transition
+    const overlay = document.getElementById('loadingOverlay');
+    document.getElementById('loadingText').textContent = 'Switching to '+currentModeName+'...';
+    document.getElementById('loadingSub').textContent = '';
+    overlay.style.display='flex';
+    setTimeout(()=>{overlay.style.display='none'},600);
+}
+function toggleCat(idx){
+    const body = document.getElementById('catBody'+idx);
+    const chev = document.getElementById('catChev'+idx);
+    body.classList.toggle('open');chev.classList.toggle('open');
+}
+function toggleQcExpand(){
+    qcExpanded=!qcExpanded;
+    document.getElementById('qcBody').classList.toggle('open',qcExpanded);
+    document.getElementById('qcChevron').classList.toggle('open',qcExpanded);
+}
+function simulateAnalysis(){
+    const btn = document.getElementById('analyzeBtn');
+    const overlay = document.getElementById('loadingOverlay');
+    btn.classList.add('analyzing');btn.textContent='ANALYZING...';
+    overlay.style.display='flex';
+    // Sparkle
+    const sp = document.getElementById('analyzeSparkle');
+    sp.classList.remove('show');void sp.offsetWidth;sp.classList.add('show');
+    setTimeout(()=>{
+        btn.classList.remove('analyzing');btn.textContent='ANALYZE';
+        overlay.style.display='none';
+    },3000);
+}
+function cancelAnalysis(){
+    document.getElementById('analyzeBtn').classList.remove('analyzing');
+    document.getElementById('analyzeBtn').textContent='ANALYZE';
+    document.getElementById('loadingOverlay').style.display='none';
+}
+function simulateScan(){/* visual only */}
+
+// ================================================================
+// CHAT
+// ================================================================
+function openChat(){chatOpen=true;chatMinimized=false;document.getElementById('chatPopup').style.display='flex';document.getElementById('chatMinPill').style.display='none'}
+function openChatWith(msg){openChat();document.getElementById('chatInput').value=msg;sendChat()}
+function closeChat(){chatOpen=false;document.getElementById('chatPopup').style.display='none';document.getElementById('chatMinPill').style.display='none'}
+function minimizeChat(){chatMinimized=true;document.getElementById('chatPopup').style.display='none';document.getElementById('chatMinPill').style.display='flex'}
+function restoreChat(){chatMinimized=false;document.getElementById('chatPopup').style.display='flex';document.getElementById('chatMinPill').style.display='none'}
+function toggleUserMenu(){/* stub */}
+
+const chatResponses = [
+    "Based on the analysis, your low end is well-controlled. The kick fundamental sits at 80Hz with clean harmonic content up to 400Hz. I'd suggest a gentle cut at 250Hz (-2dB, Q=1.5) to tighten the low-mids.",
+    "Looking at the spectral balance, your mix compares favorably to the reference tracks. The main difference is in the high-frequency air above 12kHz \u2014 try a shelf boost of +1.5dB.",
+    "For the master bus, I'd recommend: 1) Gentle glue compression (2:1, slow attack), 2) Mid-side EQ for stereo width, 3) Limiter with -1.0dBTP ceiling. Keep your dynamic range above 6 LU.",
+    "The reverb tail on the snare is about 200ms too long for this tempo. Try shortening the decay to 1.2s and adding a pre-delay of 20ms to keep the transient clean.",
+];
+let chatResponseIdx = 0;
+function sendChat(){
+    const input = document.getElementById('chatInput');
+    const msg = input.value.trim();if(!msg)return;
+    input.value='';
+    const container = document.getElementById('chatMessages');
+    container.innerHTML += `<div class="msg user">${msg}</div>`;
+    container.innerHTML += `<div class="msg bot thinking" id="thinkMsg">Thinking...</div>`;
+    container.scrollTop = container.scrollHeight;
+    setTimeout(()=>{
+        const think = document.getElementById('thinkMsg');
+        if(think){
+            think.classList.remove('thinking');
+            think.textContent = chatResponses[chatResponseIdx % chatResponses.length];
+            chatResponseIdx++;
+        }
+        container.scrollTop = container.scrollHeight;
+    },1500);
+}
+
+// Chat drag
+let dragOff={x:0,y:0};
+document.getElementById('chatDragHandle').addEventListener('mousedown',e=>{
+    const popup = document.getElementById('chatPopup');
+    const rect = popup.getBoundingClientRect();
+    dragOff.x = e.clientX - rect.left; dragOff.y = e.clientY - rect.top;
+    function onMove(e2){popup.style.right='auto';popup.style.bottom='auto';popup.style.left=(e2.clientX-dragOff.x)+'px';popup.style.top=(e2.clientY-dragOff.y)+'px'}
+    function onUp(){document.removeEventListener('mousemove',onMove);document.removeEventListener('mouseup',onUp)}
+    document.addEventListener('mousemove',onMove);document.addEventListener('mouseup',onUp);
+});
+
+// ================================================================
+// HEADER MASCOT — pure SVG + ATLE CSS bindings. Zero JS per frame.
+// The SVG is static markup. ATLE drives it via CSS transform on .bot-icon.
+// Eyes blink via SVG animate. No canvas, no GPU, no JS drawing.
+// ================================================================
+
+// Mascot is now pure SVG + ATLE CSS. Zero JS per frame. Zero GPU.
+// Animation: .bot-icon CSS transform uses --atle-fx, --atle-fy, --atle-scale
+// Eyes blink via SVG <animate>. Everything is resolution-independent.
+
+// ================================================================
+// ATLE ENGINE
+// ================================================================
+const torqueSlider = document.getElementById('torqueSlider');
+const torqueVal = document.getElementById('torqueVal');
+torqueSlider.addEventListener('input',e=>{userTorque=parseFloat(e.target.value);torqueVal.textContent=userTorque.toFixed(2)+'x'});
+
+function toggleAtle(on){
+    atleEnabled=on;
+    document.getElementById('atleBtnOn').className='atle-pill '+(on?'on':'off');
+    document.getElementById('atleBtnOff').className='atle-pill '+(on?'off':'on');
+}
+
+// ================================================================
+// ATLE PHASE XII — SINGLE EVALUATION, ALL BINDINGS
+// Exactly mirrors atle_ui_elements.html architecture.
+// Called ONCE per frame. Every animation in the entire UI
+// derives from these values. No rogue Math.sin() anywhere.
+// ================================================================
+const atle = { t1:0, t2:0, sum:0, scale:0, ang:0, spin:0, dsp:new Float32Array(8) };
+
+function evalAtle(time) {
+    const x = 1.0, y = 1.0, z = 0.0;
+    const torque = atleEnabled ? userTorque : 0;
+
+    // The pristine ATLE equation — evaluated ONCE
+    atle.t1 = -0.15 * torque * Math.sin(-7.6 * x + 3.7 * y - 2.5 * z + time * 2.0);
+    atle.t2 =  0.10 * torque * Math.cos( 1.6 * x - 1.3 * y - 1.0 * z + time * 1.5);
+    atle.sum = atle.t1 + atle.t2;
+
+    // Derived quantities — all from t1/t2, no new trig
+    atle.scale = 0.97 + Math.abs(atle.t1);
+    atle.ang = (time * 40 + atle.sum * 100) % 360;
+    atle.spin = (atle.sum * 150 + time * 80) % 360;
+
+    // DSP channels — phase offsets of the SAME equation, not independent sin()
+    // These drive the 48 visualizer bars, spectrum, sound bars, meters
+    for (let i = 0; i < 8; i++) {
+        atle.dsp[i] = -0.15 * torque * Math.sin(-7.6 * (i * 0.7 + 1) + time * (2.0 + i * 0.15));
+    }
+
+    return atle;
+}
+
+// ================================================================
+// ATLE PEARL VISUALIZER — WebGL raymarched sphere
+// Ported from atle_algorithm_gallery.html Shader 1 (The Atle Pearl)
+// Audio energy drives torque scale for reactive distortion
+// ================================================================
+const vizCanvas = document.getElementById('vizCanvas');
+const gl = vizCanvas.getContext('webgl', { antialias: true, alpha: false });
+
+const pearlVert = `attribute vec4 a_position; void main() { gl_Position = a_position; }`;
+const pearlFrag = `
+    precision highp float;
+    uniform vec2 u_resolution;
+    uniform float u_time;
+    uniform float u_torque;
+    uniform float u_energy;
+    uniform float u_bars[48];
+    uniform float u_atle_t1;
+    uniform float u_atle_t2;
+    uniform float u_atle_sum;
+
+    mat2 rot(float a) { return mat2(cos(a),-sin(a),sin(a),cos(a)); }
+
+    // SDF capsule along a direction from point a to b with radius r
+    float sdCapsule(vec3 p, vec3 a, vec3 b, float r) {
+        vec3 pa=p-a, ba=b-a;
+        float h=clamp(dot(pa,ba)/dot(ba,ba), 0.0, 1.0);
+        return length(pa - ba*h) - r;
+    }
+
+    // Inner ring torus
+    float sdTorus(vec3 p, vec2 t) {
+        vec2 q = vec2(length(p.xz)-t.x, p.y);
+        return length(q)-t.y;
+    }
+
+    // Get bar height by index (manual lookup since GLSL ES can't dynamic-index)
+    float getBar(int idx) {
+        // Unroll first 48 — use a stepped approach for perf
+        // Group into 8 chunks of 6, interpolate within each chunk
+        float b = 0.0;
+        for(int i=0; i<48; i++) {
+            if(i == idx) { b = u_bars[i]; break; }
+        }
+        return b;
+    }
+
+    // Scene: 48 radial 3D capsule bars + inner torus ring
+    vec2 map(vec3 p) {
+        float PI = 3.14159265;
+
+        // Compact inner ring
+        float innerR = 0.22;
+        float ring = sdTorus(p, vec2(innerR, 0.015));
+        vec2 res = vec2(ring, -1.0); // -1 = ring material
+
+        // 48 3D capsule bars — slim with clear gaps
+        float barRadius = 0.014;
+        float maxBarLen = 0.30;
+        float minBarLen = 0.015;
+
+        for(int i=0; i<48; i++) {
+            float angle = float(i) / 48.0 * 2.0 * PI - PI * 0.5;
+            float barH = u_bars[i];
+            float barLen = minBarLen + barH * maxBarLen;
+
+            vec3 dir = vec3(cos(angle), sin(angle), 0.0);
+            vec3 barStart = dir * innerR;
+            vec3 barEnd = dir * (innerR + barLen);
+
+            // Round capsules with subtle taper
+            float r = barRadius * (1.0 + barH * 0.2);
+
+            float d = sdCapsule(p, barStart, barEnd, r);
+
+            if(d < res.x) {
+                // Encode: barH in integer part concept, odd/even in sign trick
+                // Use negative for odd bars, positive for even
+                float matID = barH;
+                if(mod(float(i), 2.0) > 0.5) matID += 10.0; // odd bar flag
+                res = vec2(d, matID);
+            }
+        }
+
+        return res;
+    }
+
+    vec3 calcNormal(vec3 p) {
+        float e = 0.001;
+        float d = map(p).x;
+        return normalize(vec3(
+            map(p+vec3(e,0,0)).x - d,
+            map(p+vec3(0,e,0)).x - d,
+            map(p+vec3(0,0,e)).x - d
+        ));
+    }
+
+    void main() {
+        vec2 uv = (gl_FragCoord.xy - 0.5 * u_resolution.xy) / u_resolution.y;
+
+        // Camera
+        vec3 ro = vec3(0.0, 0.6, 2.4);
+        vec3 rd = normalize(vec3(uv, -1.6));
+        rd.yz *= rot(-0.25);
+
+        float t = 0.0;
+        vec2 h;
+        float glow = 0.0;
+        for(int i=0; i<64; i++) {
+            vec3 p = ro + rd * t;
+            h = map(p);
+            if(h.x < 0.0005 || t > 5.0) break;
+            t += h.x * 0.8;
+            glow += 0.0015 / (0.006 + abs(h.x));
+        }
+
+        // Background — Listen Buddy dark
+        vec3 col = vec3(0.06, 0.04, 0.10);
+
+        if(t < 5.0) {
+            vec3 p = ro + rd * t;
+            vec3 n = calcNormal(p);
+            float barH = h.y;
+            float wave = u_atle_sum;
+
+            // === FULL PEARL-QUALITY LIGHTING — key light from ATLE ===
+            vec3 keyDir = normalize(vec3(u_atle_t1*3.0+0.4, 0.8, u_atle_t2*2.0-0.6));
+            vec3 fillDir = normalize(vec3(-0.5, 0.4, -0.7));
+            vec3 rimDir = normalize(vec3(0.0, 0.5, 0.8));
+
+            float diffKey = max(dot(n, keyDir), 0.0);
+            float diffFill = max(dot(n, fillDir), 0.0);
+            float diffRim = max(dot(n, rimDir), 0.0);
+
+            vec3 halfKey = normalize(keyDir - rd);
+            vec3 halfFill = normalize(fillDir - rd);
+            float specKey = pow(max(dot(n, halfKey), 0.0), 96.0);
+            float specFill = pow(max(dot(n, halfFill), 0.0), 48.0);
+
+            float fresnel = pow(1.0 - max(dot(n, -rd), 0.0), 3.0);
+            float rim = pow(max(1.0 - max(dot(n, -rd), 0.0), 0.0), 2.5) * diffRim;
+
+            // Environment reflection
+            vec3 reflDir = reflect(rd, n);
+            vec3 envCol = mix(vec3(0.15, 0.1, 0.3), vec3(0.3, 0.25, 0.5), reflDir.y * 0.5 + 0.5);
+            envCol += vec3(0.2, 0.35, 0.5) * max(reflDir.z, 0.0);
+            envCol *= 1.2;
+
+            // Cheap AO approximation (no extra map calls)
+            float ao = 0.65 + 0.35 * max(dot(n, vec3(0.0, 1.0, 0.0)), 0.0);
+
+            // Decode: odd bars have barH >= 10.0
+            bool isOdd = barH >= 5.0;
+            float realBarH = isOdd ? barH - 10.0 : barH;
+
+            if(realBarH < 0.0) {
+                // Inner ring — subtle dark metallic
+                col = vec3(0.12, 0.08, 0.22);
+                col *= (0.35 + diffKey * 0.4 + diffFill * 0.15);
+                col += vec3(0.5, 0.3, 0.8) * specKey * 0.5;
+                col += envCol * fresnel * 0.3;
+                col += vec3(0.3, 0.2, 0.6) * rim * 0.5;
+                col *= ao;
+            } else {
+                // === ALTERNATING COLORS: light blue (even) / purple (odd) ===
+                vec3 evenBase = vec3(0.15, 0.55, 0.95);  // light blue
+                vec3 evenTip  = vec3(0.3, 0.85, 1.0);    // bright cyan
+                vec3 oddBase  = vec3(0.5, 0.15, 0.8);    // purple
+                vec3 oddTip   = vec3(0.75, 0.4, 1.0);    // bright purple
+
+                vec3 barCol;
+                if(isOdd) {
+                    barCol = mix(oddBase, oddTip, clamp(realBarH * 1.5, 0.0, 1.0));
+                } else {
+                    barCol = mix(evenBase, evenTip, clamp(realBarH * 1.5, 0.0, 1.0));
+                }
+
+                // Pearl iridescence overlay
+                vec3 iri = mix(
+                    vec3(0.5, 0.0, 0.7),
+                    vec3(0.0, 0.9, 0.7),
+                    cos(wave * 8.0 + realBarH * 6.0 + p.y * 3.0 + u_time) * 0.5 + 0.5
+                );
+                barCol = mix(barCol, iri, fresnel * 0.35 + 0.06);
+
+                // Subsurface scatter (organic glow from within)
+                vec3 sss = barCol * 0.08 * (1.0 - diffKey);
+
+                // Dramatic lighting — deeper shadows, hotter highlights
+                float energyBoost = 0.85 + u_energy * 0.5;
+                col = barCol * energyBoost;
+                col *= (0.12 + diffKey * 0.65 + diffFill * 0.15 + rim * 0.06);
+
+                // Punchy specular — bright hot spots
+                col += vec3(1.0, 0.95, 1.0) * specKey * 1.0;
+                col += vec3(0.7, 0.6, 0.9) * specFill * 0.4;
+
+                // Environment reflections
+                col += envCol * fresnel * 0.35;
+
+                // Dramatic rim light — strong colored edge glow
+                vec3 rimCol = isOdd ? vec3(0.7, 0.3, 1.0) : vec3(0.3, 0.7, 1.0);
+                col += rimCol * rim * (0.6 + realBarH * 0.8);
+
+                // Tip emission — taller bars glow hot
+                vec3 tipCol = isOdd ? oddTip : evenTip;
+                col += tipCol * clamp(realBarH - 0.3, 0.0, 1.0) * 0.6 * u_energy;
+
+                // SSS
+                col += sss;
+                col *= ao;
+            }
+
+            col *= exp(-t * 0.03);
+        } else {
+            // Ambient glow
+            float r = length(uv);
+            col += vec3(0.12, 0.05, 0.3) * (0.025 / max(r, 0.01));
+        }
+
+        // Volumetric glow
+        col += vec3(0.08, 0.15, 0.5) * glow * 0.03 * u_energy;
+
+        gl_FragColor = vec4(col, 1.0);
+    }
+`;
+
+// ================================================================
+// SHADER 2: FLUBBER RING — unified torus with frequency displacement
+// ================================================================
+const flubberFrag = `
+    precision highp float;
+    uniform vec2 u_resolution;
+    uniform float u_time;
+    uniform float u_torque;
+    uniform float u_energy;
+    uniform float u_bars[48];
+    uniform float u_atle_t1;
+    uniform float u_atle_t2;
+    uniform float u_atle_sum;
+    // 3 blob positions — computed on CPU with persistent physics
+    uniform vec2 u_blob0;
+    uniform vec2 u_blob1;
+    uniform vec2 u_blob2;
+
+    mat2 rot(float a){return mat2(cos(a),-sin(a),sin(a),cos(a));}
+
+    // Smooth min — organic blob merging
+    float smin(float a, float b, float k){
+        float h=clamp(0.5+0.5*(b-a)/k,0.0,1.0);
+        return mix(b,a,h)-k*h*(1.0-h);
+    }
+    float sdSph(vec3 p, float r){return length(p)-r;}
+    float sdTor(vec3 p, vec2 t){vec2 q=vec2(length(p.xz)-t.x,p.y);return length(q)-t.y;}
+
+    float map(vec3 p){
+        float e = u_energy;
+
+        // === 3 PERSISTENT BLOBS with CPU-driven positions ===
+        // Positions come from uniforms — integrated over time on CPU
+        // They wander, separate, float around, find each other, merge
+        float sz = 0.11 + e*0.03;
+
+        // Each blob at its physics-driven position
+        float b0 = sdSph(p - vec3(u_blob0, 0.0), sz);
+        float b1 = sdSph(p - vec3(u_blob1, 0.0), sz * 0.95);
+        float b2 = sdSph(p - vec3(u_blob2, 0.0), sz * 0.9);
+
+        // Distance between blobs determines merge smoothness
+        // Close together = smooth merge (looks like one blob)
+        // Far apart = hard edges (clearly separate pieces)
+        float d01 = length(u_blob0 - u_blob1);
+        float d02 = length(u_blob0 - u_blob2);
+        float d12 = length(u_blob1 - u_blob2);
+
+        // Merge smoothness: high when close, near-zero when far
+        float k01 = max(0.01, 0.15 - d01 * 0.5);
+        float k02 = max(0.01, 0.15 - d02 * 0.5);
+        float k12 = max(0.01, 0.15 - d12 * 0.5);
+
+        // Smooth union all 3 blobs — they merge organically when close
+        float d = smin(b0, b1, k01);
+        d = smin(d, b2, min(k02, k12));
+
+        // Surface deformation from ATLE — gentle wobble on each blob
+        float a1 = u_atle_t1 * 8.0;
+        float a2 = u_atle_t2 * 8.0;
+        // Spatial displacement (not angular — no ridges)
+        d += (a1 * p.x + a2 * p.y) * 0.008;
+
+        // Bubbling on surface
+        vec3 bc1 = vec3(u_blob0 * 0.5 + u_blob1 * 0.5, 0.0);
+        float bub = max(0.0, 1.0 - dot(p-bc1, p-bc1)*9.0);
+        bub = bub*bub*bub;
+        d -= bub * 0.03 * e;
+
+        return d;
+    }
+
+    vec3 calcNormal(vec3 p){
+        float e=0.0008;
+        return normalize(vec3(
+            map(p+vec3(e,0,0))-map(p-vec3(e,0,0)),
+            map(p+vec3(0,e,0))-map(p-vec3(0,e,0)),
+            map(p+vec3(0,0,e))-map(p-vec3(0,0,e))
+        ));
+    }
+
+    void main(){
+        vec2 uv=(gl_FragCoord.xy-0.5*u_resolution.xy)/u_resolution.y;
+        vec3 ro=vec3(0.0,0.3,2.5);
+        vec3 rd=normalize(vec3(uv,-1.5));
+        // Moderate tilt
+        rd.yz*=rot(-0.2);
+
+        float t=0.0,d;
+        float glow=0.0;
+        for(int i=0;i<48;i++){
+            vec3 p=ro+rd*t;
+            d=map(p);
+            if(d<0.001||t>4.0)break;
+            t+=d*0.6;
+            glow+=0.001/(0.005+abs(d));
+        }
+
+        vec3 col=vec3(0.06,0.04,0.10);
+        if(t<4.0){
+            vec3 p=ro+rd*t;
+            vec3 n=calcNormal(p);
+            float wave=u_atle_sum;
+
+            // Lighting — ATLE-driven, no per-pixel trig for light orbit
+            vec3 keyDir=normalize(vec3(u_atle_t1*3.0+0.4, 0.8, u_atle_t2*2.0-0.6));
+            vec3 fillDir=normalize(vec3(-0.5,0.4,-0.7));
+            float diffKey=max(dot(n,keyDir),0.0);
+            float diffFill=max(dot(n,fillDir),0.0);
+            vec3 halfK=normalize(keyDir-rd);
+            float specKey=pow(max(dot(n,halfK),0.0),96.0);
+            float fresnel=pow(1.0-max(dot(n,-rd),0.0),3.0);
+            float rim=pow(max(1.0-max(dot(n,-rd),0.0),0.0),2.5);
+
+            vec3 reflDir=reflect(rd,n);
+            vec3 envCol=mix(vec3(0.15,0.1,0.3),vec3(0.3,0.25,0.5),reflDir.y*0.5+0.5)*1.2;
+
+            // Solid purple — color varies smoothly by position, not by bars
+            float colorShift=dot(normalize(p.xy),vec2(u_atle_t1,u_atle_t2))*2.0+0.5;
+            vec3 flubCol=mix(vec3(0.35,0.12,0.65),vec3(0.6,0.3,0.95),clamp(colorShift,0.0,1.0));
+
+            // Iridescence from ATLE sum
+            vec3 iri=mix(vec3(0.45,0.0,0.7),vec3(0.3,0.15,0.9),
+                clamp(wave*4.0+p.y*2.0+0.5,0.0,1.0));
+            flubCol=mix(flubCol,iri,fresnel*0.3+0.05);
+
+            float energyBoost=0.85+u_energy*0.5;
+            col=flubCol*energyBoost;
+            col*=(0.12+diffKey*0.65+diffFill*0.15+rim*0.06);
+            col+=vec3(1.0,0.95,1.0)*specKey*1.0;
+            col+=envCol*fresnel*0.35;
+            col+=vec3(0.6,0.3,1.0)*rim*0.8;
+            col+=flubCol*0.08*(1.0-diffKey);
+            col*=exp(-t*0.03);
+        }
+        col+=vec3(0.08,0.15,0.5)*glow*0.03*u_energy;
+        gl_FragColor=vec4(col,1.0);
+    }
+`;
+
+// ================================================================
+// SHADER 3: INFINITY LOOP — figure-8 torus with frequency modulation
+// ================================================================
+const infinityFrag = `
+    precision highp float;
+    uniform vec2 u_resolution;
+    uniform float u_time;
+    uniform float u_torque;
+    uniform float u_energy;
+    uniform float u_bars[48];
+    uniform float u_atle_t1;
+    uniform float u_atle_t2;
+    uniform float u_atle_sum;
+
+    mat2 rot(float a){return mat2(cos(a),-sin(a),sin(a),cos(a));}
+
+    float getBar(int idx){float b=0.0;for(int i=0;i<48;i++){if(i==idx){b=u_bars[i];break;}}return b;}
+
+    // Lemniscate (infinity/figure-8) curve parameterized by angle t
+    // Returns point on the curve
+    vec3 lemniscatePoint(float t){
+        float a=0.38; // scale
+        float denom=1.0+sin(t)*sin(t);
+        float x=a*cos(t)/denom;
+        float y=a*sin(t)*cos(t)/denom;
+        return vec3(x,y,0.0);
+    }
+
+    // SDF: distance to the infinity curve (tube around the lemniscate)
+    float map(vec3 p){
+        float PI=3.14159265;
+        // Rotate for 3D perspective
+        p.xz*=rot(u_time*0.06);
+
+        // Find closest point on lemniscate by sampling
+        float minDist=999.0;
+        float bestT=0.0;
+        // Coarse search
+        for(int i=0;i<32;i++){
+            float t=float(i)/32.0*2.0*PI;
+            vec3 cp=lemniscatePoint(t);
+            float d=length(p-cp);
+            if(d<minDist){minDist=d;bestT=t;}
+        }
+        // Refine
+        for(int i=0;i<8;i++){
+            float step=PI/32.0/pow(2.0,float(i));
+            vec3 cpL=lemniscatePoint(bestT-step);
+            vec3 cpR=lemniscatePoint(bestT+step);
+            if(length(p-cpL)<length(p-cpR)){bestT-=step;}else{bestT+=step;}
+        }
+        vec3 closest=lemniscatePoint(bestT);
+        float dist=length(p-closest);
+
+        // Smooth continuous frequency modulation — no slices
+        float normT=mod(bestT/(2.0*PI),1.0);
+        float bp=normT*48.0;
+        int i0=int(mod(floor(bp),48.0));
+        int i1=int(mod(floor(bp)+1.0,48.0));
+        float f=fract(bp); f=f*f*(3.0-2.0*f);
+        float barVal=mix(getBar(i0),getBar(i1),f);
+        float tubeR=0.06+barVal*0.14*u_energy;
+
+        float d=dist-tubeR;
+        // ATLE applied in shading only, not in SDF loop
+        return d;
+    }
+
+    vec3 calcNormal(vec3 p){
+        float e=0.001;
+        return normalize(vec3(
+            map(p+vec3(e,0,0))-map(p-vec3(e,0,0)),
+            map(p+vec3(0,e,0))-map(p-vec3(0,e,0)),
+            map(p+vec3(0,0,e))-map(p-vec3(0,0,e))
+        ));
+    }
+
+    void main(){
+        vec2 uv=(gl_FragCoord.xy-0.5*u_resolution.xy)/u_resolution.y;
+        vec3 ro=vec3(0.0,0.25,2.1);
+        vec3 rd=normalize(vec3(uv,-1.5));
+        rd.yz*=rot(-0.28);
+
+        float t=0.0,d;
+        float glow=0.0;
+        for(int i=0;i<48;i++){
+            vec3 p=ro+rd*t;
+            d=map(p);
+            if(d<0.0004||t>4.0)break;
+            t+=d*0.45;
+            glow+=0.001/(0.005+abs(d));
+        }
+
+        vec3 col=vec3(0.06,0.04,0.10);
+        if(t<4.0){
+            vec3 p=ro+rd*t;
+            vec3 n=calcNormal(p);
+            float wave=u_atle_sum;
+
+            // Color based on position along the infinity curve
+            float colorPhase=atan(p.x,p.y)*0.5+wave*3.0+u_time*0.5;
+            vec3 col1=vec3(0.5,0.15,0.8);  // purple
+            vec3 col2=vec3(0.15,0.6,0.95); // blue
+            vec3 col3=vec3(0.0,0.9,1.0);   // cyan
+            vec3 baseCol=mix(col1,col2,sin(colorPhase)*0.5+0.5);
+            baseCol=mix(baseCol,col3,sin(colorPhase*1.7+1.0)*0.5+0.5);
+
+            // Pearl iridescence
+            vec3 iri=mix(vec3(0.6,0.0,0.7),vec3(0.0,1.0,0.6),
+                cos(wave*8.0+p.x*4.0+u_time)*0.5+0.5);
+            float fresnel=pow(1.0-max(dot(n,-rd),0.0),3.0);
+            baseCol=mix(baseCol,iri,fresnel*0.4+0.08);
+
+            // Orbiting light
+            vec3 keyDir=normalize(vec3(u_atle_t1*3.0+0.4,0.8,u_atle_t2*2.0-0.6));
+            vec3 fillDir=normalize(vec3(-0.5,0.4,-0.7));
+            float diffKey=max(dot(n,keyDir),0.0);
+            float diffFill=max(dot(n,fillDir),0.0);
+            vec3 halfK=normalize(keyDir-rd);
+            float specKey=pow(max(dot(n,halfK),0.0),96.0);
+            float rim=pow(max(1.0-max(dot(n,-rd),0.0),0.0),2.5);
+
+            vec3 reflDir=reflect(rd,n);
+            vec3 envCol=mix(vec3(0.15,0.1,0.3),vec3(0.3,0.25,0.5),reflDir.y*0.5+0.5)*1.2;
+
+            float energyBoost=0.85+u_energy*0.5;
+            col=baseCol*energyBoost;
+            col*=(0.12+diffKey*0.65+diffFill*0.15+rim*0.06);
+            col+=vec3(1.0,0.95,1.0)*specKey*1.0;
+            col+=envCol*fresnel*0.35;
+            col+=vec3(0.4,0.3,0.9)*rim*0.8;
+            col+=baseCol*0.08*(1.0-diffKey);
+            col*=exp(-t*0.03);
+        }
+        col+=vec3(0.08,0.12,0.5)*glow*0.04*u_energy;
+        gl_FragColor=vec4(col,1.0);
+    }
+`;
+
+// ================================================================
+// SHADER MANAGEMENT — compile all 3, switch between them
+// ================================================================
+let vizMode = 0; // 0=radial, 1=flubber, 2=infinity
+const shaderSources = [pearlFrag, flubberFrag, infinityFrag];
+let vizPrograms = [];
+let pearlBuf = null;
+
+function compileShader(type, src) {
+    const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s);
+    if(!gl.getShaderParameter(s, gl.COMPILE_STATUS)) console.error('Shader error:', gl.getShaderInfoLog(s));
+    return s;
+}
+function buildProgram(fragSrc) {
+    const prg = gl.createProgram();
+    gl.attachShader(prg, compileShader(gl.VERTEX_SHADER, pearlVert));
+    gl.attachShader(prg, compileShader(gl.FRAGMENT_SHADER, fragSrc));
+    gl.linkProgram(prg);
+    if(!gl.getProgramParameter(prg, gl.LINK_STATUS)) console.error('Link error:', gl.getProgramInfoLog(prg));
+    return prg;
+}
+function initAllShaders() {
+    pearlBuf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, pearlBuf);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1,1,-1,-1,1,-1,1,1,-1,1,1]), gl.STATIC_DRAW);
+    for (let i = 0; i < shaderSources.length; i++) {
+        vizPrograms.push(buildProgram(shaderSources[i]));
+    }
+    // Setup attrib for first program
+    useProgram(0);
+}
+function useProgram(idx) {
+    const prg = vizPrograms[idx];
+    gl.useProgram(prg);
+    gl.bindBuffer(gl.ARRAY_BUFFER, pearlBuf);
+    const pl = gl.getAttribLocation(prg, 'a_position');
+    gl.enableVertexAttribArray(pl);
+    gl.vertexAttribPointer(pl, 2, gl.FLOAT, false, 0, 0);
+}
+initAllShaders();
+// Alias for backwards compat
+let pearlPrg = vizPrograms[0];
+
+function setVizMode(mode, btn) {
+    vizMode = mode;
+    document.querySelectorAll('.viz-mode-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+}
+
+// Font switcher — applies to analysis cards, impression box, body text
+function setFont(fontName, btn) {
+    // Apply to all analysis text elements
+    const selectors = [
+        '.impression-box', '.cat-body', '.cat-title', '.result-text',
+        '.chip', '.tl-text', '.section-hdr .label', '.qc-title',
+        '.qc-metric-label', '.listen-info .title', '.listen-label',
+        '.mode-btn', '.buddy-opt', '.status-text'
+    ];
+    selectors.forEach(sel => {
+        document.querySelectorAll(sel).forEach(el => {
+            el.style.fontFamily = "'" + fontName + "', sans-serif";
+        });
+    });
+    document.querySelectorAll('.font-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    // Show font name in status bar
+    document.getElementById('sbMsg').textContent = 'Font: ' + fontName + ' \u00b7 ' + currentBuddy.label;
+}
+
+let pearlEnergy = 0, pearlEnergyTarget = 0;
+
+// === FLUBBER BLOB PHYSICS — persistent positions driven by ATLE ===
+// 3 blobs with position, velocity. ATLE drives velocity, not position directly.
+// This creates long organic trajectories that never loop.
+const blobs = [
+    { x: 0.0, y: 0.12, vx: 0, vy: 0 },
+    { x: -0.1, y: -0.08, vx: 0, vy: 0 },
+    { x: 0.1, y: -0.08, vx: 0, vy: 0 }
+];
+
+function updateBlobPhysics() {
+    // ATLE values as force fields — each blob feels different ATLE derivatives
+    const forces = [
+        { fx: atle.t1 * 0.8, fy: atle.t2 * 0.6 },                           // blob 0: raw ATLE
+        { fx: atle.t2 * -0.7, fy: atle.sum * 0.9 },                          // blob 1: swapped/inverted
+        { fx: atle.t1 * atle.t2 * 5.0, fy: atle.t1 * atle.t1 * -4.0 }       // blob 2: cross-product chaos
+    ];
+
+    for (let i = 0; i < 3; i++) {
+        const b = blobs[i];
+        // ATLE-driven force
+        b.vx += forces[i].fx * 0.002;
+        b.vy += forces[i].fy * 0.002;
+
+        // Gentle attraction back toward origin (prevents blobs from drifting offscreen)
+        b.vx -= b.x * 0.003;
+        b.vy -= b.y * 0.003;
+
+        // Damping — organic deceleration
+        b.vx *= 0.985;
+        b.vy *= 0.985;
+
+        // Integrate position
+        b.x += b.vx;
+        b.y += b.vy;
+
+        // Soft boundary — keep within view
+        const maxR = 0.35;
+        const r = Math.sqrt(b.x*b.x + b.y*b.y);
+        if (r > maxR) {
+            b.x *= maxR / r;
+            b.y *= maxR / r;
+            b.vx *= 0.5;
+            b.vy *= 0.5;
+        }
+    }
+}
+
+// 48 bar heights with spring physics — same as original 2D visualizer
+const NUM_BARS = 48;
+const vizBars = new Float32Array(NUM_BARS);
+const vizBarsTarget = new Float32Array(NUM_BARS);
+const vizBarsVel = new Float32Array(NUM_BARS);
+
+function drawViz(time) {
+    const rect = vizCanvas.parentElement.getBoundingClientRect();
+    const dpr = 1; // Cap at 1x — shader is the bottleneck, not resolution
+    const w = Math.round(rect.width * dpr), h = Math.round(rect.height * dpr);
+    if (vizCanvas.width !== w || vizCanvas.height !== h) {
+        vizCanvas.width = w; vizCanvas.height = h;
+    }
+    gl.viewport(0, 0, w, h);
+
+    // Bar targets from ATLE DSP channels — amplified for visual impact
+    for (let i = 0; i < NUM_BARS; i++) {
+        const channelPos = (i / NUM_BARS) * 8;
+        const ch0 = Math.floor(channelPos) % 8;
+        const ch1 = (ch0 + 1) % 8;
+        const frac = channelPos - Math.floor(channelPos);
+        const dspVal = atle.dsp[ch0] * (1 - frac) + atle.dsp[ch1] * frac;
+
+        if (isListening) {
+            // Amplify DSP signal — ATLE values are ~0.15 max, scale to 0-1 range
+            vizBarsTarget[i] = Math.min(1.0, 0.1 + Math.abs(dspVal) * 4.0 * (1 + (i % 6) * 0.02));
+        } else {
+            vizBarsTarget[i] = 0.05;
+        }
+    }
+
+    // Spring physics — constants are static per bar (computed from index, not time)
+    for (let i = 0; i < NUM_BARS; i++) {
+        const diff = vizBarsTarget[i] - vizBars[i];
+        // Static per-bar spring variation (no sin(time), just index-based)
+        const springK = 0.25 + (i % 7) * 0.02;
+        const spring = diff > 0 ? springK * 1.3 : springK * 0.4;
+        const damp = diff > 0 ? 0.55 : 0.80;
+
+        vizBarsVel[i] += diff * spring;
+        vizBarsVel[i] *= damp;
+        vizBars[i] += vizBarsVel[i];
+
+        if (Math.abs(vizBarsVel[i]) < 0.0005 && Math.abs(diff) < 0.003) {
+            vizBars[i] = vizBarsTarget[i]; vizBarsVel[i] = 0;
+        }
+        vizBars[i] = Math.max(0, Math.min(1.15, vizBars[i]));
+    }
+
+    // Energy derived from ATLE sum — not independent sin()
+    pearlEnergyTarget = isListening ? (0.3 + Math.abs(atle.sum) * 3) : 0.1;
+    pearlEnergy += (pearlEnergyTarget - pearlEnergy) * 0.15;
+    const torque = atleEnabled ? userTorque * (0.4 + pearlEnergy * 1.0) : 0.2;
+
+    const activePrg = vizPrograms[vizMode];
+    useProgram(vizMode);
+    gl.uniform2f(gl.getUniformLocation(activePrg, 'u_resolution'), w, h);
+    gl.uniform1f(gl.getUniformLocation(activePrg, 'u_time'), time);
+    gl.uniform1f(gl.getUniformLocation(activePrg, 'u_torque'), torque);
+    gl.uniform1f(gl.getUniformLocation(activePrg, 'u_energy'), pearlEnergy);
+    gl.uniform1fv(gl.getUniformLocation(activePrg, 'u_bars'), vizBars);
+    // ATLE values as uniforms — computed once on CPU, zero per-pixel trig
+    gl.uniform1f(gl.getUniformLocation(activePrg, 'u_atle_t1'), atle.t1);
+    gl.uniform1f(gl.getUniformLocation(activePrg, 'u_atle_t2'), atle.t2);
+    gl.uniform1f(gl.getUniformLocation(activePrg, 'u_atle_sum'), atle.sum);
+    // Flubber blob positions (only used by flubber shader, ignored by others)
+    gl.uniform2f(gl.getUniformLocation(activePrg, 'u_blob0'), blobs[0].x, blobs[0].y);
+    gl.uniform2f(gl.getUniformLocation(activePrg, 'u_blob1'), blobs[1].x, blobs[1].y);
+    gl.uniform2f(gl.getUniformLocation(activePrg, 'u_blob2'), blobs[2].x, blobs[2].y);
+    gl.drawArrays(gl.TRIANGLES, 0, 6);
+}
+
+// ================================================================
+// AURORA BACKGROUND
+// ================================================================
+const auroraCanvas = document.getElementById('auroraCanvas');
+const aCtx = auroraCanvas.getContext('2d');
+function resizeAurora(){auroraCanvas.width=window.innerWidth;auroraCanvas.height=window.innerHeight}
+resizeAurora();window.addEventListener('resize',resizeAurora);
+
+const auroraBlobs = [
+    {bx:.2,by:.3,phase:0},{bx:.8,by:.2,phase:1.5},{bx:.7,by:.8,phase:3},{bx:.3,by:.7,phase:4.5}
+];
+function drawAurora(time){
+    const w=auroraCanvas.width,h=auroraCanvas.height;
+    const colors=cachedColors;
+    aCtx.fillStyle='rgba(26,22,37,.15)';aCtx.fillRect(0,0,w,h);
+    aCtx.globalCompositeOperation='screen';
+    // ALL blob motion derived from atle.t1/t2 — no independent trig
+    auroraBlobs.forEach((b,i)=>{
+        const col = colors[i%2];
+        const sign = i < 2 ? 1 : -1;
+        const ox = (i%2===0 ? atle.t1 : atle.t2) * sign * 400;
+        const oy = (i%2===0 ? atle.t2 : atle.t1) * sign * -300;
+        const r = 250 + atle.sum * sign * 200;
+        const x=b.bx*w+ox, y=b.by*h+oy;
+        const g=aCtx.createRadialGradient(x,y,0,x,y,Math.max(50,r));
+        g.addColorStop(0,col+'12');g.addColorStop(1,'transparent');
+        aCtx.fillStyle=g;aCtx.fillRect(0,0,w,h);
+    });
+    aCtx.globalCompositeOperation='source-over';
+}
+
+// ================================================================
+// LOUDNESS HISTORY CANVAS
+// ================================================================
+const loudCanvas = document.getElementById('loudnessCanvas');
+const lCtx = loudCanvas.getContext('2d');
+const lufsHistory = [];
+
+let _loudDims=[0,0];
+function drawLoudness(time){
+    const rect = loudCanvas.parentElement.getBoundingClientRect();
+    const dpr = window.devicePixelRatio||1;
+    const _lw=Math.round((rect.width-20)*dpr),_lh=Math.round(50*dpr);
+    if(_loudDims[0]!==_lw||_loudDims[1]!==_lh){_loudDims=[_lw,_lh];loudCanvas.width=_lw;loudCanvas.height=_lh;loudCanvas.style.width=(rect.width-20)+'px';}
+    lCtx.setTransform(dpr,0,0,dpr,0,0);
+    const w=rect.width-20, h=50;
+    const pri=cachedColors[0];
+    const sec=cachedColors[1];
+
+    // Add point — derived from the single ATLE evaluation
+    const val = -14 + atle.sum * 20;
+    lufsHistory.push(val);if(lufsHistory.length>100)lufsHistory.shift();
+
+    lCtx.fillStyle='rgba(13,10,18,.6)';lCtx.fillRect(0,0,w,h);
+    // Target zone
+    const y14=(((-14)-(-30))/(0-(-30)))*h, y16=(((-16)-(-30))/(0-(-30)))*h;
+    lCtx.fillStyle=pri+'15';lCtx.fillRect(0,h-y14,w,y14-y16);
+    // Line
+    if(lufsHistory.length>1){
+        lCtx.beginPath();
+        for(let i=0;i<lufsHistory.length;i++){
+            const x=(i/(lufsHistory.length-1))*w;
+            const y=h-((lufsHistory[i]-(-30))/(0-(-30)))*h;
+            i===0?lCtx.moveTo(x,y):lCtx.lineTo(x,y);
+        }
+        lCtx.strokeStyle=pri;lCtx.lineWidth=2;lCtx.shadowColor=pri;lCtx.shadowBlur=6;lCtx.stroke();
+        lCtx.shadowBlur=0;
+        // Fill
+        lCtx.lineTo(w,h);lCtx.lineTo(0,h);lCtx.closePath();
+        const fg=lCtx.createLinearGradient(0,0,0,h);
+        fg.addColorStop(0,pri+'30');fg.addColorStop(0.5,sec+'15');fg.addColorStop(1,'transparent');
+        lCtx.fillStyle=fg;lCtx.fill();
+        // Dot at end
+        const lastY=h-((lufsHistory[lufsHistory.length-1]-(-30))/(0-(-30)))*h;
+        lCtx.beginPath();lCtx.arc(w,lastY,3,0,Math.PI*2);
+        lCtx.fillStyle=pri;lCtx.shadowColor=pri;lCtx.shadowBlur=8;lCtx.fill();lCtx.shadowBlur=0;
+    }
+    // Update readout
+    document.getElementById('lufsMain').textContent = val.toFixed(1);
+    document.getElementById('vizDb').textContent = val.toFixed(1);
+}
+
+// ================================================================
+// SOUND BARS ANIMATION
+// ================================================================
+function animSoundBars(){
+    if(!isListening)return;
+    const bars = soundBarsEl.children;
+    // Sound bars driven by ATLE DSP channels — no independent sin()
+    for(let i=0;i<bars.length;i++){
+        const h = 4 + Math.abs(atle.dsp[i % 8]) * 70 + Math.abs(atle.t1) * 5;
+        bars[i].style.height = h+'px';
+    }
+}
+
+// ================================================================
+// MAIN LOOP
+// ================================================================
+function mainLoop(){
+    _frameCount++;
+    const time = (Date.now()-startT)*.001;
+
+    // === THE SINGLE ATLE EVALUATION — everything flows from this ===
+    evalAtle(time);
+
+    // Inject into CSS custom properties — pure O(1) bindings
+    const fx = (atle.t1 * 10).toFixed(3);
+    const fy = (atle.t2 * 10).toFixed(3);
+    root.style.setProperty('--atle-fx', fx+'px');
+    root.style.setProperty('--atle-fy', fy+'px');
+    root.style.setProperty('--atle-ang', atle.ang.toFixed(1)+'deg');
+    root.style.setProperty('--atle-scale', atle.scale.toFixed(3));
+
+    // Readouts
+    document.getElementById('rdT1').textContent = atle.t1.toFixed(4);
+    document.getElementById('rdT2').textContent = atle.t2.toFixed(4);
+    document.getElementById('rdS').textContent = atle.scale.toFixed(3);
+
+    // ALL meters derived from ATLE — no independent sin() calls
+    if(isListening){
+        // Energy from ATLE DSP channels (bass = ch0+ch1, snare = ch3+ch4)
+        const bass = Math.abs(atle.dsp[0]) + Math.abs(atle.dsp[1]);
+        const snare = Math.abs(atle.dsp[3]) + Math.abs(atle.dsp[4]);
+        const energy = 0.5 + bass * 0.3 + snare * 0.15 + Math.abs(atle.t1) * 0.2;
+
+        const rmsLv = -10 + energy * 4 + atle.t1 * 15;
+        const rmsRv = -10.3 + energy * 3.8 + atle.t2 * 12;
+        const pkv = -3.5 + bass * 1.5 + atle.t1 * 10;
+        const tp = -1.0 + bass * 0.4 + atle.t2 * 3;
+        const crest = 7.5 + atle.sum * 10;
+        const corr = 0.88 + atle.t1 * 0.3;
+
+        document.getElementById('rmsL').style.width = (40 + energy * 30 + Math.abs(atle.t1) * 15) + '%';
+        document.getElementById('rmsR').style.width = (38 + energy * 28 + Math.abs(atle.t2) * 14) + '%';
+        document.getElementById('peakMeter').style.width = (55 + bass * 20 + Math.abs(atle.t1) * 10) + '%';
+        document.getElementById('rmsLVal').textContent = rmsLv.toFixed(1);
+        document.getElementById('rmsRVal').textContent = rmsRv.toFixed(1);
+        document.getElementById('peakVal').textContent = pkv.toFixed(1);
+
+        document.getElementById('tpVal').textContent = tp.toFixed(1) + ' dBTP';
+        document.getElementById('tpVal').style.color = tp > -1.0 ? '#ef4444' : '#f59e0b';
+        document.getElementById('tpVal').style.textShadow = tp > -1.0 ? '0 0 8px rgba(239,68,68,.5)' : 'none';
+        document.getElementById('crestVal').textContent = crest.toFixed(1) + ' dB';
+        document.getElementById('corrVal').textContent = corr.toFixed(2);
+
+        // Mini spectrum — 4 bands from ATLE DSP channels directly
+        const specBars = miniSpec.children;
+        for(let i=0;i<4;i++){
+            const v = Math.abs(atle.dsp[i*2]) * 100 * (0.7 + userTorque * 0.3) + 15;
+            specBars[i].style.height = Math.max(8, Math.min(95, v)) + '%';
+            specBars[i].classList.toggle('hot', v > 55);
+        }
+    }
+
+    updateBlobPhysics(); // ATLE-driven persistent blob positions
+    drawViz(time);
+    // Mascot is pure SVG — animated by ATLE CSS vars, zero JS per frame
+    if(_frameCount%4===0)drawAurora(time);
+    if(_frameCount%3===0)drawLoudness(time);
+    animSoundBars();
+    updatePlayerProgress();
+
+    requestAnimationFrame(mainLoop);
+}
+mainLoop();
+
+// ================================================================
+// AUDIO PLAYER / FILE PICKER
+// ================================================================
+function fmtTime(s){
+    if(!s || isNaN(s)) return '0:00';
+    const m = Math.floor(s/60), sec = Math.floor(s%60);
+    return m+':'+(sec<10?'0':'')+sec;
+}
+
+// Boot up with simulated file loaded and playing
+(function initSimulatedPlayback(){
+    hasFile = true;
+    isPlaying = true;
+    simPlaying = true;
+    // Show transport
+    document.getElementById('fpText').style.display = 'none';
+    document.getElementById('fpName').style.display = 'block';
+    document.getElementById('fpName').textContent = simFileName;
+    document.getElementById('fileNameRow').style.display = 'flex';
+    document.getElementById('fileNameDisplay').textContent = simFileName;
+    document.getElementById('transportBar').style.display = 'flex';
+    document.getElementById('timeDuration').textContent = fmtTime(simDuration);
+    document.getElementById('playIcon').innerHTML = '<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>';
+})();
+
+function handleFileSelect(input){
+    const file = input.files[0];
+    if(!file) return;
+    hasFile = true; simPlaying = false;
+
+    // Show file name
+    document.getElementById('fpText').style.display = 'none';
+    document.getElementById('fpName').style.display = 'block';
+    document.getElementById('fpName').textContent = file.name;
+    document.getElementById('fileNameRow').style.display = 'flex';
+    document.getElementById('fileNameDisplay').textContent = file.name;
+    document.getElementById('transportBar').style.display = 'flex';
+
+    // Create audio element
+    if(audioElement){audioElement.pause();URL.revokeObjectURL(audioElement.src)}
+    audioElement = new Audio();
+    audioElement.src = URL.createObjectURL(file);
+    audioElement.addEventListener('loadedmetadata',()=>{
+        document.getElementById('timeDuration').textContent = fmtTime(audioElement.duration);
+    });
+    audioElement.addEventListener('ended',()=>{
+        isPlaying = false;
+        document.getElementById('playIcon').innerHTML = '<polygon points="5,3 19,12 5,21"/>';
+    });
+}
+
+function togglePlay(){
+    // If using simulated playback
+    if(!audioElement && hasFile){
+        simPlaying = !simPlaying;
+        isPlaying = simPlaying;
+        document.getElementById('playIcon').innerHTML = simPlaying
+            ? '<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>'
+            : '<polygon points="5,3 19,12 5,21"/>';
+        return;
+    }
+    if(!audioElement) return;
+    if(isPlaying){
+        audioElement.pause();
+        isPlaying = false;
+        document.getElementById('playIcon').innerHTML = '<polygon points="5,3 19,12 5,21"/>';
+    } else {
+        audioElement.play();
+        isPlaying = true;
+        document.getElementById('playIcon').innerHTML = '<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>';
+    }
+}
+
+function stopPlayback(){
+    if(!audioElement && hasFile){
+        simPlaying = false; isPlaying = false; simPosition = 0;
+        document.getElementById('playIcon').innerHTML = '<polygon points="5,3 19,12 5,21"/>';
+        document.getElementById('progressFill').style.width = '0%';
+        document.getElementById('timeElapsed').textContent = '0:00';
+        return;
+    }
+    if(!audioElement) return;
+    audioElement.pause();
+    audioElement.currentTime = 0;
+    isPlaying = false;
+    document.getElementById('playIcon').innerHTML = '<polygon points="5,3 19,12 5,21"/>';
+    document.getElementById('progressFill').style.width = '0%';
+    document.getElementById('timeElapsed').textContent = '0:00';
+}
+
+function seekAudio(e){
+    const track = e.currentTarget;
+    const rect = track.getBoundingClientRect();
+    const pct = (e.clientX - rect.left) / rect.width;
+    if(!audioElement && hasFile){
+        simPosition = pct * simDuration;
+        return;
+    }
+    if(!audioElement) return;
+    audioElement.currentTime = pct * audioElement.duration;
+}
+
+function updatePlayerProgress(){
+    // Simulated playback
+    if(!audioElement && hasFile){
+        if(simPlaying){
+            simPosition += 0.0167; // ~1/60th of a second per frame
+            if(simPosition >= simDuration) simPosition = 0; // loop
+        }
+        const pct = (simPosition / simDuration) * 100;
+        document.getElementById('progressFill').style.width = pct + '%';
+        document.getElementById('timeElapsed').textContent = fmtTime(simPosition);
+        return;
+    }
+    if(!audioElement || !hasFile) return;
+    if(audioElement.duration){
+        const pct = (audioElement.currentTime / audioElement.duration) * 100;
+        document.getElementById('progressFill').style.width = pct + '%';
+        document.getElementById('timeElapsed').textContent = fmtTime(audioElement.currentTime);
+    }
+}
+
+// Drag and drop on file picker
+const fpBtn = document.getElementById('filePickerBtn');
+fpBtn.addEventListener('dragover',e=>{e.preventDefault();fpBtn.style.borderColor='var(--lb-primary)';fpBtn.style.background='rgba(168,85,247,.08)'});
+fpBtn.addEventListener('dragleave',()=>{fpBtn.style.borderColor='';fpBtn.style.background=''});
+fpBtn.addEventListener('drop',e=>{
+    e.preventDefault();fpBtn.style.borderColor='';fpBtn.style.background='';
+    const file = e.dataTransfer.files[0];
+    if(file && file.type.startsWith('audio/')){
+        const dt = new DataTransfer();dt.items.add(file);
+        document.getElementById('audioFileInput').files = dt.files;
+        handleFileSelect(document.getElementById('audioFileInput'));
+    }
+});
+</script>
+</body>
+</html>
