@@ -1318,7 +1318,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#0d0a14;font-family:
         </div>
         <span class="sb-msg" id="sbMsg">Ready &middot; Rosso &middot; Mix Mode</span>
         <div class="sb-right">
-            <div class="atle-readout">
+            <div class="atle-readout" style="display:none" aria-hidden="true">
                 <span>T1:<span class="atle-val" id="rdT1">0.0000</span></span>
                 <span>T2:<span class="atle-val" id="rdT2">0.0000</span></span>
                 <span>S:<span class="atle-val" id="rdS">1.000</span></span>
@@ -1361,8 +1361,9 @@ html,body{width:100%;height:100%;overflow:hidden;background:#0d0a14;font-family:
 <!-- Buddy hovercard (hidden) -->
 <div class="buddy-hovercard" id="buddyHovercard" style="display:none"></div>
 
-<!-- ATLE controls strip -->
-<div class="atle-strip">
+<!-- ATLE controls strip — hidden in the embedded marketing preview;
+     ATLE runs invisibly in the background. -->
+<div class="atle-strip" style="display:none" aria-hidden="true">
     <span class="atle-strip-label">ATLE ENGINE</span>
     <button class="atle-pill on" id="atleBtnOn" onclick="toggleAtle(true)">ON</button>
     <button class="atle-pill off" id="atleBtnOff" onclick="toggleAtle(false)">OFF</button>
@@ -1396,7 +1397,9 @@ const startT = Date.now();
 // Audio player state (declared early so main loop can reference)
 let audioCtx = null, audioElement = null, isPlaying = false, hasFile = false;
 let simPlaying = true, simPosition = 47.3, simDuration = 214;
-const simFileName = 'Midnight_Drive_Master_v3.wav';
+// Real test track from a recent analysis session — keeps the filename
+// believable and matches the analysis copy (R&B vocal, low-mid haze, etc).
+const simFileName = 'Aaliyah - Try Again.wav';
 
 // Category data for analysis cards.
 // Each `text` is rendered into the card body as innerHTML — inline <span style>
@@ -1404,14 +1407,17 @@ const simFileName = 'Midnight_Drive_Master_v3.wav';
 const HL = 'color:var(--lb-secondary);font-weight:500';
 const PARA = 'margin:0 0 8px;line-height:1.55;font-size:11.5px;color:var(--foreground)';
 const SUB = 'font-size:10px;color:var(--muted-foreground);text-transform:uppercase;letter-spacing:0.08em;margin:10px 0 4px;font-weight:600';
+// Category labels + colors mirror the real plugin's categoryConfig
+// (see plugins/ListenBuddy/Source/WebUI/src/components/AnalysisPanel.jsx).
+// Hex colors here exactly match the live UI's per-category hue.
 const categories = [
-    {key:'low_end',icon:'&#128266;',color:'#3b82f6',label:'Low End',count:3,
+    {key:'low_end',icon:'&#128266;',color:'#a855f7',label:'Low-End & Bass',count:3,
      text:`<p style="${PARA}">Sub-bass sits cleanly around <span style="${HL}">45&nbsp;Hz</span> with real weight, and the kick fundamental punches through near <span style="${HL}">80&nbsp;Hz</span> without masking the 808. Mono compatibility holds below <span style="${HL}">120&nbsp;Hz</span> — the side image is properly centered down low, no phase issues flagged.</p>
      <p style="${PARA}">There's a soft build-up between <span style="${HL}">200&ndash;300&nbsp;Hz</span> that's adding a little low-mid haze. The groove still reads, but the transient definition could land harder on smaller speakers — phone, laptop, kitchen radio.</p>
      <div style="${SUB}">Suggested move</div>
      <p style="${PARA}">A narrow <span style="${HL}">&minus;1.5&nbsp;dB</span> dip centered at <span style="${HL}">240&nbsp;Hz</span> with Q&nbsp;~&nbsp;1.4 cleans up the haze without thinning the body. If you want more attack, also nudge <span style="${HL}">+1&nbsp;dB</span> at <span style="${HL}">3.5&nbsp;kHz</span> on the kick to bring the click forward.</p>`},
 
-    {key:'vocals',icon:'&#127908;',color:'#ec4899',label:'Vocals',count:2,
+    {key:'vocals',icon:'&#127908;',color:'#ec4899',label:'Vocals & Presence',count:2,
      text:`<p style="${PARA}">Lead vocal sits forward without becoming abrasive — presence band <span style="${HL}">2&ndash;4&nbsp;kHz</span> is well-judged and the de-esser is catching sibilance cleanly. Performance phrasing is locked, and the doubles are panned tasteful (around 35% L/R). The chorus stack reads as one voice rather than four.</p>
      <p style="${PARA}">Two soft spots: there's a tiny dip near <span style="${HL}">3.4&nbsp;kHz</span> that subtly dulls consonants on the verse, and the vocal's air shelf is conservative — bright enough for headphones, polite on car systems.</p>
      <div style="${SUB}">Suggested move</div>
@@ -1429,7 +1435,7 @@ const categories = [
      <div style="${SUB}">Suggested move</div>
      <p style="${PARA}">Try an M/S widener on just the bvox bus at <span style="${HL}">+15%</span> side, or pan the doubles a touch wider <em>before</em> they hit the chorus reverb. Don't widen the lead vocal — it's where you want it.</p>`},
 
-    {key:'clarity',icon:'&#10024;',color:'#a855f7',label:'Clarity & Definition',count:2,
+    {key:'clarity',icon:'&#10024;',color:'#06b6d4',label:'Clarity',count:2,
      text:`<p style="${PARA}">Instruments occupy distinct frequency lanes — kick&nbsp;/&nbsp;bass&nbsp;/&nbsp;vocal aren't fighting, and the synth pad sits in its own pocket above <span style="${HL}">5&nbsp;kHz</span>. Transient definition reads clean across the kit; nothing is smeared by the master bus glue compressor.</p>
      <p style="${PARA}">One spot: the snare's reverb tail bleeds into the next beat in the chorus, especially on the downbeat where the room mic is loudest. It's masking some of the snap on beat 2&nbsp;/&nbsp;4.</p>
      <div style="${SUB}">Suggested move</div>
