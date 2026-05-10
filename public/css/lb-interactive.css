@@ -1,0 +1,445 @@
+/* ============================================================================
+   Listen Buddy interactive plugin model gallery
+   Replaces the legacy static screenshot gallery.
+
+   The whole component is a CSS recreation of the actual Listen Buddy plugin
+   window — chrome, tabs, expandable analysis cards. No rendered images of
+   the real UI; visitors get to BROWSE analysis-style content the way it
+   shows up inside the plugin.
+
+   Brand tokens (from colors_and_type.css): --primary, --secondary, --card,
+   --border, --foreground, --muted-foreground, --status-* are all used here.
+   ============================================================================ */
+
+.lb-interactive {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    width: 100%;
+    max-width: 760px;
+    margin-inline: auto;
+    isolation: isolate;
+}
+
+/* ----- The plugin window mockup ----- */
+.lb-interactive-frame {
+    position: relative;
+    border-radius: 22px;
+    background:
+        radial-gradient(circle at 18% 0%, rgba(120, 80, 200, 0.20), transparent 55%),
+        radial-gradient(circle at 80% 110%, rgba(60, 100, 220, 0.18), transparent 55%),
+        linear-gradient(180deg, #1a1530 0%, #0d0a1c 100%);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    box-shadow:
+        0 30px 60px -20px rgba(0, 0, 0, 0.7),
+        0 18px 36px -18px rgba(120, 80, 200, 0.22),
+        inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    overflow: hidden;
+    transform: perspective(1400px) rotateY(-2deg) rotateX(0.6deg);
+    transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.lb-interactive-frame:hover {
+    transform: perspective(1400px) rotateY(-1deg) rotateX(0deg) scale(1.005);
+}
+
+/* Top chrome — mascot + track meta + buddy swatch */
+.lb-iframe-chrome {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 18px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    background: rgba(0, 0, 0, 0.20);
+}
+.lb-iframe-chrome .traffic-lights {
+    display: inline-flex;
+    gap: 7px;
+    margin-right: 4px;
+}
+.lb-iframe-chrome .traffic-lights span {
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    background: #444152;
+    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.3);
+}
+.lb-iframe-chrome .traffic-lights span:nth-child(1) { background: #ff5f57; }
+.lb-iframe-chrome .traffic-lights span:nth-child(2) { background: #febc2e; }
+.lb-iframe-chrome .traffic-lights span:nth-child(3) { background: #28c840; }
+
+.lb-iframe-mascot {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 0 0 18px var(--glow);
+}
+.lb-iframe-mascot img {
+    width: 22px;
+    height: 22px;
+    object-fit: contain;
+}
+
+.lb-iframe-meta {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    line-height: 1.25;
+}
+.lb-iframe-meta .track-name {
+    font-family: var(--font-display, 'Outfit', sans-serif);
+    font-weight: 600;
+    font-size: 13px;
+    color: #ece8f5;
+    letter-spacing: -0.01em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.lb-iframe-meta .track-mode {
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: rgba(232, 230, 245, 0.55);
+    font-weight: 500;
+}
+.lb-iframe-buddy {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 10px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(0, 0, 0, 0.25);
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #d8d4ec;
+}
+.lb-iframe-buddy .swatch {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    box-shadow: 0 0 8px currentColor;
+}
+.lb-iframe-buddy[data-buddy="velvet"]   .swatch { color: hsl(265, 90%, 70%); background: hsl(265, 90%, 70%); }
+.lb-iframe-buddy[data-buddy="amarillo"] .swatch { color: hsl(38, 95%, 60%);   background: hsl(38, 95%, 60%);  }
+.lb-iframe-buddy[data-buddy="rosso"]    .swatch { color: hsl(8, 90%, 65%);    background: hsl(8, 90%, 65%);   }
+.lb-iframe-buddy[data-buddy="verde"]    .swatch { color: hsl(152, 70%, 55%);  background: hsl(152, 70%, 55%); }
+
+/* Mode tabs (also serve as gallery navigation) */
+.lb-iframe-tabs {
+    display: flex;
+    gap: 4px;
+    padding: 8px 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    background: rgba(0, 0, 0, 0.12);
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+.lb-iframe-tabs::-webkit-scrollbar { display: none; }
+
+.lb-iframe-tab {
+    flex-shrink: 0;
+    padding: 8px 14px;
+    border-radius: 10px;
+    border: 1px solid transparent;
+    background: transparent;
+    color: rgba(232, 230, 245, 0.55);
+    font-family: var(--font-display, 'Outfit', sans-serif);
+    font-weight: 500;
+    font-size: 12.5px;
+    letter-spacing: 0.01em;
+    cursor: pointer;
+    transition: color 0.2s, background 0.2s, border-color 0.2s;
+    white-space: nowrap;
+}
+.lb-iframe-tab:hover {
+    color: rgba(232, 230, 245, 0.85);
+    background: rgba(255, 255, 255, 0.04);
+}
+.lb-iframe-tab[aria-selected="true"] {
+    color: #ece8f5;
+    background: linear-gradient(135deg,
+        hsla(265, 80%, 65%, 0.18),
+        hsla(220, 90%, 65%, 0.12));
+    border-color: rgba(255, 255, 255, 0.10);
+    box-shadow: 0 0 14px hsla(265, 80%, 65%, 0.18);
+}
+
+/* Track impression line — sits above the analysis cards */
+.lb-iframe-impression {
+    padding: 14px 18px 10px;
+    background: rgba(255, 255, 255, 0.015);
+    font-size: 13px;
+    line-height: 1.55;
+    color: rgba(232, 230, 245, 0.78);
+    border-bottom: 1px dashed rgba(255, 255, 255, 0.06);
+}
+.lb-iframe-impression .accent {
+    color: var(--accent);
+    font-weight: 500;
+}
+
+/* The stage that holds the cards */
+.lb-iframe-cards {
+    padding: 14px 14px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    /* min-height keeps layout stable when switching tabs that have varying card counts */
+    min-height: 380px;
+    transition: opacity 0.25s ease, transform 0.25s ease;
+}
+.lb-iframe-cards.is-swapping {
+    opacity: 0;
+    transform: translateY(6px);
+}
+
+/* Each analysis card */
+.lb-analysis-card {
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    background: rgba(34, 28, 58, 0.55);
+    overflow: hidden;
+    transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+}
+.lb-analysis-card:hover {
+    border-color: rgba(255, 255, 255, 0.10);
+    background: rgba(34, 28, 58, 0.75);
+}
+.lb-analysis-card[aria-expanded="true"] {
+    border-color: rgba(150, 110, 230, 0.32);
+    background:
+        linear-gradient(180deg, rgba(50, 38, 90, 0.55), rgba(34, 28, 58, 0.65));
+    box-shadow:
+        0 8px 22px -8px rgba(120, 80, 200, 0.25),
+        inset 0 0 0 1px rgba(180, 140, 255, 0.10);
+}
+
+.lb-analysis-card-h {
+    width: 100%;
+    display: grid;
+    grid-template-columns: auto 1fr auto auto;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    background: transparent;
+    border: 0;
+    text-align: left;
+    color: inherit;
+    cursor: pointer;
+    font: inherit;
+}
+.lb-analysis-card-h:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: -2px;
+    border-radius: 12px;
+}
+
+/* Status pill — left dot indicator */
+.lb-card-status {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    box-shadow: 0 0 8px currentColor;
+}
+.lb-card-status[data-score="great"]      { color: var(--status-great);      background: var(--status-great); }
+.lb-card-status[data-score="good"]       { color: var(--status-good);       background: var(--status-good); }
+.lb-card-status[data-score="needs-work"] { color: var(--status-needs-work); background: var(--status-needs-work); }
+.lb-card-status[data-score="info"]       { color: hsl(220, 70%, 65%);       background: hsl(220, 70%, 65%); }
+
+.lb-card-title-block {
+    min-width: 0;
+}
+.lb-card-title {
+    display: block;
+    font-family: var(--font-display, 'Outfit', sans-serif);
+    font-weight: 600;
+    font-size: 14px;
+    color: #ece8f5;
+    letter-spacing: -0.005em;
+}
+.lb-card-summary {
+    display: block;
+    font-size: 12px;
+    color: rgba(232, 230, 245, 0.58);
+    margin-top: 2px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Score badge / unit value (e.g. "-9.2 LUFS") */
+.lb-card-value {
+    font-family: var(--font-mono, 'JetBrains Mono', monospace);
+    font-size: 11.5px;
+    font-weight: 500;
+    padding: 4px 8px;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    color: rgba(232, 230, 245, 0.85);
+    white-space: nowrap;
+}
+
+.lb-card-chev {
+    width: 18px;
+    height: 18px;
+    color: rgba(232, 230, 245, 0.45);
+    transition: transform 0.25s ease, color 0.2s;
+    flex-shrink: 0;
+}
+.lb-analysis-card[aria-expanded="true"] .lb-card-chev {
+    transform: rotate(180deg);
+    color: var(--accent);
+}
+
+/* Expanded body */
+.lb-card-body {
+    overflow: hidden;
+    max-height: 0;
+    opacity: 0;
+    transition:
+        max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+        opacity 0.25s ease,
+        padding 0.25s ease;
+    padding-inline: 14px;
+}
+.lb-analysis-card[aria-expanded="true"] .lb-card-body {
+    max-height: 360px;
+    opacity: 1;
+    padding-block: 0 16px;
+}
+.lb-card-body p {
+    font-size: 13px;
+    line-height: 1.6;
+    color: rgba(232, 230, 245, 0.85);
+    margin: 0 0 8px;
+}
+.lb-card-body p:last-child {
+    margin-bottom: 0;
+}
+.lb-card-body .accent {
+    color: var(--accent);
+    font-weight: 500;
+}
+.lb-card-body .lb-card-actions {
+    margin-top: 10px;
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+.lb-card-body .lb-card-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 10px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    color: rgba(232, 230, 245, 0.78);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+}
+
+/* ----- Footer hint strip ----- */
+.lb-iframe-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 18px 12px;
+    border-top: 1px solid rgba(255, 255, 255, 0.04);
+    background: rgba(0, 0, 0, 0.20);
+    font-size: 11px;
+    color: rgba(232, 230, 245, 0.45);
+    letter-spacing: 0.04em;
+}
+.lb-iframe-footer .live-dot {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    text-transform: uppercase;
+    font-weight: 600;
+}
+.lb-iframe-footer .live-dot::before {
+    content: '';
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--status-great);
+    box-shadow: 0 0 8px var(--status-great-glow);
+    animation: lb-iframe-pulse 2.4s ease-in-out infinite;
+}
+@keyframes lb-iframe-pulse {
+    0%, 100% { opacity: 0.6; }
+    50%      { opacity: 1; }
+}
+
+/* ----- Mobile adjustments ----- */
+@media (max-width: 720px) {
+    .lb-interactive-frame {
+        transform: none;       /* drop the 3D tilt on small screens — readability over flair */
+        border-radius: 16px;
+    }
+    .lb-iframe-chrome {
+        padding: 12px 14px;
+        gap: 10px;
+    }
+    .lb-iframe-chrome .traffic-lights {
+        display: none;          /* not needed on mobile */
+    }
+    .lb-iframe-meta .track-name { font-size: 12.5px; }
+    .lb-iframe-meta .track-mode { font-size: 10px; }
+    .lb-iframe-buddy {
+        font-size: 10px;
+        padding: 4px 8px;
+    }
+    .lb-iframe-tabs {
+        padding: 6px 8px;
+    }
+    .lb-iframe-tab {
+        font-size: 11.5px;
+        padding: 7px 11px;
+    }
+    .lb-iframe-impression {
+        font-size: 12px;
+        padding: 12px 14px 8px;
+    }
+    .lb-iframe-cards {
+        padding: 10px 10px 14px;
+        min-height: 0;
+    }
+    .lb-card-title { font-size: 13px; }
+    .lb-card-summary { font-size: 11.5px; }
+    .lb-card-body p { font-size: 12.5px; }
+    .lb-card-value {
+        display: none;          /* compact: drop the unit pill on phone, value still in body */
+    }
+    .lb-analysis-card-h {
+        grid-template-columns: auto 1fr auto;
+        gap: 10px;
+        padding: 11px 12px;
+    }
+}
+
+/* ----- Reduced motion ----- */
+@media (prefers-reduced-motion: reduce) {
+    .lb-interactive-frame,
+    .lb-iframe-cards,
+    .lb-card-body,
+    .lb-card-chev {
+        transition-duration: 0.001s;
+    }
+    .lb-iframe-footer .live-dot::before {
+        animation: none;
+    }
+}

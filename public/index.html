@@ -14,6 +14,7 @@
 <link rel="stylesheet" href="css/brand.css?v=5">
 <link rel="stylesheet" href="css/screenshots.css?v=1">
 <link rel="stylesheet" href="css/buddies.css?v=2">
+<link rel="stylesheet" href="css/lb-interactive.css?v=1">
 
 <!-- ────────── App constants & helpers ────────── -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -121,43 +122,56 @@
         <p>A mix companion that sits in your DAW, reads the signal in real time, and tells you what's happening in the spectrum: plain English, with the dB and kHz to back it up.</p>
       </div>
 
+      <div class="section-head reveal" style="margin-top: 8px;">
+        <div class="eyebrow"><span class="dot"></span><span>Inside the analysis engine</span></div>
+        <h3 style="margin: 6px 0 8px;">Explore Listen Buddy's <span class="grad">analysis engine.</span></h3>
+        <p>Open real analysis‑style cards inside an interactive plugin preview. Browse mix, mastering, production, and broadcast feedback the way it appears inside Listen Buddy.</p>
+      </div>
+
       <div class="product reveal">
-        <!-- LEFT: PLUGIN GALLERY -->
-        <div class="lb-gallery" data-gallery aria-label="Listen Buddy screen gallery">
-          <div class="lb-gallery-stage">
-            <div class="lb-shot lb-shot-gallery" data-shot-track data-gallery-zoom role="button" tabindex="0" aria-label="Click to zoom into screenshot">
-              <img data-gallery-img src="assets/lb-red-1.png" alt="Listen Buddy plugin screen" />
-              <span class="lb-gallery-zoom-hint" aria-hidden="true">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/><path d="M11 8v6"/><path d="M8 11h6"/></svg>
-                Click to zoom
+        <!-- LEFT: INTERACTIVE PLUGIN MODEL GALLERY -->
+        <!-- Replaces the legacy static screenshot gallery. JS hydrates the plugin
+             window mockup with one of five example analyses (mix, mastering,
+             production, film/broadcast, plugin advisor). Each card expands and
+             collapses with realistic Listen Buddy-style copy. -->
+        <div class="lb-interactive" data-lb-interactive aria-label="Listen Buddy interactive analysis preview">
+          <div class="lb-interactive-frame" role="region" aria-live="polite">
+            <!-- Top chrome: traffic lights, mascot, track meta, buddy swatch -->
+            <header class="lb-iframe-chrome">
+              <span class="traffic-lights" aria-hidden="true"><span></span><span></span><span></span></span>
+              <span class="lb-iframe-mascot" aria-hidden="true">
+                <img src="assets/listen-buddy-mascot.svg" alt="" />
               </span>
+              <span class="lb-iframe-meta">
+                <span class="track-name" data-lb-track>Drift — Skye Wallace · Mix</span>
+                <span class="track-mode" data-lb-mode>Velvet · 96 kHz · Mix mode</span>
+              </span>
+              <span class="lb-iframe-buddy" data-lb-buddy="velvet" aria-label="Active buddy">
+                <span class="swatch"></span>
+                <span data-lb-buddy-name>Velvet</span>
+              </span>
+            </header>
+
+            <!-- Mode tabs — pick which example analysis to view -->
+            <div class="lb-iframe-tabs" role="tablist" aria-label="Analysis examples">
+              <button class="lb-iframe-tab" role="tab" data-lb-tab="mix" aria-selected="true" id="lb-tab-mix">Mix Analysis</button>
+              <button class="lb-iframe-tab" role="tab" data-lb-tab="mastering" aria-selected="false" id="lb-tab-mastering">Mastering</button>
+              <button class="lb-iframe-tab" role="tab" data-lb-tab="production" aria-selected="false" id="lb-tab-production">Production</button>
+              <button class="lb-iframe-tab" role="tab" data-lb-tab="broadcast" aria-selected="false" id="lb-tab-broadcast">Film / Broadcast</button>
+              <button class="lb-iframe-tab" role="tab" data-lb-tab="advisor" aria-selected="false" id="lb-tab-advisor">Plugin Advisor</button>
             </div>
-            <button class="lb-gallery-nav prev" data-gallery-prev aria-label="Previous screen">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>
-            </button>
-            <button class="lb-gallery-nav next" data-gallery-next aria-label="Next screen">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
-            </button>
-          </div>
-          <div class="lb-gallery-rail" role="tablist">
-            <button class="lb-gallery-thumb is-active" data-gallery-thumb="0" role="tab" aria-label="Overall impression — Rosso">
-              <img src="assets/lb-red-1.png" alt="" />
-            </button>
-            <button class="lb-gallery-thumb" data-gallery-thumb="1" role="tab" aria-label="Insight cards — Rosso">
-              <img src="assets/lb-red-2.png" alt="" />
-            </button>
-            <button class="lb-gallery-thumb" data-gallery-thumb="2" role="tab" aria-label="Velvet — chat with Listen Buddy">
-              <img src="assets/lb-purple-1.png" alt="" />
-            </button>
-            <button class="lb-gallery-thumb" data-gallery-thumb="3" role="tab" aria-label="Velvet — reference tracks">
-              <img src="assets/lb-purple-2.png" alt="" />
-            </button>
-            <button class="lb-gallery-thumb" data-gallery-thumb="4" role="tab" aria-label="Amarillo — collapsed insights">
-              <img src="assets/lb-amber-1.png" alt="" />
-            </button>
-            <button class="lb-gallery-thumb" data-gallery-thumb="5" role="tab" aria-label="Amarillo — reference tracks">
-              <img src="assets/lb-amber-2.png" alt="" />
-            </button>
+
+            <!-- Track impression -->
+            <div class="lb-iframe-impression" data-lb-impression></div>
+
+            <!-- Cards stage -->
+            <div class="lb-iframe-cards" data-lb-cards role="region" aria-label="Analysis cards"></div>
+
+            <!-- Footer hint -->
+            <footer class="lb-iframe-footer">
+              <span class="live-dot">Listening</span>
+              <span data-lb-summary>6 insight cards · click to expand</span>
+            </footer>
           </div>
         </div>
 
@@ -794,105 +808,268 @@ root.render(<App />);
 </script>
 
 <script>
-// Listen Buddy screenshot gallery
+// ============================================================================
+// Listen Buddy interactive plugin gallery
+// ============================================================================
+// Replaces the legacy static-screenshot carousel. Renders a CSS-based plugin
+// window mockup with five example analyses (mix, mastering, production,
+// film/broadcast, plugin advisor). Each card expands/collapses with
+// realistic copy. No image of the actual plugin is shown — visitors get
+// to BROWSE analysis-style content the way it appears inside Listen Buddy.
 (function(){
-  const gallery = document.querySelector('[data-gallery]');
-  if (!gallery) return;
-  const sources = [
-    'assets/lb-red-1.png',
-    'assets/lb-red-2.png',
-    'assets/lb-purple-1.png',
-    'assets/lb-purple-2.png',
-    'assets/lb-amber-1.png',
-    'assets/lb-amber-2.png'
-  ];
-  const stage = gallery.querySelector('.lb-shot-gallery');
-  const img = gallery.querySelector('[data-gallery-img]');
-  const thumbs = gallery.querySelectorAll('[data-gallery-thumb]');
-  const prev = gallery.querySelector('[data-gallery-prev]');
-  const next = gallery.querySelector('[data-gallery-next]');
-  let i = 0;
-  function go(n) {
-    i = (n + sources.length) % sources.length;
-    stage.classList.add('is-swapping');
-    setTimeout(() => {
-      img.src = sources[i];
-      stage.classList.remove('is-swapping');
-    }, 220);
-    thumbs.forEach((t, k) => {
-      t.classList.toggle('is-active', k === i);
+  const root = document.querySelector('[data-lb-interactive]');
+  if (!root) return;
+
+  const trackEl      = root.querySelector('[data-lb-track]');
+  const modeEl       = root.querySelector('[data-lb-mode]');
+  const buddyEl      = root.querySelector('[data-lb-buddy]');
+  const buddyNameEl  = root.querySelector('[data-lb-buddy-name]');
+  const impressionEl = root.querySelector('[data-lb-impression]');
+  const cardsEl      = root.querySelector('[data-lb-cards]');
+  const summaryEl    = root.querySelector('[data-lb-summary]');
+  const tabs         = root.querySelectorAll('[data-lb-tab]');
+
+  // ---- Sample analyses ----
+  // Each entry is one example "session" inside the plugin. Cards mirror the
+  // layout of a real Listen Buddy run: title + status + short summary, with
+  // expanded copy that names dB/kHz where appropriate. No fake numerical
+  // claims — the values are illustrative of the plugin format.
+  const analyses = {
+    mix: {
+      track: 'Drift — Skye Wallace · Mix',
+      mode:  'Velvet · 96 kHz · Mix mode',
+      buddy: 'velvet', buddyName: 'Velvet',
+      impression: 'Punchy R&amp;B mix overall. Low end has nice <span class="accent">weight on the kick and 808</span>, vocal sits forward without harshness. A small lift on cymbal air around <span class="accent">12 kHz</span> would open the chorus, and the bus compressor could be backed off about <span class="accent">1 dB</span> in the second chorus.',
+      cards: [
+        { title: 'Low-End Balance', summary: 'Strong weight; kick and bass competing 70–110 Hz', score: 'good', value: '−9 LUFS', detail:
+          'The low end has strong weight, but the kick and bass are competing in the <span class="accent">70–110 Hz</span> range. The groove feels powerful, but the transient definition could read more clearly on smaller speakers. Try tightening the bass sustain slightly or carving a narrow pocket around the kick\'s fundamental so the rhythm lands with more authority.' },
+        { title: 'Vocal Presence', summary: 'Forward sit; small dip 3.4 kHz', score: 'great', value: '−14 dB', detail:
+          'Lead vocal has a confident, forward sit and translates well at quiet listening levels. There\'s a small dip near <span class="accent">3.4 kHz</span> that subtly dulls consonants — a half-dB shelf there would bring intelligibility up without making the take feel processed.' },
+        { title: 'Stereo Width', summary: 'Healthy spread; backing vocals slightly mono-leaning', score: 'good', value: '0.74', detail:
+          'Mono compatibility is solid and the side image holds up to phase collapse. Backing vocals are sitting closer to center than they probably should — try a small <span class="accent">M/S</span> widener on just the bvox bus or pan the doubles a touch wider before they hit the chorus reverb.' },
+        { title: 'Harshness / Sibilance', summary: 'Sibilance peaks 7.8 kHz on lead vocal', score: 'needs-work', value: '7.8 kHz', detail:
+          'There\'s a recurring sibilance peak around <span class="accent">7.8 kHz</span> on the lead vocal during sustained "s" sounds. Most of the time it\'s manageable, but the long-held line at 1:24 jumps. A 3 dB de-esser band centered there with a quick attack should clean that up without dulling the air.' },
+        { title: 'Dynamics &amp; Loudness', summary: 'Integrated −9.2 LUFS, peaks intact', score: 'great', value: '−9.2', detail:
+          'Integrated loudness is sitting at <span class="accent">−9.2 LUFS</span> with true peaks under <span class="accent">−1.0 dBTP</span> — comfortably inside Spotify\'s normalization window. Crest factor is healthy across the chorus, so the master should hold up without needing aggressive limiting.' },
+        { title: 'Mix Translation', summary: 'Holds up phone speaker; cymbals thin in car system', score: 'good', value: 'A−', detail:
+          'Translation across the QC reference set is good. Phone speaker holds the vocal and groove. Car-system simulation thins the cymbals — that\'s the same translation issue the air-band lift would address. AirPods read very well.' },
+      ],
+    },
+    mastering: {
+      track: 'Strange Light — Hawthorn · Master',
+      mode:  'Verde · 96 kHz · Mastering mode',
+      buddy: 'verde', buddyName: 'Verde',
+      impression: 'Clean master, loudness sits at <span class="accent">−9.4 LUFS</span> integrated with <span class="accent">+1 dB</span> of headroom under streaming normalization. Stereo image is consistent through the song. Final checks before delivery: Apple Music alt at −16 LUFS, Spotify at −14 LUFS.',
+      cards: [
+        { title: 'Loudness Target', summary: 'Integrated −9.4 LUFS, +1 dB headroom for streaming', score: 'great', value: '−9.4', detail:
+          'Integrated loudness measures <span class="accent">−9.4 LUFS</span> over the song length with a short-term max of <span class="accent">−7.8 LUFS</span> in the chorus. That gives you a comfortable <span class="accent">+1 dB</span> margin against the −10.x baseline most streaming services land at after normalization.' },
+        { title: 'True Peak', summary: 'Max −1.0 dBTP — within streaming spec', score: 'great', value: '−1.0', detail:
+          'True-peak is reading <span class="accent">−1.0 dBTP</span> across the loudest 8 seconds. That\'s clean for AAC and Opus encoding. If you\'re also delivering for vinyl, leave another <span class="accent">2 dB</span> down on a separate render.' },
+        { title: 'Stereo Image', summary: 'Mono compatible; 60–180 Hz centered', score: 'great', value: 'M/S OK', detail:
+          'The side channel below <span class="accent">180 Hz</span> is properly centered — kick, bass, and low-mid weight all collapse cleanly to mono. Above that, the side image is balanced and consistent across sections. No phase issues flagged.' },
+        { title: 'Tonal Balance', summary: 'Slight 2 kHz lift, smooth top end', score: 'good', value: '+1.2 dB', detail:
+          'The tonal balance reads slightly forward in the <span class="accent">1.8–2.4 kHz</span> band — about <span class="accent">+1.2 dB</span> above a neutral reference curve. That\'s within taste. Top-end past 8 kHz is smooth and extended, no shrillness.' },
+        { title: 'Mastering Readiness', summary: 'Ready for delivery; consider a final M/S compressor pass', score: 'great', value: 'GO', detail:
+          'The master is ready to ship. If you want one more pass for polish, a gentle M/S compressor with side-only compression at <span class="accent">1.5:1, 30 ms attack, 80 ms release</span> would tighten the side image without affecting the centered low end.' },
+        { title: 'Recommended Next Move', summary: 'Render Apple Music −16 LUFS + Spotify −14 LUFS alts', score: 'info', value: 'DELIVERY', detail:
+          'For multi-platform delivery, render: <span class="accent">−16 LUFS / −1 dBTP</span> for Apple Music Sound Check, <span class="accent">−14 LUFS / −1 dBTP</span> for Spotify, and the current <span class="accent">−9.4 LUFS</span> master for YouTube and editorial use. All three from this same project — same EQ, just different limiting ceilings.' },
+      ],
+    },
+    production: {
+      track: 'Late August — Iris Mahone · Demo',
+      mode:  'Rosso · 48 kHz · Production mode',
+      buddy: 'rosso', buddyName: 'Rosso',
+      impression: 'Solid songwriter demo. The hook arrives <span class="accent">at 0:48</span> and lands clean. Verse 2 needs a small lift — the energy plateaus where the lyrics are pivoting. Background vocals are sparse; doubling the chorus would thicken the chorus payoff without losing the intimate verse feel.',
+      cards: [
+        { title: 'Arrangement Energy', summary: 'Section contrast strong; verse 2 needs lift', score: 'good', value: 'V1<V2', detail:
+          'The arrangement reads with strong section contrast: verse to pre to chorus moves cleanly. Verse 2 is the soft spot — the lyric is pivoting emotionally but the instrumentation is the same as verse 1. Adding one new texture (a sub-octave pad or a sparse percussion overdub) would carry the listener forward without changing what works.' },
+        { title: 'Hook Sit', summary: 'Chorus lands; pre-chorus could arrive faster', score: 'good', value: '0:48', detail:
+          'The chorus at <span class="accent">0:48</span> is the right length and lands solidly. The pre-chorus before it takes 8 bars — for a song this length, 4 bars would create more anticipation. Try cutting the second 4-bar segment of the pre and seeing if the chorus payoff lands harder.' },
+        { title: 'Vocal Performance', summary: 'Lead phrasing locked; ad-libs sparse in bridge', score: 'great', value: '★', detail:
+          'Lead vocal phrasing is locked in — performance is the strongest element of the demo. The bridge is bare, which can read as intentional, but a single ad-lib response phrase between the structural lines would give the bridge more of a "second voice" feel before the final chorus.' },
+        { title: 'Bass / Drum Pocket', summary: 'Groove on the back of the beat — feels relaxed', score: 'good', value: 'LAID-BACK', detail:
+          'The bass is sitting slightly behind the kick — about <span class="accent">8–12 ms</span> off the grid. That\'s producing a relaxed, "on the back of the beat" pocket which suits the lyric. Don\'t fix it. If you want more push in the chorus, nudge ONLY the chorus bass forward by 3–5 ms; leave the verse alone.' },
+        { title: 'Sound Design', summary: 'Pads tasteful; consider one signature texture for chorus', score: 'good', value: '—', detail:
+          'The pad work is tasteful and stays out of the vocal. One thing missing — a signature texture or motif unique to the chorus. A single repeating element (an arpeggiated synth, a vocal chop, a bowed guitar) that ONLY appears in the chorus gives listeners a recognition hook without changing the writing.' },
+        { title: 'Recommended Next Move', summary: '2-bar lift before bridge; thicken bg vocals octave-down', score: 'info', value: 'NEXT', detail:
+          'Two suggestions for the next pass: <span class="accent">(1)</span> add a 2-bar lift before the bridge — a snare roll, a filter sweep, or a pre-bridge vocal ad-lib — to mark the structural shift more clearly. <span class="accent">(2)</span> double the chorus background vocals an octave down (lightly, &minus;9 dB) to thicken the chorus without crowding the lead.' },
+      ],
+    },
+    broadcast: {
+      track: 'Northbound — Documentary Cut · Final Mix',
+      mode:  'Verde · 48 kHz · Film / Broadcast mode',
+      buddy: 'verde', buddyName: 'Verde',
+      impression: 'Documentary mix passes broadcast standards. Integrated loudness <span class="accent">−25 LUFS</span>, true peak <span class="accent">−2.0 dBTP</span> — A/85 compliant. Dialogue is clear and intelligible across all speakers, music sits correctly under voice. One ambient cut at 02:14 is audible — recommend crossfading.',
+      cards: [
+        { title: 'Dialogue Clarity', summary: 'Clear; LFE not bleeding into voice band', score: 'great', value: '★', detail:
+          'Dialogue is consistently clear and intelligible. Voice band <span class="accent">(200 Hz – 4 kHz)</span> reads with healthy presence and no LFE bleed from the score or sound design layers. Loudness ducking is firing cleanly when music is present.' },
+        { title: 'Loudness Target', summary: 'Integrated −25 LUFS, −2 dBTP — A/85 compliant', score: 'great', value: '−25', detail:
+          'Program loudness measures <span class="accent">−25 LUFS</span> integrated against an A/85 reference of <span class="accent">−24 LUFS ±2</span> — well inside spec. True-peak headroom is comfortable at <span class="accent">−2.0 dBTP</span>. Dialnorm metadata should be set to <span class="accent">−24</span> on delivery.' },
+        { title: 'Music Sit', summary: 'Score sits −12 dB under dialogue, ducks correctly', score: 'great', value: '−12', detail:
+          'Score is consistently sitting at <span class="accent">−12 dB</span> below dialogue level when both are present. Sidechain ducking is invisible — no audible pump. Music is also reading correctly during voice-free passages, so it doesn\'t feel buried during the transitions.' },
+        { title: 'Foley / Ambience', summary: 'Ambient bed contiguous; one cut at 02:14 audible', score: 'needs-work', value: '02:14', detail:
+          'The ambience bed is mostly contiguous and works as a base layer. There\'s one audible cut at <span class="accent">02:14</span> where the wind layer drops out before the next scene starts. A 200 ms equal-power crossfade between the two ambience clips would smooth that transition without losing the scene change feel.' },
+        { title: 'Mastering Readiness', summary: 'Ready for ATSC A/85 delivery', score: 'great', value: 'GO', detail:
+          'The deliverable is ready for ATSC A/85, and meets EBU R128 with margin. Loudness, true peak, and dialnorm are all within tolerance. The single ambience-cut artifact above should be addressed before final QC, but it\'s not a blocker.' },
+        { title: 'Recommended Next Move', summary: 'Confirm dialnorm = −24 in Pro Tools session', score: 'info', value: 'QC', detail:
+          'Two pre-delivery checks: <span class="accent">(1)</span> confirm dialnorm metadata is set to <span class="accent">−24</span> in your Pro Tools session before the final bounce — not just on the master. <span class="accent">(2)</span> patch the 02:14 ambience crossfade. After that, ship.' },
+      ],
+    },
+    advisor: {
+      track: 'Plugin Advisor — Vocal de-essing',
+      mode:  'Velvet · advisor mode · post-analysis',
+      buddy: 'velvet', buddyName: 'Velvet',
+      impression: 'Working from the previous mix analysis: sibilance peaks at <span class="accent">7.8 kHz</span> on the lead vocal. Here are the plugin paths that actually fix that without dulling the air, ranked by transparency and matched against your installed plugin list.',
+      cards: [
+        { title: 'Your Question', summary: '"What plugin should I use for vocal de-essing on this track?"', score: 'info', value: 'YOU', detail:
+          'You asked: <em>"What plugin should I use for vocal de-essing on this track?"</em> Pulling the relevant analysis: lead vocal sibilance at <span class="accent">7.8 kHz</span>, ~3 dB hot vs the rest of the chain. Your installed plugin list shows you have FabFilter Pro-DS, Waves DeEsser, and Logic\'s stock DeEsser 2.' },
+        { title: 'First Recommendation', summary: 'FabFilter Pro-DS — zero-latency, transparent', score: 'great', value: 'PRO-DS', detail:
+          '<span class="accent">FabFilter Pro-DS</span> is the cleanest match. Set range to <span class="accent">7–9 kHz</span> centered at 7.8, threshold at <span class="accent">−18 dB</span>, look-ahead to 1 ms for zero-latency mode. The "linear" mode keeps the air on top of the de-essed band — important here, your air shimmer is fine; it\'s only the sibilants that need cooling.' },
+        { title: 'Alternative — CLA-Style', summary: 'Waves DeEsser — classic ducking response', score: 'good', value: 'CLA', detail:
+          'If you want a more "vintage" ducking character, the <span class="accent">Waves DeEsser</span> in split-band mode at threshold <span class="accent">−14 dB</span> works. It\'s slightly more colored than Pro-DS but matches the rest of the vocal chain if you\'re already using CLA-style processors.' },
+        { title: 'Reference Pick', summary: 'Khalid "Better" — similar sibilance handling', score: 'info', value: 'A/B', detail:
+          'For an A/B reference, listen to Khalid\'s "Better" — same vocal character (mid-forward, present consonants without harshness). The sibilance handling on that record is the target. After your de-essing pass, A/B against the chorus around 1:10 of that track.' },
+        { title: 'Workflow Tip', summary: 'Side-chain to vocal aux; bypass on test phrase', score: 'good', value: 'WORKFLOW', detail:
+          'Insert the de-esser on the lead vocal channel (<em>not</em> the bus) so it sees the dry signal. Use the worst sibilance phrase in the song — usually the longest sustained "s" — as your test loop. Bypass on/off should be subtle; if you can hear it working, the threshold is too low.' },
+        { title: 'Recommended Next Move', summary: 'Set Pro-DS at 7.8 kHz, retest the chorus at 1:24', score: 'info', value: 'NEXT', detail:
+          'Insert FabFilter Pro-DS on the lead vocal, range <span class="accent">7–9 kHz</span> with threshold near <span class="accent">−18 dB</span>, then re-listen specifically to the chorus at <span class="accent">1:24</span> where the analysis flagged the worst sibilance. If the long-held "s" sits naturally, you\'re done — no further tweaking needed.' },
+      ],
+    },
+  };
+
+  const ORDER = ['mix', 'mastering', 'production', 'broadcast', 'advisor'];
+  let activeKey = 'mix';
+
+  // ---- Render ----
+  function buildCardEl(card, idx, isFirst) {
+    const wrap = document.createElement('article');
+    wrap.className = 'lb-analysis-card';
+    wrap.setAttribute('aria-expanded', isFirst ? 'true' : 'false');
+
+    const btn = document.createElement('button');
+    btn.className = 'lb-analysis-card-h';
+    btn.type = 'button';
+    btn.setAttribute('aria-controls', `lb-card-body-${idx}`);
+
+    const dot = document.createElement('span');
+    dot.className = 'lb-card-status';
+    dot.dataset.score = card.score || 'info';
+    dot.setAttribute('aria-hidden', 'true');
+
+    const title = document.createElement('span');
+    title.className = 'lb-card-title-block';
+    const tEl = document.createElement('span');
+    tEl.className = 'lb-card-title';
+    tEl.textContent = card.title;
+    const sEl = document.createElement('span');
+    sEl.className = 'lb-card-summary';
+    sEl.textContent = card.summary;
+    title.appendChild(tEl);
+    title.appendChild(sEl);
+
+    const val = document.createElement('span');
+    val.className = 'lb-card-value';
+    val.textContent = card.value || '';
+    if (!card.value) val.style.display = 'none';
+
+    const chev = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    chev.classList.add('lb-card-chev');
+    chev.setAttribute('viewBox', '0 0 24 24');
+    chev.setAttribute('fill', 'none');
+    chev.setAttribute('stroke', 'currentColor');
+    chev.setAttribute('stroke-width', '2');
+    chev.setAttribute('stroke-linecap', 'round');
+    chev.setAttribute('stroke-linejoin', 'round');
+    chev.setAttribute('aria-hidden', 'true');
+    chev.innerHTML = '<polyline points="6 9 12 15 18 9"></polyline>';
+
+    btn.appendChild(dot);
+    btn.appendChild(title);
+    btn.appendChild(val);
+    btn.appendChild(chev);
+
+    const body = document.createElement('div');
+    body.className = 'lb-card-body';
+    body.id = `lb-card-body-${idx}`;
+    body.setAttribute('role', 'region');
+    const p = document.createElement('p');
+    // detail allows inline <span class="accent"> markup
+    p.innerHTML = card.detail;
+    body.appendChild(p);
+
+    wrap.appendChild(btn);
+    wrap.appendChild(body);
+
+    btn.addEventListener('click', () => toggleCard(wrap));
+    return wrap;
+  }
+
+  function toggleCard(cardEl) {
+    const wasOpen = cardEl.getAttribute('aria-expanded') === 'true';
+    // Collapse all siblings
+    cardsEl.querySelectorAll('.lb-analysis-card').forEach(c => {
+      c.setAttribute('aria-expanded', 'false');
     });
+    // Open this one if it was closed
+    if (!wasOpen) cardEl.setAttribute('aria-expanded', 'true');
   }
-  thumbs.forEach((t, k) => {
-    t.addEventListener('click', () => go(k));
-  });
-  if (prev) prev.addEventListener('click', () => go(i - 1));
-  if (next) next.addEventListener('click', () => go(i + 1));
 
-  // ----- Click-to-zoom lightbox -----
-  const captions = [
-    'Overall impression — Rosso',
-    'Insight cards — Rosso',
-    'Velvet — chat with Listen Buddy',
-    'Velvet — reference tracks',
-    'Amarillo — collapsed insights',
-    'Amarillo — reference tracks'
-  ];
-  const lb = document.querySelector('[data-lightbox]');
-  const lbImg = lb && lb.querySelector('[data-lightbox-img]');
-  const lbCap = lb && lb.querySelector('[data-lightbox-cap]');
+  function render(key) {
+    const data = analyses[key];
+    if (!data) return;
+    activeKey = key;
 
-  function openZoom(idx) {
-    if (!lb) return;
-    i = (idx + sources.length) % sources.length;
-    lbImg.src = sources[i];
-    lbCap.textContent = captions[i] || '';
-    thumbs.forEach((t, k) => t.classList.toggle('is-active', k === i));
-    // Kill the transition for one frame so the browser registers a paint
-    // before we add `is-open` and animate from 0 to 1.
-    lb.style.transition = 'none';
-    void lb.offsetWidth;
-    lb.classList.add('is-open');
-    void lb.offsetWidth;
-    setTimeout(() => { lb.style.transition = ''; }, 30);
-    lb.setAttribute('aria-hidden', 'false');
-    document.body.style.overflow = 'hidden';
+    // Header meta
+    trackEl.textContent = data.track;
+    modeEl.textContent  = data.mode;
+    buddyEl.dataset.buddy = data.buddy;
+    buddyNameEl.textContent = data.buddyName;
+
+    // Tabs
+    tabs.forEach(t => {
+      const sel = t.dataset.lbTab === key;
+      t.setAttribute('aria-selected', sel ? 'true' : 'false');
+    });
+
+    // Impression
+    impressionEl.innerHTML = data.impression;
+
+    // Cards (swap out with a brief fade so it doesn't feel jumpy)
+    cardsEl.classList.add('is-swapping');
+    setTimeout(() => {
+      cardsEl.innerHTML = '';
+      data.cards.forEach((c, i) => {
+        cardsEl.appendChild(buildCardEl(c, `${key}-${i}`, i === 0));
+      });
+      cardsEl.classList.remove('is-swapping');
+    }, 220);
+
+    // Footer summary
+    summaryEl.textContent = `${data.cards.length} insight cards · click any to expand`;
   }
-  function closeZoom() {
-    if (!lb) return;
-    lb.classList.remove('is-open');
-    lb.setAttribute('aria-hidden', 'true');
-    document.body.style.overflow = '';
-    img.src = sources[i];
-  }
-  function stepZoom(d) { openZoom(i + d); }
 
-  // Use event delegation on document so attachment can never silently fail
-  // because of a bad selector or an out-of-order DOM lookup.
-  document.addEventListener('click', (e) => {
-    if (e.target.closest('[data-gallery-zoom]')) {
-      openZoom(i);
-      return;
-    }
-    if (e.target.closest('[data-lightbox-close]')) { closeZoom(); return; }
-    if (e.target.closest('[data-lightbox-prev]')) { stepZoom(-1); return; }
-    if (e.target.closest('[data-lightbox-next]')) { stepZoom(1); return; }
-    // Click on the lightbox backdrop (not its children) closes
-    if (e.target === lb) { closeZoom(); return; }
+  // ---- Wire tabs ----
+  tabs.forEach(t => {
+    t.addEventListener('click', () => render(t.dataset.lbTab));
+    // Keyboard: arrow-left/right rotate active tab (a11y nicety)
+    t.addEventListener('keydown', (e) => {
+      const idx = ORDER.indexOf(activeKey);
+      if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        const next = ORDER[(idx + 1) % ORDER.length];
+        render(next);
+        root.querySelector(`[data-lb-tab="${next}"]`)?.focus();
+      } else if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        const prev = ORDER[(idx - 1 + ORDER.length) % ORDER.length];
+        render(prev);
+        root.querySelector(`[data-lb-tab="${prev}"]`)?.focus();
+      }
+    });
   });
-  document.addEventListener('keydown', (e) => {
-    if (!lb) return;
-    const open = lb.classList.contains('is-open');
-    if (e.target.closest && e.target.closest('[data-gallery-zoom]') && (e.key === 'Enter' || e.key === ' ')) {
-      e.preventDefault();
-      openZoom(i);
-      return;
-    }
-    if (!open) return;
-    if (e.key === 'Escape') closeZoom();
-    else if (e.key === 'ArrowLeft') stepZoom(-1);
-    else if (e.key === 'ArrowRight') stepZoom(1);
-  });
+
+  // Initial render
+  render('mix');
 })();
 
 // Reveal-on-scroll
@@ -1048,22 +1225,5 @@ root.render(<App />);
   });
 })();
 </script>
-<!-- Gallery zoom lightbox -->
-<div class="lb-lightbox" data-lightbox aria-hidden="true" role="dialog" aria-label="Zoomed screenshot">
-  <button class="lb-lightbox-close" data-lightbox-close aria-label="Close zoom">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
-  </button>
-  <button class="lb-lightbox-nav prev" data-lightbox-prev aria-label="Previous">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>
-  </button>
-  <button class="lb-lightbox-nav next" data-lightbox-next aria-label="Next">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
-  </button>
-  <figure class="lb-lightbox-stage">
-    <img data-lightbox-img alt="" />
-    <figcaption class="lb-lightbox-cap" data-lightbox-cap></figcaption>
-  </figure>
-</div>
-
 </body>
 </html>
