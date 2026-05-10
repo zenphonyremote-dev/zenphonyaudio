@@ -13485,5 +13485,120 @@ function __atleShellInstall() {
 })();
 
 </script>
+
+<!-- =====================================================================
+     LB-DEMO LOCKDOWN — only loaded when this file is served from the
+     marketing site iframe (window.parent !== window). Auto-populates a
+     full sample analysis, sets Flubber as the default visualizer, and
+     disables every control EXCEPT the analysis cards + buddy selector
+     (so visitors can see how each buddy retints the theme).
+     ===================================================================== -->
+<style id="lb-demo-lockdown-css">
+body.lb-demo .tb-btn,
+body.lb-demo .listen-switch,
+body.lb-demo .mode-dd-btn, body.lb-demo .mode-dd-panel,
+body.lb-demo [id*="modeDd"],
+body.lb-demo .qc-dd-btn, body.lb-demo .qc-dd-panel,
+body.lb-demo .delivery-dropdown,
+body.lb-demo .qc-badge,
+body.lb-demo .compact-toggle,
+body.lb-demo .plugin-scan-btn,
+body.lb-demo .user-btn,
+body.lb-demo .search-btn,
+body.lb-demo .file-picker, body.lb-demo .transport-btn,
+body.lb-demo .viz-mode-btn,
+body.lb-demo .lb-talk-btn, body.lb-demo .talk-btn,
+body.lb-demo .chip {
+    pointer-events: none !important;
+    cursor: default !important;
+    opacity: 0.72;
+}
+/* Buddy selector + theme pills + analysis cards stay fully interactive */
+body.lb-demo .buddy-trigger,
+body.lb-demo .buddy-trigger *,
+body.lb-demo .buddy-dropdown,
+body.lb-demo .buddy-dropdown *,
+body.lb-demo .buddy-hovercard,
+body.lb-demo .buddy-hovercard *,
+body.lb-demo .theme-pill,
+body.lb-demo .cat-card,
+body.lb-demo .cat-card *,
+body.lb-demo .cat-header,
+body.lb-demo .cat-body {
+    pointer-events: auto !important;
+    cursor: pointer !important;
+    opacity: 1 !important;
+}
+body.lb-demo .cat-body { cursor: default !important; }
+/* Hide login/walkthrough/auth modals that may auto-fire on first paint */
+body.lb-demo .auth-modal,
+body.lb-demo .login-modal,
+body.lb-demo .login-anim,
+body.lb-demo .wt-welcome,
+body.lb-demo .wt-bubble,
+body.lb-demo .wt-mini,
+body.lb-demo .wt-focus,
+body.lb-demo .wt-ring,
+body.lb-demo .chat-popup,
+body.lb-demo .chat-min-pill,
+body.lb-demo #lb-resize-diag {
+    display: none !important;
+}
+</style>
+
+<script id="lb-demo-lockdown-js">
+(function(){
+    // Only run when embedded inside the marketing iframe — leaves the
+    // standalone plugin behavior untouched if anyone opens this file
+    // directly in a browser tab.
+    var inIframe = false;
+    try { inIframe = window.parent && window.parent !== window; } catch(_) { inIframe = true; }
+    if (!inIframe) return;
+
+    document.body.classList.add('lb-demo');
+
+    // simulateAnalysis() is the prototype's existing entry point that
+    // injects sample impression copy + 6 insight cards. Re-poll until
+    // it's defined (the React boot might not have wired it yet).
+    function tryPopulate(retries) {
+        retries = retries || 0;
+        if (typeof window.simulateAnalysis === 'function') {
+            try { window.simulateAnalysis(); } catch(e) {}
+            return;
+        }
+        if (retries < 40) setTimeout(function(){ tryPopulate(retries+1); }, 100);
+    }
+    function trySetFlubber(retries) {
+        retries = retries || 0;
+        if (typeof window.setVizMode === 'function') {
+            try {
+                var btns = document.querySelectorAll('.viz-mode-btn');
+                window.setVizMode(1, btns[1]);
+            } catch(e) {}
+            return;
+        }
+        if (retries < 40) setTimeout(function(){ trySetFlubber(retries+1); }, 100);
+    }
+
+    function boot() {
+        setTimeout(function(){
+            trySetFlubber();
+            tryPopulate();
+            // Force-close any modal that snuck in.
+            ['authModal','loginModal','loginAnim','walkthroughWelcome',
+             'walkthroughOverlay','chatPopup','chatMinPill'].forEach(function(id){
+                var el = document.getElementById(id);
+                if (el) el.style.display = 'none';
+            });
+        }, 250);
+    }
+    if (document.readyState === 'complete' || document.readyState === 'interactive') {
+        boot();
+    } else {
+        document.addEventListener('DOMContentLoaded', boot);
+    }
+})();
+</script>
+
 </body>
 </html>
