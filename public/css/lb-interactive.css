@@ -16,20 +16,6 @@
      rosso   #ef4444 (red)      verde    #22c55e (green)
    ============================================================================ */
 
-/* Full-width product row that breaks out of the standard 2-col grid */
-.product-fullwidth {
-    width: 100%;
-}
-.lb-product-copy-row {
-    max-width: 720px;
-    margin-inline: auto;
-    text-align: center;
-}
-.lb-product-copy-row .kv-list {
-    margin-top: 28px;
-    text-align: left;
-}
-
 .lb-interactive {
     --lb-bg:      #1a1625;
     --lb-card:    #211d2b;
@@ -45,7 +31,7 @@
 
     position: relative;
     width: 100%;
-    max-width: 1300px;          /* sprawls full container — actual plugin chrome is ~1025px */
+    max-width: 540px;           /* fits left column of the .product 2-col grid */
     margin-inline: auto;
     isolation: isolate;
     color: var(--lb-fg);
@@ -66,10 +52,19 @@
 .lb-frame {
     container-type: inline-size;
     container-name: lbframe;
-    --lb-u: max(0.78px, 0.077cqi);  /* 0.077% × 1300px = 1px baseline */
-    /* Sidebar widths and grid heights scale with the frame */
-    --lb-sidebar-w: 16cqi;        /* ~208px at 1300px wide; floors to ~150px at 940px */
-    --lb-rail-w:    18cqi;        /* ~234px at 1300px */
+    /* Unit scales with frame — at 540px we want ~0.55px so things stay
+       crisp without becoming overscale. cqi-based so it tracks the
+       actual rendered size; floor at 0.5px so sub-pixel rendering
+       doesn't blur away below ~600px. Cap at ~1.1px so wider screens
+       (some browsers giving us extra width) don't oversize. */
+    --lb-u: clamp(0.5px, 0.20cqi, 1.1px);
+    /* Side panels — percentages of the frame width (NOT cqi; cqi inside
+       a container resolves against ancestors, not the container itself,
+       which gave us mis-sized columns). At 540px:
+         sidebar 18% ≈ 97px,  rail 22% ≈ 119px,  stage ~60% ≈ 324px.
+       Analysis stage gets the majority of the frame. */
+    --lb-sidebar-w: 18%;
+    --lb-rail-w:    22%;
     position: relative;
     aspect-ratio: 1025 / 647;
     border-radius: calc(var(--lb-u) * 18);
