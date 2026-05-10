@@ -29,10 +29,37 @@
     --atle-fx: 0px; --atle-fy: 0px;
     --atle-ang: 0deg; --atle-scale: 1; --atle-spin: 0;
 }
-.theme-sunset { --lb-primary:#f97316;--lb-primary-dim:#ea580c;--lb-secondary:#ec4899;--lb-secondary-dim:#db2777;--lb-glow:rgba(249,115,22,0.5);--lb-accent:#fb923c; }
-.theme-cyber { --lb-primary:#22c55e;--lb-primary-dim:#16a34a;--lb-secondary:#3b82f6;--lb-secondary-dim:#2563eb;--lb-glow:rgba(34,197,94,0.5);--lb-accent:#4ade80; }
-.theme-rosso { --lb-primary:#ef4444;--lb-primary-dim:#dc2626;--lb-secondary:#f97316;--lb-secondary-dim:#ea580c;--lb-glow:rgba(239,68,68,0.5);--lb-accent:#f87171; }
-.theme-amarillo { --lb-primary:#f59e0b;--lb-primary-dim:#d97706;--lb-secondary:#fbbf24;--lb-secondary-dim:#f59e0b;--lb-glow:rgba(245,158,11,0.5);--lb-accent:#fcd34d; }
+/* Theme palettes — values mirror /WebUI/src/index.css + Aurora.jsx exactly.
+   Each theme has 4 aurora colors (--lb-aur-1..4) used by the corner-blob
+   canvas + 6-token semantic palette (primary/primary-dim/secondary/
+   secondary-dim/accent/glow) for chrome. */
+:root {
+    --lb-aur-1: #a855f7; --lb-aur-2: #7c3aed; --lb-aur-3: #22d3ee; --lb-aur-4: #6366f1;
+}
+.theme-sunset {
+    --lb-primary:#f97316;--lb-primary-dim:#ea580c;
+    --lb-secondary:#ec4899;--lb-secondary-dim:#db2777;
+    --lb-accent:#fb923c;--lb-glow:rgba(249,115,22,0.5);
+    --lb-aur-1:#f97316;--lb-aur-2:#ea580c;--lb-aur-3:#ec4899;--lb-aur-4:#f43f5e;
+}
+.theme-cyber {
+    --lb-primary:#22c55e;--lb-primary-dim:#16a34a;
+    --lb-secondary:#3b82f6;--lb-secondary-dim:#2563eb;
+    --lb-accent:#4ade80;--lb-glow:rgba(34,197,94,0.5);
+    --lb-aur-1:#22c55e;--lb-aur-2:#16a34a;--lb-aur-3:#3b82f6;--lb-aur-4:#06b6d4;
+}
+.theme-rosso {
+    --lb-primary:#ef4444;--lb-primary-dim:#dc2626;
+    --lb-secondary:#f97316;--lb-secondary-dim:#ea580c;
+    --lb-accent:#f87171;--lb-glow:rgba(239,68,68,0.5);
+    --lb-aur-1:#ef4444;--lb-aur-2:#dc2626;--lb-aur-3:#f97316;--lb-aur-4:#b91c1c;
+}
+.theme-amarillo {
+    --lb-primary:#f59e0b;--lb-primary-dim:#d97706;
+    --lb-secondary:#fbbf24;--lb-secondary-dim:#f59e0b;
+    --lb-accent:#fcd34d;--lb-glow:rgba(245,158,11,0.5);
+    --lb-aur-1:#f59e0b;--lb-aur-2:#d97706;--lb-aur-3:#fbbf24;--lb-aur-4:#b45309;
+}
 
 /* ================================================================
    RESET
@@ -47,7 +74,9 @@ html,body{width:100%;height:100%;overflow:hidden;background:#0d0a14;font-family:
 /* ================================================================
    AURORA CANVAS
    ================================================================ */
-.aurora-canvas{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none}
+/* Aurora canvas — same fade-out + opacity as Aurora.jsx (default 0.4),
+   1s ease-in-out transition when theme changes. */
+.aurora-canvas{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;opacity:0.55;transition:opacity 1s ease-in-out}
 
 /* ================================================================
    PLUGIN FRAME — 950x620 like real Listen Buddy
@@ -1480,6 +1509,19 @@ html,body{width:100%;height:100%;overflow:hidden;background:#0d0a14;font-family:
 // STATE
 // ================================================================
 const root = document.documentElement;
+// Initial pull of aurora colors from CSS so the canvas starts on-brand
+// instead of waiting for the first theme change.
+(function initAuroraColors(){
+    requestAnimationFrame(() => {
+        const cs = getComputedStyle(root);
+        cachedColors = [
+            cs.getPropertyValue('--lb-aur-1').trim() || '#a855f7',
+            cs.getPropertyValue('--lb-aur-2').trim() || '#7c3aed',
+            cs.getPropertyValue('--lb-aur-3').trim() || '#22d3ee',
+            cs.getPropertyValue('--lb-aur-4').trim() || '#6366f1',
+        ];
+    });
+})();
 const buddies = [
     {id:'rosso',label:'Rosso',color:'#ef4444',tag:'Local',desc:'Local AI with warm personality. Runs entirely on your device via SuperEars + InstantNN + ZGIF pipeline.'},
     {id:'amarillo',label:'Amarillo',color:'#f59e0b',tag:'Local',desc:'Local AI with bright personality. Same on-device pipeline with different creative perspective.'},
@@ -1489,7 +1531,9 @@ const buddies = [
 let currentBuddy = buddies[0];
 let atleEnabled = true, userTorque = 2.0, isCompact = false, isListening = true;
 let buddyDropdownOpen = false, qcExpanded = false, chatOpen = false, chatMinimized = false;
-let cachedColors = ['#a855f7', '#22d3ee'];
+// Aurora palette — 4 colors per theme, matching Aurora.jsx themeColors.
+// Read from CSS custom properties so theme switching propagates here.
+let cachedColors = ['#a855f7', '#7c3aed', '#22d3ee', '#6366f1'];
 let _frameCount = 0;
 const startT = Date.now();
 
@@ -1669,10 +1713,22 @@ document.addEventListener('click',e=>{
 // THEME
 // ================================================================
 function setTheme(name,pill){
+    // Apply theme class to BOTH plugin frame (for chrome) and body (so the
+    // CSS custom properties used by the aurora canvas resolve correctly).
     const frame = document.getElementById('pluginFrame');
     frame.className = (isCompact?'plugin-frame compact':'plugin-frame') + (name!=='ocean'?' theme-'+name:'');
+    document.body.className = name!=='ocean' ? 'theme-'+name : '';
     document.querySelectorAll('.theme-pill').forEach(p=>p.classList.toggle('active',p.dataset.t===name));
-    requestAnimationFrame(()=>{const cs=getComputedStyle(root);cachedColors=[cs.getPropertyValue('--lb-primary').trim(),cs.getPropertyValue('--lb-secondary').trim()]});
+    // Pull all 4 aurora colors from CSS — matches Aurora.jsx themeColors.
+    requestAnimationFrame(()=>{
+        const cs = getComputedStyle(document.body.classList.length ? document.body : document.documentElement);
+        cachedColors = [
+            cs.getPropertyValue('--lb-aur-1').trim() || '#a855f7',
+            cs.getPropertyValue('--lb-aur-2').trim() || '#7c3aed',
+            cs.getPropertyValue('--lb-aur-3').trim() || '#22d3ee',
+            cs.getPropertyValue('--lb-aur-4').trim() || '#6366f1',
+        ];
+    });
 }
 
 // ================================================================
@@ -2600,27 +2656,56 @@ const aCtx = auroraCanvas.getContext('2d');
 function resizeAurora(){auroraCanvas.width=window.innerWidth;auroraCanvas.height=window.innerHeight}
 resizeAurora();window.addEventListener('resize',resizeAurora);
 
+// Aurora blobs — corner-anchored, mirroring Aurora.jsx exactly:
+//   4 colors, 4 corners, breathing motion, pulsing radius, noise overlay.
+// Each blob's phase + pulseSpeed gives independent sway so no two corners
+// throb in lockstep. Composite mode 'screen' blends colors additively.
 const auroraBlobs = [
-    {bx:.2,by:.3,phase:0},{bx:.8,by:.2,phase:1.5},{bx:.7,by:.8,phase:3},{bx:.3,by:.7,phase:4.5}
+    { baseX: 0, baseY: 0, radius: 220, phase: 0,            pulseSpeed: 0.32 },  // TL
+    { baseX: 1, baseY: 0, radius: 250, phase: Math.PI*0.50, pulseSpeed: 0.48 },  // TR
+    { baseX: 1, baseY: 1, radius: 210, phase: Math.PI,      pulseSpeed: 0.38 },  // BR
+    { baseX: 0, baseY: 1, radius: 240, phase: Math.PI*1.50, pulseSpeed: 0.42 },  // BL
 ];
-function drawAurora(time){
-    const w=auroraCanvas.width,h=auroraCanvas.height;
-    const colors=cachedColors;
-    aCtx.fillStyle='rgba(26,22,37,.15)';aCtx.fillRect(0,0,w,h);
-    aCtx.globalCompositeOperation='screen';
-    // ALL blob motion derived from atle.t1/t2 — no independent trig
-    auroraBlobs.forEach((b,i)=>{
-        const col = colors[i%2];
-        const sign = i < 2 ? 1 : -1;
-        const ox = (i%2===0 ? atle.t1 : atle.t2) * sign * 400;
-        const oy = (i%2===0 ? atle.t2 : atle.t1) * sign * -300;
-        const r = 250 + atle.sum * sign * 200;
-        const x=b.bx*w+ox, y=b.by*h+oy;
-        const g=aCtx.createRadialGradient(x,y,0,x,y,Math.max(50,r));
-        g.addColorStop(0,col+'12');g.addColorStop(1,'transparent');
-        aCtx.fillStyle=g;aCtx.fillRect(0,0,w,h);
+let _auroraT = 0;
+function drawAurora(_unused){
+    const w = auroraCanvas.width, h = auroraCanvas.height;
+    const colors = cachedColors;
+    _auroraT += 0.016;  // ~60 fps tick
+
+    // Soft motion-blur: low-alpha background fill instead of clearRect.
+    aCtx.fillStyle = 'rgba(26, 22, 37, 0.15)';
+    aCtx.fillRect(0, 0, w, h);
+
+    // Layer the 4 corner blobs additively
+    aCtx.globalCompositeOperation = 'screen';
+    auroraBlobs.forEach((b, i) => {
+        const col = colors[i % colors.length];
+        // Breathing offset (Aurora.jsx: ±20px x, ±20px y at slow phase)
+        const ox = Math.sin(_auroraT * 0.40 + b.phase) * 20;
+        const oy = Math.cos(_auroraT * 0.30 + b.phase) * 20;
+        const x = b.baseX * w + ox;
+        const y = b.baseY * h + oy;
+        // Pulsing radius (±15% on top of base)
+        const r = b.radius * (1 + Math.sin(_auroraT * b.pulseSpeed) * 0.15);
+
+        const g = aCtx.createRadialGradient(x, y, 0, x, y, r);
+        g.addColorStop(0,   col + '60');
+        g.addColorStop(0.4, col + '30');
+        g.addColorStop(0.7, col + '10');
+        g.addColorStop(1,   'transparent');
+        aCtx.fillStyle = g;
+        aCtx.beginPath();
+        aCtx.arc(x, y, r, 0, Math.PI * 2);
+        aCtx.fill();
     });
-    aCtx.globalCompositeOperation='source-over';
+
+    // Subtle noise grain overlay — keeps gradients from looking flat
+    aCtx.globalCompositeOperation = 'overlay';
+    aCtx.fillStyle = `rgba(255,255,255,${0.01 + Math.random() * 0.01})`;
+    for (let n = 0; n < 50; ++n) {
+        aCtx.fillRect(Math.random() * w, Math.random() * h, 1, 1);
+    }
+    aCtx.globalCompositeOperation = 'source-over';
 }
 
 // ================================================================
