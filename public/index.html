@@ -130,47 +130,190 @@
 
       <div class="product reveal">
         <!-- LEFT: INTERACTIVE PLUGIN MODEL GALLERY -->
-        <!-- Replaces the legacy static screenshot gallery. JS hydrates the plugin
-             window mockup with one of five example analyses (mix, mastering,
-             production, film/broadcast, plugin advisor). Each card expands and
-             collapses with realistic Listen Buddy-style copy. -->
+        <!-- Faithful CSS recreation of the actual Listen Buddy plugin window:
+             header bar (mascot + wordmark + buddy switcher), action toolbar
+             (ANALYZE/RESET/SNAPSHOT/EXPORT/SAVE/OPEN), left sidebar (listening
+             status + LUFS orb + persona tabs), center stage with swappable
+             scenes (impression / cards / chat / references), right rail
+             (spectrogram + levels + metrics), and footer player bar.
+             Buddy switcher tints the entire theme. -->
         <div class="lb-interactive" data-lb-interactive aria-label="Listen Buddy interactive analysis preview">
-          <div class="lb-interactive-frame" role="region" aria-live="polite">
-            <!-- Top chrome: traffic lights, mascot, track meta, buddy swatch -->
-            <header class="lb-iframe-chrome">
-              <span class="traffic-lights" aria-hidden="true"><span></span><span></span><span></span></span>
-              <span class="lb-iframe-mascot" aria-hidden="true">
-                <img src="assets/listen-buddy-mascot.svg" alt="" />
-              </span>
-              <span class="lb-iframe-meta">
-                <span class="track-name" data-lb-track>Drift — Skye Wallace · Mix</span>
-                <span class="track-mode" data-lb-mode>Velvet · 96 kHz · Mix mode</span>
-              </span>
-              <span class="lb-iframe-buddy" data-lb-buddy="velvet" aria-label="Active buddy">
-                <span class="swatch"></span>
-                <span data-lb-buddy-name>Velvet</span>
-              </span>
+          <!-- Mode/scene tabs — pick which example analysis to view -->
+          <div class="lb-tabs" role="tablist" aria-label="Analysis examples">
+            <button class="lb-tab" role="tab" data-lb-tab="mix" aria-selected="true">Mix Analysis</button>
+            <button class="lb-tab" role="tab" data-lb-tab="mastering" aria-selected="false">Mastering</button>
+            <button class="lb-tab" role="tab" data-lb-tab="production" aria-selected="false">Production</button>
+            <button class="lb-tab" role="tab" data-lb-tab="broadcast" aria-selected="false">Film / Broadcast</button>
+            <button class="lb-tab" role="tab" data-lb-tab="advisor" aria-selected="false">Plugin Advisor</button>
+          </div>
+
+          <div class="lb-frame" data-lb-frame data-buddy="velvet" role="region" aria-live="polite">
+
+            <!-- HEADER: theme stripe, mascot, wordmark, buddy pill, avatar -->
+            <header class="lb-header">
+              <div class="lb-header-left">
+                <button class="lb-icon-btn" aria-label="Plugin info" tabindex="-1">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/></svg>
+                </button>
+                <button class="lb-icon-btn" aria-label="History" tabindex="-1">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/><path d="M12 7v5l3 2"/></svg>
+                </button>
+              </div>
+              <div class="lb-header-mid">
+                <span class="lb-mascot" aria-hidden="true">
+                  <img src="assets/listen-buddy-mascot.svg" alt="" />
+                </span>
+                <span class="lb-wordmark">LISTEN BUDDY</span>
+              </div>
+              <div class="lb-header-right">
+                <button class="lb-buddy-pill" data-lb-buddy-pill aria-label="Active buddy">
+                  <span class="swatch" aria-hidden="true"></span>
+                  <span data-lb-buddy-name>Velvet</span>
+                  <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+                <button class="lb-icon-btn" aria-label="Search" tabindex="-1">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+                </button>
+                <span class="lb-avatar" aria-hidden="true">TM</span>
+              </div>
             </header>
 
-            <!-- Mode tabs — pick which example analysis to view -->
-            <div class="lb-iframe-tabs" role="tablist" aria-label="Analysis examples">
-              <button class="lb-iframe-tab" role="tab" data-lb-tab="mix" aria-selected="true" id="lb-tab-mix">Mix Analysis</button>
-              <button class="lb-iframe-tab" role="tab" data-lb-tab="mastering" aria-selected="false" id="lb-tab-mastering">Mastering</button>
-              <button class="lb-iframe-tab" role="tab" data-lb-tab="production" aria-selected="false" id="lb-tab-production">Production</button>
-              <button class="lb-iframe-tab" role="tab" data-lb-tab="broadcast" aria-selected="false" id="lb-tab-broadcast">Film / Broadcast</button>
-              <button class="lb-iframe-tab" role="tab" data-lb-tab="advisor" aria-selected="false" id="lb-tab-advisor">Plugin Advisor</button>
+            <!-- TOOLBAR: ANALYZE / RESET / SNAPSHOT / EXPORT / SAVE / OPEN  +  status + mode -->
+            <div class="lb-toolbar">
+              <span class="lb-toolbar-engineered">ENGINEERED BY ZENPHONY AUDIO</span>
+              <button class="lb-tb-btn is-primary" tabindex="-1">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                ANALYZE
+              </button>
+              <button class="lb-tb-btn" tabindex="-1">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 4v5h-5"/></svg>
+                RESET
+              </button>
+              <button class="lb-tb-btn" tabindex="-1">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="12" cy="12" r="3"/></svg>
+                SNAPSHOT
+              </button>
+              <button class="lb-tb-btn" tabindex="-1">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                EXPORT
+              </button>
+              <button class="lb-tb-btn" tabindex="-1">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/></svg>
+                SAVE
+              </button>
+              <button class="lb-tb-btn" tabindex="-1">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h6l2 2h10v10a2 2 0 0 1-2 2H3z"/></svg>
+                OPEN
+              </button>
+              <span class="lb-tb-spacer"></span>
+              <span class="lb-tb-status">
+                <span class="label">QC:</span>
+                <span data-lb-qc>NO QC</span>
+              </span>
+              <span class="lb-tb-mode">
+                <span class="label">MODE:</span>
+                <span data-lb-mode>MIX</span>
+                <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+              </span>
             </div>
 
-            <!-- Track impression -->
-            <div class="lb-iframe-impression" data-lb-impression></div>
+            <!-- LEFT SIDEBAR: listening + talk + LUFS orb + persona chips -->
+            <aside class="lb-sidebar">
+              <div class="lb-listening-card">
+                <span class="lb-listening-dot" aria-hidden="true"></span>
+                <span class="lb-listening-text">
+                  <span class="t">Listening</span>
+                  <span class="s">Capturing audio…</span>
+                </span>
+              </div>
+              <div class="lb-talk-cta" role="button" tabindex="-1">
+                <span class="label">Talk with a <span data-lb-buddy-name>buddy</span></span>
+              </div>
+              <div class="lb-meter-orb" aria-hidden="true">
+                <span class="reading" data-lb-lufs>−15.2</span>
+                <span class="reading-sub">LUFS</span>
+              </div>
+              <div class="lb-persona-tabs" role="tablist" aria-label="Persona">
+                <button class="lb-persona-tab is-active" tabindex="-1">SOCIAL</button>
+                <button class="lb-persona-tab" tabindex="-1">FILM</button>
+                <button class="lb-persona-tab" tabindex="-1">INDUSTRY</button>
+              </div>
+            </aside>
 
-            <!-- Cards stage -->
-            <div class="lb-iframe-cards" data-lb-cards role="region" aria-label="Analysis cards"></div>
+            <!-- CENTER STAGE: scene swaps based on the active tab -->
+            <main class="lb-stage" data-lb-stage></main>
 
-            <!-- Footer hint -->
-            <footer class="lb-iframe-footer">
-              <span class="live-dot">Listening</span>
-              <span data-lb-summary>6 insight cards · click to expand</span>
+            <!-- RIGHT RAIL: spectrogram + levels + metrics + spectrum mini -->
+            <aside class="lb-rail">
+              <div>
+                <div class="lb-rail-h">
+                  <span>SPECTROGRAM</span>
+                  <span class="pop">POP OUT</span>
+                </div>
+                <div class="lb-spectrogram">
+                  <div class="lb-spectrogram-canvas" data-lb-spec-canvas></div>
+                  <div class="lb-spectrogram-axis"><span>20Hz</span><span>1k</span><span>20k</span></div>
+                </div>
+              </div>
+              <div>
+                <div class="lb-rail-h"><span>LEVELS</span></div>
+                <div class="lb-levels-block">
+                  <div class="lb-level-row">
+                    <span class="key">RMS</span>
+                    <span class="lb-level-bar" style="--rest: 32%;"></span>
+                    <span class="val">−18.4</span>
+                  </div>
+                  <div class="lb-level-row">
+                    <span class="key">LRA</span>
+                    <span class="lb-level-bar" style="--rest: 60%;"></span>
+                    <span class="val">7.2 LU</span>
+                  </div>
+                  <div class="lb-level-row">
+                    <span class="key">PEAK</span>
+                    <span class="lb-level-bar" style="--rest: 12%;"></span>
+                    <span class="val">−1.0</span>
+                  </div>
+                </div>
+              </div>
+              <div>
+                <div class="lb-rail-h"><span>METRICS</span></div>
+                <div class="lb-metrics-block">
+                  <div class="lb-metric-row"><span class="key">True Peak</span><span class="val" data-lb-tp>−1.0 dBTP</span></div>
+                  <div class="lb-metric-row"><span class="key">Crest</span><span class="val" data-lb-crest>11.4 dB</span></div>
+                  <div class="lb-metric-row"><span class="key">Correlation</span><span class="val" data-lb-corr>+0.74</span></div>
+                  <div class="lb-metric-row"><span class="key">Mid / Side</span><span class="val">+2.1 dB</span></div>
+                </div>
+              </div>
+              <div>
+                <div class="lb-rail-h"><span>SPECTRUM</span></div>
+                <div class="lb-spectrum-mini">
+                  <svg class="lb-spectrum-line" viewBox="0 0 200 48" preserveAspectRatio="none" aria-hidden="true">
+                    <defs>
+                      <linearGradient id="lb-spec-grad" x1="0" x2="0" y1="0" y2="1">
+                        <stop offset="0" stop-color="var(--lb-prim-2)"/>
+                        <stop offset="1" stop-color="var(--lb-prim)" stop-opacity="0.4"/>
+                      </linearGradient>
+                    </defs>
+                    <path data-lb-spec-line d="M0,30 L20,28 L40,22 L60,18 L80,16 L100,14 L120,16 L140,20 L160,28 L180,34 L200,38 L200,48 L0,48 Z" fill="url(#lb-spec-grad)"/>
+                  </svg>
+                </div>
+              </div>
+            </aside>
+
+            <!-- FOOTER: player bar with mascot + filename + waveform progress -->
+            <footer class="lb-footer">
+              <span class="lb-footer-mascot" aria-hidden="true">
+                <img src="assets/listen-buddy-mascot.svg" alt="" />
+              </span>
+              <span class="lb-footer-meta">
+                <span class="name" data-lb-filename>Drift_v3_Mix.wav</span>
+                <span class="time" data-lb-time>0:42 · 3:24</span>
+              </span>
+              <span class="lb-footer-progress">
+                <span class="filled" data-lb-progress style="inset: 0 70% 0 0;"></span>
+                <span class="waves" data-lb-footer-waves></span>
+              </span>
+              <span class="lb-footer-tag">Listen Buddy v1.0 BETA</span>
             </footer>
           </div>
         </div>
@@ -811,34 +954,40 @@ root.render(<App />);
 // ============================================================================
 // Listen Buddy interactive plugin gallery
 // ============================================================================
-// Replaces the legacy static-screenshot carousel. Renders a CSS-based plugin
-// window mockup with five example analyses (mix, mastering, production,
-// film/broadcast, plugin advisor). Each card expands/collapses with
-// realistic copy. No image of the actual plugin is shown — visitors get
-// to BROWSE analysis-style content the way it appears inside Listen Buddy.
+// Faithful CSS recreation of the actual plugin window (chrome + sidebars +
+// stage + footer). JS hydrates the stage with one of five example
+// analyses; tabs swap the entire scene; the buddy switcher tints the
+// theme; spectrogram + level meters animate.
 (function(){
   const root = document.querySelector('[data-lb-interactive]');
   if (!root) return;
 
-  const trackEl      = root.querySelector('[data-lb-track]');
-  const modeEl       = root.querySelector('[data-lb-mode]');
-  const buddyEl      = root.querySelector('[data-lb-buddy]');
-  const buddyNameEl  = root.querySelector('[data-lb-buddy-name]');
-  const impressionEl = root.querySelector('[data-lb-impression]');
-  const cardsEl      = root.querySelector('[data-lb-cards]');
-  const summaryEl    = root.querySelector('[data-lb-summary]');
-  const tabs         = root.querySelectorAll('[data-lb-tab]');
+  const frame       = root.querySelector('[data-lb-frame]');
+  const stageEl     = root.querySelector('[data-lb-stage]');
+  const filenameEl  = root.querySelector('[data-lb-filename]');
+  const modeEl      = root.querySelector('[data-lb-mode]');
+  const qcEl        = root.querySelector('[data-lb-qc]');
+  const lufsEl      = root.querySelector('[data-lb-lufs]');
+  const tpEl        = root.querySelector('[data-lb-tp]');
+  const crestEl     = root.querySelector('[data-lb-crest]');
+  const corrEl      = root.querySelector('[data-lb-corr]');
+  const buddyNames  = root.querySelectorAll('[data-lb-buddy-name]');
+  const tabs        = root.querySelectorAll('[data-lb-tab]');
+  const specCanvas  = root.querySelector('[data-lb-spec-canvas]');
+  const footerWaves = root.querySelector('[data-lb-footer-waves]');
 
   // ---- Sample analyses ----
-  // Each entry is one example "session" inside the plugin. Cards mirror the
-  // layout of a real Listen Buddy run: title + status + short summary, with
-  // expanded copy that names dB/kHz where appropriate. No fake numerical
-  // claims — the values are illustrative of the plugin format.
+  // Each entry hydrates the full plugin window: filename + mode + buddy
+  // (which retints the theme), an impression block, six analysis cards
+  // OR a chat thread / reference list (per scene). Realistic LB-style copy.
   const analyses = {
     mix: {
-      track: 'Drift — Skye Wallace · Mix',
-      mode:  'Velvet · 96 kHz · Mix mode',
+      filename: 'Drift_v3_Mix.wav',
+      mode: 'MIX', qc: 'NO QC', lufs: '−15.2',
+      tp: '−1.0 dBTP', crest: '11.4 dB', corr: '+0.74',
       buddy: 'velvet', buddyName: 'Velvet',
+      sceneType: 'analysis',
+      sectionTitle: 'OVERALL IMPRESSION',
       impression: 'Punchy R&amp;B mix overall. Low end has nice <span class="accent">weight on the kick and 808</span>, vocal sits forward without harshness. A small lift on cymbal air around <span class="accent">12 kHz</span> would open the chorus, and the bus compressor could be backed off about <span class="accent">1 dB</span> in the second chorus.',
       cards: [
         { title: 'Low-End Balance', summary: 'Strong weight; kick and bass competing 70–110 Hz', score: 'good', value: '−9 LUFS', detail:
@@ -856,9 +1005,12 @@ root.render(<App />);
       ],
     },
     mastering: {
-      track: 'Strange Light — Hawthorn · Master',
-      mode:  'Verde · 96 kHz · Mastering mode',
+      filename: 'StrangeLight_Master_v7.wav',
+      mode: 'MASTER', qc: 'SPOTIFY', lufs: '−9.4',
+      tp: '−1.0 dBTP', crest: '8.1 dB', corr: '+0.82',
       buddy: 'verde', buddyName: 'Verde',
+      sceneType: 'analysis',
+      sectionTitle: 'OVERALL IMPRESSION',
       impression: 'Clean master, loudness sits at <span class="accent">−9.4 LUFS</span> integrated with <span class="accent">+1 dB</span> of headroom under streaming normalization. Stereo image is consistent through the song. Final checks before delivery: Apple Music alt at −16 LUFS, Spotify at −14 LUFS.',
       cards: [
         { title: 'Loudness Target', summary: 'Integrated −9.4 LUFS, +1 dB headroom for streaming', score: 'great', value: '−9.4', detail:
@@ -876,9 +1028,12 @@ root.render(<App />);
       ],
     },
     production: {
-      track: 'Late August — Iris Mahone · Demo',
-      mode:  'Rosso · 48 kHz · Production mode',
+      filename: 'LateAugust_Demo_03.wav',
+      mode: 'PRODUCTION', qc: 'NO QC', lufs: '−12.8',
+      tp: '−2.4 dBTP', crest: '13.0 dB', corr: '+0.66',
       buddy: 'rosso', buddyName: 'Rosso',
+      sceneType: 'analysis',
+      sectionTitle: 'OVERALL IMPRESSION',
       impression: 'Solid songwriter demo. The hook arrives <span class="accent">at 0:48</span> and lands clean. Verse 2 needs a small lift — the energy plateaus where the lyrics are pivoting. Background vocals are sparse; doubling the chorus would thicken the chorus payoff without losing the intimate verse feel.',
       cards: [
         { title: 'Arrangement Energy', summary: 'Section contrast strong; verse 2 needs lift', score: 'good', value: 'V1<V2', detail:
@@ -896,9 +1051,12 @@ root.render(<App />);
       ],
     },
     broadcast: {
-      track: 'Northbound — Documentary Cut · Final Mix',
-      mode:  'Verde · 48 kHz · Film / Broadcast mode',
+      filename: 'Northbound_DocCut_v9.wav',
+      mode: 'FILM', qc: 'A/85', lufs: '−25.0',
+      tp: '−2.0 dBTP', crest: '14.6 dB', corr: '+0.91',
       buddy: 'verde', buddyName: 'Verde',
+      sceneType: 'analysis',
+      sectionTitle: 'OVERALL IMPRESSION',
       impression: 'Documentary mix passes broadcast standards. Integrated loudness <span class="accent">−25 LUFS</span>, true peak <span class="accent">−2.0 dBTP</span> — A/85 compliant. Dialogue is clear and intelligible across all speakers, music sits correctly under voice. One ambient cut at 02:14 is audible — recommend crossfading.',
       cards: [
         { title: 'Dialogue Clarity', summary: 'Clear; LFE not bleeding into voice band', score: 'great', value: '★', detail:
@@ -916,10 +1074,19 @@ root.render(<App />);
       ],
     },
     advisor: {
-      track: 'Plugin Advisor — Vocal de-essing',
-      mode:  'Velvet · advisor mode · post-analysis',
+      filename: 'Drift_v3_Mix.wav',
+      mode: 'CHAT', qc: 'NO QC', lufs: '−15.2',
+      tp: '−1.0 dBTP', crest: '11.4 dB', corr: '+0.74',
       buddy: 'velvet', buddyName: 'Velvet',
-      impression: 'Working from the previous mix analysis: sibilance peaks at <span class="accent">7.8 kHz</span> on the lead vocal. Here are the plugin paths that actually fix that without dulling the air, ranked by transparency and matched against your installed plugin list.',
+      sceneType: 'chat',
+      thread: [
+        { who: 'you', text: 'What plugin should I use for vocal de-essing on this track?' },
+        { who: 'bot', text: 'Sibilance is peaking at <span class="accent">7.8&nbsp;kHz</span> on the lead. From your installed list, <span class="accent">FabFilter Pro-DS</span> in linear mode at threshold ~−18 dB is the cleanest match — keeps the air on top of the de-essed band.' },
+        { who: 'you', text: 'CLA-style alternative?' },
+        { who: 'bot', text: '<span class="accent">Waves DeEsser</span> in split-band mode at −14 dB threshold. Slightly more colored than Pro-DS but matches the rest of the chain if you\'re already running CLA processors. Want a reference track to A/B against?' },
+        { who: 'you', text: 'Yes' },
+        { who: 'bot', text: 'Khalid — <em>Better</em>, chorus around <span class="accent">1:10</span>. Same vocal character (mid-forward, present consonants). After the de-essing pass, A/B against that section.' },
+      ],
       cards: [
         { title: 'Your Question', summary: '"What plugin should I use for vocal de-essing on this track?"', score: 'info', value: 'YOU', detail:
           'You asked: <em>"What plugin should I use for vocal de-essing on this track?"</em> Pulling the relevant analysis: lead vocal sibilance at <span class="accent">7.8 kHz</span>, ~3 dB hot vs the rest of the chain. Your installed plugin list shows you have FabFilter Pro-DS, Waves DeEsser, and Logic\'s stock DeEsser 2.' },
@@ -940,35 +1107,35 @@ root.render(<App />);
   const ORDER = ['mix', 'mastering', 'production', 'broadcast', 'advisor'];
   let activeKey = 'mix';
 
-  // ---- Render ----
-  function buildCardEl(card, idx, isFirst) {
+  // ---- Card factory ----
+  function buildCard(card, idx, isFirst) {
     const wrap = document.createElement('article');
-    wrap.className = 'lb-analysis-card';
+    wrap.className = 'lb-card';
     wrap.setAttribute('aria-expanded', isFirst ? 'true' : 'false');
 
     const btn = document.createElement('button');
-    btn.className = 'lb-analysis-card-h';
+    btn.className = 'lb-card-h';
     btn.type = 'button';
     btn.setAttribute('aria-controls', `lb-card-body-${idx}`);
 
     const dot = document.createElement('span');
-    dot.className = 'lb-card-status';
+    dot.className = 'lb-card-dot';
     dot.dataset.score = card.score || 'info';
     dot.setAttribute('aria-hidden', 'true');
 
-    const title = document.createElement('span');
-    title.className = 'lb-card-title-block';
-    const tEl = document.createElement('span');
-    tEl.className = 'lb-card-title';
-    tEl.textContent = card.title;
-    const sEl = document.createElement('span');
-    sEl.className = 'lb-card-summary';
-    sEl.textContent = card.summary;
-    title.appendChild(tEl);
-    title.appendChild(sEl);
+    const tBlock = document.createElement('span');
+    tBlock.className = 'lb-card-tt-block';
+    const tt = document.createElement('span');
+    tt.className = 'lb-card-tt';
+    tt.textContent = card.title;
+    const sm = document.createElement('span');
+    sm.className = 'lb-card-sm';
+    sm.textContent = card.summary;
+    tBlock.appendChild(tt);
+    tBlock.appendChild(sm);
 
     const val = document.createElement('span');
-    val.className = 'lb-card-value';
+    val.className = 'lb-card-val';
     val.textContent = card.value || '';
     if (!card.value) val.style.display = 'none';
 
@@ -984,7 +1151,7 @@ root.render(<App />);
     chev.innerHTML = '<polyline points="6 9 12 15 18 9"></polyline>';
 
     btn.appendChild(dot);
-    btn.appendChild(title);
+    btn.appendChild(tBlock);
     btn.appendChild(val);
     btn.appendChild(chev);
 
@@ -993,25 +1160,76 @@ root.render(<App />);
     body.id = `lb-card-body-${idx}`;
     body.setAttribute('role', 'region');
     const p = document.createElement('p');
-    // detail allows inline <span class="accent"> markup
     p.innerHTML = card.detail;
     body.appendChild(p);
 
     wrap.appendChild(btn);
     wrap.appendChild(body);
 
-    btn.addEventListener('click', () => toggleCard(wrap));
+    btn.addEventListener('click', () => {
+      const wasOpen = wrap.getAttribute('aria-expanded') === 'true';
+      stageEl.querySelectorAll('.lb-card').forEach(c => c.setAttribute('aria-expanded', 'false'));
+      if (!wasOpen) wrap.setAttribute('aria-expanded', 'true');
+    });
     return wrap;
   }
 
-  function toggleCard(cardEl) {
-    const wasOpen = cardEl.getAttribute('aria-expanded') === 'true';
-    // Collapse all siblings
-    cardsEl.querySelectorAll('.lb-analysis-card').forEach(c => {
-      c.setAttribute('aria-expanded', 'false');
+  // ---- Stage scene renderers ----
+  function renderAnalysisScene(data) {
+    const sec = document.createElement('div');
+    sec.className = 'lb-section-h';
+    sec.innerHTML = `<span class="pip"></span><span>${data.sectionTitle || 'OVERALL IMPRESSION'}</span>`;
+    stageEl.appendChild(sec);
+
+    if (data.impression) {
+      const imp = document.createElement('div');
+      imp.className = 'lb-impression';
+      imp.innerHTML = data.impression;
+      stageEl.appendChild(imp);
+    }
+
+    const cards = document.createElement('div');
+    cards.className = 'lb-cards';
+    data.cards.forEach((c, i) => cards.appendChild(buildCard(c, `${activeKey}-${i}`, i === 0)));
+    stageEl.appendChild(cards);
+  }
+
+  function renderChatScene(data) {
+    const sec = document.createElement('div');
+    sec.className = 'lb-section-h';
+    sec.innerHTML = `<span class="pip"></span><span>PLUGIN ADVISOR · CHAT</span>`;
+    stageEl.appendChild(sec);
+
+    const thread = document.createElement('div');
+    thread.className = 'lb-chat-thread';
+    data.thread.forEach(m => {
+      const b = document.createElement('div');
+      b.className = `lb-bubble ${m.who}`;
+      b.innerHTML = m.text;
+      thread.appendChild(b);
     });
-    // Open this one if it was closed
-    if (!wasOpen) cardEl.setAttribute('aria-expanded', 'true');
+    stageEl.appendChild(thread);
+
+    if (data.cards && data.cards.length) {
+      const sec2 = document.createElement('div');
+      sec2.className = 'lb-section-h';
+      sec2.style.marginTop = '12px';
+      sec2.innerHTML = `<span class="pip"></span><span>RECOMMENDATIONS</span>`;
+      stageEl.appendChild(sec2);
+      const cards = document.createElement('div');
+      cards.className = 'lb-cards';
+      data.cards.forEach((c, i) => cards.appendChild(buildCard(c, `${activeKey}-${i}`, i === 0)));
+      stageEl.appendChild(cards);
+    }
+
+    const input = document.createElement('div');
+    input.className = 'lb-chat-input';
+    input.innerHTML = `
+      <span class="lb-chat-input-field">Ask <span data-lb-buddy-name>Velvet</span> something…</span>
+      <span class="lb-chat-input-send" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+      </span>`;
+    stageEl.appendChild(input);
   }
 
   function render(key) {
@@ -1019,39 +1237,37 @@ root.render(<App />);
     if (!data) return;
     activeKey = key;
 
-    // Header meta
-    trackEl.textContent = data.track;
-    modeEl.textContent  = data.mode;
-    buddyEl.dataset.buddy = data.buddy;
-    buddyNameEl.textContent = data.buddyName;
+    // Tab visual state
+    tabs.forEach(t => t.setAttribute('aria-selected', t.dataset.lbTab === key ? 'true' : 'false'));
 
-    // Tabs
-    tabs.forEach(t => {
-      const sel = t.dataset.lbTab === key;
-      t.setAttribute('aria-selected', sel ? 'true' : 'false');
-    });
+    // Buddy theme — drives all the colored elements via CSS variables
+    frame.dataset.buddy = data.buddy;
 
-    // Impression
-    impressionEl.innerHTML = data.impression;
+    // Chrome readouts
+    buddyNames.forEach(el => el.textContent = data.buddyName);
+    if (filenameEl) filenameEl.textContent = data.filename;
+    if (modeEl)     modeEl.textContent     = data.mode;
+    if (qcEl)       qcEl.textContent       = data.qc;
+    if (lufsEl)     lufsEl.textContent     = data.lufs;
+    if (tpEl)       tpEl.textContent       = data.tp;
+    if (crestEl)    crestEl.textContent    = data.crest;
+    if (corrEl)     corrEl.textContent     = data.corr;
 
-    // Cards (swap out with a brief fade so it doesn't feel jumpy)
-    cardsEl.classList.add('is-swapping');
+    // Stage swap with brief fade
+    stageEl.classList.add('is-swap');
     setTimeout(() => {
-      cardsEl.innerHTML = '';
-      data.cards.forEach((c, i) => {
-        cardsEl.appendChild(buildCardEl(c, `${key}-${i}`, i === 0));
-      });
-      cardsEl.classList.remove('is-swapping');
-    }, 220);
-
-    // Footer summary
-    summaryEl.textContent = `${data.cards.length} insight cards · click any to expand`;
+      stageEl.innerHTML = '';
+      if (data.sceneType === 'chat') renderChatScene(data);
+      else renderAnalysisScene(data);
+      stageEl.classList.remove('is-swap');
+      // Sub-name updates inside the freshly rendered scene
+      stageEl.querySelectorAll('[data-lb-buddy-name]').forEach(el => el.textContent = data.buddyName);
+    }, 200);
   }
 
   // ---- Wire tabs ----
   tabs.forEach(t => {
     t.addEventListener('click', () => render(t.dataset.lbTab));
-    // Keyboard: arrow-left/right rotate active tab (a11y nicety)
     t.addEventListener('keydown', (e) => {
       const idx = ORDER.indexOf(activeKey);
       if (e.key === 'ArrowRight') {
@@ -1067,6 +1283,62 @@ root.render(<App />);
       }
     });
   });
+
+  // ---- Spectrogram bars (right rail) ----
+  // 32 little vertical bars heaving along to a generated curve so the rail
+  // doesn't feel static. Pause when the section is offscreen.
+  const NUM_BARS = 32;
+  for (let i = 0; i < NUM_BARS; ++i) {
+    const b = document.createElement('span');
+    b.className = 'lb-spec-bar';
+    b.style.transform = 'scaleY(0.3)';
+    specCanvas.appendChild(b);
+  }
+  const specBars = specCanvas.querySelectorAll('.lb-spec-bar');
+  let specT = 0;
+  let specRunning = true;
+  function tickSpec() {
+    if (!specRunning) return;
+    specT += 0.05;
+    for (let i = 0; i < NUM_BARS; ++i) {
+      // Multi-band-ish curve: low end bigger, high end smaller, with sway.
+      const band = Math.cos(i / NUM_BARS * Math.PI) * 0.55 + 0.45; // 1 → 0.45
+      const sway = Math.sin(specT * 1.4 + i * 0.32) * 0.20
+                 + Math.sin(specT * 0.7 + i * 0.13) * 0.15;
+      const h = Math.max(0.10, Math.min(1, band + sway));
+      specBars[i].style.transform = `scaleY(${h.toFixed(3)})`;
+    }
+    requestAnimationFrame(tickSpec);
+  }
+  // Only animate when in viewport (saves CPU on long pages)
+  if ('IntersectionObserver' in window) {
+    const io = new IntersectionObserver((es) => {
+      es.forEach(e => {
+        const wasRunning = specRunning;
+        specRunning = e.isIntersecting;
+        if (specRunning && !wasRunning) tickSpec();
+      });
+    }, { threshold: 0.05 });
+    io.observe(root);
+  } else {
+    tickSpec();
+  }
+  tickSpec();
+
+  // ---- Footer waveform — random fixed bars (visual only) ----
+  if (footerWaves) {
+    const NUM_W = 90;
+    for (let i = 0; i < NUM_W; ++i) {
+      const w = document.createElement('span');
+      w.className = 'wave-bar';
+      // Pseudo-random heights with a smooth envelope
+      const env = Math.sin((i / NUM_W) * Math.PI) * 0.7 + 0.3;
+      const noise = ((i * 1103) % 47) / 47;
+      const h = Math.max(0.15, env * (0.5 + noise * 0.5));
+      w.style.height = `${(h * 100).toFixed(1)}%`;
+      footerWaves.appendChild(w);
+    }
+  }
 
   // Initial render
   render('mix');
