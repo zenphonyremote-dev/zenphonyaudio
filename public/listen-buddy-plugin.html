@@ -13553,9 +13553,13 @@ body.lb-demo .wt-focus,
 body.lb-demo .wt-ring,
 body.lb-demo .chat-popup,
 body.lb-demo .chat-min-pill,
-body.lb-demo #lb-resize-diag {
+body.lb-demo #lb-resize-diag,
+body.lb-demo #loadingOverlay,
+body.lb-demo .loading-overlay {
     display: none !important;
 }
+/* Prevent ANALYZE button from ever showing the analyzing animation state */
+body.lb-demo #analyzeBtn.analyzing { animation: none !important; }
 </style>
 
 <script id="lb-demo-lockdown-js">
@@ -13572,18 +13576,26 @@ body.lb-demo #lb-resize-diag {
 
     var populated = false;
 
-    // simulateAnalysis() is the prototype's existing entry point that
-    // injects sample impression copy + 6 insight cards. Re-poll until
-    // it's defined (the React boot might not have wired it yet).
+    // Skip the 3-second ANALYZING animation: render the mock payload
+    // directly via ATLE's liveApply path. That's exactly what the
+    // wrapped simulateAnalysis() calls after its loading timer.
     function tryPopulate(retries) {
         if (populated) return;
         retries = retries || 0;
-        if (typeof window.simulateAnalysis === 'function') {
+        var A = window.ATLE;
+        if (A && typeof A.liveApply === 'function' && typeof A.mockPayload === 'function') {
             try {
-                window.simulateAnalysis();
+                var mock = A.mockPayload();
+                mock._synthetic = true;
+                A.liveApply(mock);
                 populated = true;
-                console.log('[LB-DEMO] analysis populated');
-            } catch(e) { console.warn('[LB-DEMO] simulateAnalysis threw', e); }
+                console.log('[LB-DEMO] analysis populated (no loading screen)');
+            } catch(e) { console.warn('[LB-DEMO] liveApply threw', e); }
+            // Make sure the loading overlay never shows (covers any race)
+            var ov = document.getElementById('loadingOverlay');
+            if (ov) ov.style.display = 'none';
+            var btn = document.getElementById('analyzeBtn');
+            if (btn) { btn.classList.remove('analyzing'); btn.textContent = 'ANALYZE'; }
             return;
         }
         if (retries < 80) setTimeout(function(){ tryPopulate(retries+1); }, 100);
