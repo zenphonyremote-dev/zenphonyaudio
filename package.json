@@ -17,6 +17,8 @@
     "dev:scheduler": "cd notifications && npm run dev:scheduler"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1045.0",
+    "@aws-sdk/s3-request-presigner": "^3.1045.0",
     "@better-auth/infra": "^0.1.13",
     "@better-auth/sso": "^1.5.6",
     "@hookform/resolvers": "^3.10.0",

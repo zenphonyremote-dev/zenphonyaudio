@@ -176,7 +176,8 @@ const NAV_GROUPS = [
     links: [
       { id: 'users',         label: 'Users',         icon: 'users',  phase: 2, count: '12.4k' },
       { id: 'subscriptions', label: 'Subscriptions', icon: 'card',   phase: 2 },
-      { id: 'support',       label: 'Support',       icon: 'mail',   phase: 3, count: 23, warn: true }
+      { id: 'support',       label: 'Support',       icon: 'mail',   phase: 3, count: 23, warn: true },
+      { id: 'support_logs',  label: 'Support logs',  icon: 'log',    phase: 2 }
     ]
   },
   {
@@ -774,7 +775,7 @@ function StubScreen({ id }) {
 
 /* Routes whose data is fully wired to the live backend. Anything else
    gets a "preview data" banner so admins know not to trust the numbers. */
-const WIRED_ROUTES = new Set(['dashboard', 'users', 'subscriptions']);
+const WIRED_ROUTES = new Set(['dashboard', 'users', 'subscriptions', 'support_logs']);
 
 function PreviewBanner({ route }) {
   return (
@@ -906,6 +907,8 @@ function AdminApp() {
             setSelectedId={(v) => setTweak('selectedUser', v)}
             setSegment={(v) => setTweak('userSegment', v)}
           />
+        ) : route === 'support_logs' ? (
+          <window.SupportLogsScreen />
         ) : (
           <StubScreen id={route} />
         )}

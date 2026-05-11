@@ -15,6 +15,7 @@ const ALLOWED = new Set([
   "admin-phase5.jsx",
   "admin-refunds.jsx",
   "admin-support.jsx",
+  "admin-support-logs.jsx",
 ])
 
 const ASSETS_DIR = path.join(process.cwd(), "lib", "admin-assets")
