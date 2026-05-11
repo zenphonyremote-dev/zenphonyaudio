@@ -5,21 +5,25 @@ import { uploadSupportLog } from "@/lib/r2"
 // =====================================================================
 // /api/support/upload-log
 //
-// Plugin-facing support log upload. Plugin posts:
-//   POST multipart/form-data
-//     api_key         (string)
-//     machine_id_hash (string, optional)
-//     system_info     (JSON string)  — see SQL migration for shape
-//     log_summary     (JSON string, optional) — aggregate counts
-//     log             (file)         — gzipped JSONL, last 48h
+// Plugin-facing support log upload. Plugin posts JSON:
+//   POST application/json
+//   {
+//     "api_key":         "...",
+//     "machine_id_hash": "...",        // optional
+//     "system_info":     { ... },       // see SQL migration for shape
+//     "log_summary":     { ... },       // optional, aggregate counts
+//     "log_base64":      "..."          // gzipped JSONL, base64-encoded
+//   }
 //
 // Flow:
-//   1. Validate api_key, parse multipart
-//   2. Upload gzipped log to R2 under support-logs/{user_id}/...
-//   3. Insert support_logs row via record_support_log_upload RPC
-//   4. Return { success, log_id }
+//   1. Validate api_key, parse JSON
+//   2. base64-decode the log payload
+//   3. Upload gzipped log to R2 under support-logs/{user_id}/...
+//   4. Insert support_logs row via record_support_log_upload RPC
+//   5. Return { success, log_id }
 //
-// Hard size cap: 64 MB (gzipped). Anything larger is rejected.
+// Hard size cap: 64 MB (raw gzipped). Anything larger is rejected.
+// Request body cap: also 64 MB after base64 decode (~85 MB encoded).
 // =====================================================================
 
 const MAX_LOG_BYTES = 64 * 1024 * 1024
@@ -51,53 +55,59 @@ function getSupabaseAdmin() {
   return supabaseAdmin
 }
 
-function safeJsonParse(s: string | null | undefined): unknown {
-  if (!s) return null
-  try {
-    return JSON.parse(s)
-  } catch {
-    return null
-  }
+type UploadBody = {
+  api_key?: string
+  machine_id_hash?: string | null
+  system_info?: Record<string, unknown>
+  log_summary?: Record<string, unknown> | null
+  log_base64?: string
 }
 
 export async function POST(request: NextRequest) {
   try {
-    const form = await request.formData()
-    const apiKey = form.get("api_key")
+    let body: UploadBody
+    try {
+      body = (await request.json()) as UploadBody
+    } catch {
+      return json({ success: false, error: "invalid_json" }, { status: 400 })
+    }
+
+    const apiKey = body.api_key
     if (typeof apiKey !== "string" || !apiKey) {
       return json({ success: false, error: "missing_api_key" }, { status: 400 })
     }
 
-    const machineIdHash = (form.get("machine_id_hash") as string) || null
-    const systemInfoRaw = form.get("system_info")
-    const logSummaryRaw = form.get("log_summary")
-    const logFile = form.get("log")
+    const machineIdHash =
+      typeof body.machine_id_hash === "string" ? body.machine_id_hash : null
 
-    if (!(logFile instanceof Blob)) {
-      return json({ success: false, error: "missing_log_file" }, { status: 400 })
+    if (!body.log_base64 || typeof body.log_base64 !== "string") {
+      return json({ success: false, error: "missing_log_base64" }, { status: 400 })
     }
-    if (logFile.size > MAX_LOG_BYTES) {
+
+    let buf: Buffer
+    try {
+      buf = Buffer.from(body.log_base64, "base64")
+    } catch {
+      return json({ success: false, error: "invalid_base64" }, { status: 400 })
+    }
+    if (buf.byteLength === 0) {
+      return json({ success: false, error: "empty_log" }, { status: 400 })
+    }
+    if (buf.byteLength > MAX_LOG_BYTES) {
       return json(
         { success: false, error: "log_too_large", max_bytes: MAX_LOG_BYTES },
         { status: 413 },
       )
     }
-    if (logFile.size === 0) {
-      return json({ success: false, error: "empty_log_file" }, { status: 400 })
-    }
 
-    const systemInfo = safeJsonParse(
-      typeof systemInfoRaw === "string" ? systemInfoRaw : null,
-    )
+    const systemInfo = body.system_info
     if (!systemInfo || typeof systemInfo !== "object") {
       return json(
         { success: false, error: "missing_or_invalid_system_info" },
         { status: 400 },
       )
     }
-    const logSummary = safeJsonParse(
-      typeof logSummaryRaw === "string" ? logSummaryRaw : null,
-    )
+    const logSummary = body.log_summary ?? null
 
     // Resolve user from api_key BEFORE upload, so we can scope the R2 path
     // and bail early on bad keys without burning R2 storage.
@@ -117,7 +127,6 @@ export async function POST(request: NextRequest) {
     }
 
     // Upload to R2
-    const buf = Buffer.from(await logFile.arrayBuffer())
     let logPath: string
     try {
       logPath = await uploadSupportLog(profile.id, buf, {
