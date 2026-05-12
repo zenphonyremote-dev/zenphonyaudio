@@ -98,23 +98,33 @@ export async function signedDownloadUrl(
   opts?: { downloadFilename?: string },
 ): Promise<string> {
   const client = getR2Client()
-  // ResponseContentDisposition forces the browser to download the file with
-  // the given filename instead of trying to render it inline. Without this,
-  // hitting a .jsonl.gz URL just dumps gzipped binary into a new tab — which
-  // is what admins saw when clicking "Download .jsonl.gz" on the support
-  // logs page (the file existed in R2, the URL was valid, the browser just
-  // didn't know it was supposed to be a download).
-  const filename =
-    opts?.downloadFilename ?? key.split("/").pop() ?? "log.jsonl.gz"
-  // Strip any stray double-quotes to keep the header well-formed.
-  const safeName = filename.replace(/"/g, "")
+  // The R2 object is stored gzipped (e.g. `support-logs/.../20260512-...jsonl.gz`)
+  // but we want admins to download a plain `.jsonl` file that opens in any
+  // editor without a manual `gunzip` step. The HTTP-level fix:
+  //
+  //   ResponseContentEncoding=gzip  → browser auto-decompresses on receipt
+  //   ResponseContentDisposition=attachment; filename="...jsonl"  ← no .gz
+  //   ResponseContentType=application/x-ndjson  ← JSON Lines MIME
+  //
+  // Bonus side-effect: Chrome's Safe Browsing was silently flagging the
+  // `.jsonl.gz` extension as "potentially dangerous" and aborting downloads
+  // with the misleading "Check internet connection" message. Renaming the
+  // download to `.jsonl` makes Chrome happy.
+  //
+  // Override on the signed URL — no need to re-upload existing R2 objects.
+  // The key still points at the .gz blob; the signed URL just instructs the
+  // client to treat the bytes as transparently-decoded JSONL.
+  const sourceName = key.split("/").pop() ?? "log.jsonl.gz"
+  const baseName = opts?.downloadFilename ?? sourceName.replace(/\.gz$/, "")
+  const safeName = baseName.replace(/"/g, "")
   return getSignedUrl(
     client,
     new GetObjectCommand({
       Bucket: supportLogsBucket(),
       Key: key,
       ResponseContentDisposition: `attachment; filename="${safeName}"`,
-      ResponseContentType: "application/gzip",
+      ResponseContentEncoding: "gzip",
+      ResponseContentType: "application/x-ndjson",
     }),
     { expiresIn: ttlSeconds },
   )
