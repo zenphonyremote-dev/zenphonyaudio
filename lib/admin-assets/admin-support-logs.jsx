@@ -105,7 +105,23 @@
         });
         if (!res.ok) throw new Error('HTTP ' + res.status);
         const j = await res.json();
-        if (j.url) window.open(j.url, '_blank');
+        if (!j.url) throw new Error('No URL returned');
+        // Use a programmatic <a download> click instead of window.open. Chrome
+        // (and Safari) block window.open as a popup even when the URL would
+        // download cleanly — and even if not blocked, you get a flicker of
+        // a blank tab opening + closing. A real <a> with the download attr,
+        // combined with R2's Content-Disposition: attachment header, is the
+        // reliable single-click-to-save pattern.
+        const a = document.createElement('a');
+        a.href = j.url;
+        a.rel = 'noopener';
+        // download="" hints to the browser to use the Content-Disposition
+        // filename. Empty string is the canonical "filename comes from
+        // the server" form.
+        a.download = '';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
       } catch (e) {
         alert('Download failed: ' + (e.message || 'unknown'));
       } finally {
