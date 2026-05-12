@@ -95,13 +95,26 @@ export async function uploadSupportLog(
 export async function signedDownloadUrl(
   key: string,
   ttlSeconds = 5 * 60,
+  opts?: { downloadFilename?: string },
 ): Promise<string> {
   const client = getR2Client()
+  // ResponseContentDisposition forces the browser to download the file with
+  // the given filename instead of trying to render it inline. Without this,
+  // hitting a .jsonl.gz URL just dumps gzipped binary into a new tab — which
+  // is what admins saw when clicking "Download .jsonl.gz" on the support
+  // logs page (the file existed in R2, the URL was valid, the browser just
+  // didn't know it was supposed to be a download).
+  const filename =
+    opts?.downloadFilename ?? key.split("/").pop() ?? "log.jsonl.gz"
+  // Strip any stray double-quotes to keep the header well-formed.
+  const safeName = filename.replace(/"/g, "")
   return getSignedUrl(
     client,
     new GetObjectCommand({
       Bucket: supportLogsBucket(),
       Key: key,
+      ResponseContentDisposition: `attachment; filename="${safeName}"`,
+      ResponseContentType: "application/gzip",
     }),
     { expiresIn: ttlSeconds },
   )
