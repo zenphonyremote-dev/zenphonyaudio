@@ -114,9 +114,17 @@ export async function signedDownloadUrl(
   // Override on the signed URL — no need to re-upload existing R2 objects.
   // The key still points at the .gz blob; the signed URL just instructs the
   // client to treat the bytes as transparently-decoded JSONL.
+  // Filename ends in `.json` (not `.jsonl` or `.jsonl.gz`) — Chrome's Safe
+  // Browsing was even flagging `.jsonl` as an unfamiliar extension and
+  // refusing the download. `.json` is universally trusted. The content is
+  // still newline-delimited JSON (one event per line), which every editor
+  // and `jq -c` reads cleanly even though the extension isn't strictly
+  // "JSON Lines" anymore.
   const sourceName = key.split("/").pop() ?? "log.jsonl.gz"
-  const baseName = opts?.downloadFilename ?? sourceName.replace(/\.gz$/, "")
-  const safeName = baseName.replace(/"/g, "")
+  const baseName =
+    opts?.downloadFilename ??
+    sourceName.replace(/\.jsonl?\.gz$/, "").replace(/\.gz$/, "")
+  const safeName = (baseName + ".json").replace(/"/g, "")
   return getSignedUrl(
     client,
     new GetObjectCommand({
@@ -124,7 +132,7 @@ export async function signedDownloadUrl(
       Key: key,
       ResponseContentDisposition: `attachment; filename="${safeName}"`,
       ResponseContentEncoding: "gzip",
-      ResponseContentType: "application/x-ndjson",
+      ResponseContentType: "application/json",
     }),
     { expiresIn: ttlSeconds },
   )

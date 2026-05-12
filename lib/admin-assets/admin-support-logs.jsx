@@ -296,7 +296,7 @@
                   onClick={() => download(selected.id)}
                   className="adm-btn adm-btn-primary"
                   disabled={downloadBusy}
-                >{downloadBusy ? 'Signing…' : 'Download .jsonl'}</button>
+                >{downloadBusy ? 'Signing…' : 'Download .json'}</button>
                 {selected.status !== 'reviewed' && (
                   <button onClick={() => setStatus(selected.id, 'reviewed')} className="adm-btn">Mark reviewed</button>
                 )}
