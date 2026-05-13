@@ -139,6 +139,32 @@ export async function signedDownloadUrl(
 }
 
 /**
+ * Server-side fetch the raw bytes of a support log from R2. Used by the
+ * admin download route to apply detect-and-decompress server-side, then
+ * stream a clean .json file to the browser regardless of whether the
+ * upload pipeline produced valid gzip or not.
+ *
+ * For the bucket's 64 MB upload cap this returns a fully-buffered Buffer.
+ * If you ever need streaming, drop the toArray() and pipe the SDK's body
+ * stream directly into the response.
+ */
+export async function fetchSupportLogBytes(key: string): Promise<Buffer> {
+  const client = getR2Client()
+  const resp = await client.send(
+    new GetObjectCommand({ Bucket: supportLogsBucket(), Key: key }),
+  )
+  if (!resp.Body) {
+    throw new Error(`R2 GetObject returned no body for ${key}`)
+  }
+  // Body in the AWS SDK v3 is a streaming type; toByteArray() coalesces it.
+  // The cast is the documented escape hatch since Body's type is a union of
+  // Web Stream + Node Readable + Blob and we only see Node Readable here.
+  const stream = resp.Body as unknown as { transformToByteArray(): Promise<Uint8Array> }
+  const bytes = await stream.transformToByteArray()
+  return Buffer.from(bytes)
+}
+
+/**
  * Sanity-check the R2 config without making a request. Throws if missing.
  */
 export function assertR2ConfigPresent(): void {

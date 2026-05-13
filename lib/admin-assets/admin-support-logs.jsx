@@ -71,7 +71,9 @@
     const [statusFilter, setStatusFilter] = useState('');
     const [emailFilter, setEmailFilter] = useState('');
     const [selected, setSelected] = useState(null);
-    const [downloadBusy, setDownloadBusy] = useState(false);
+    // Kept for any future "verifying" state during download — currently
+    // the new direct-streaming endpoint kicks off immediately, no spinner.
+    const [downloadBusy] = useState(false);
 
     const load = useCallback(async () => {
       setLoading(true);
@@ -97,36 +99,21 @@
 
     useEffect(() => { load(); }, [load]);
 
-    const download = useCallback(async (id) => {
-      setDownloadBusy(true);
-      try {
-        const res = await fetch('/api/admin/support/logs/' + id + '/download', {
-          credentials: 'include',
-        });
-        if (!res.ok) throw new Error('HTTP ' + res.status);
-        const j = await res.json();
-        if (!j.url) throw new Error('No URL returned');
-        // Use a programmatic <a download> click instead of window.open. Chrome
-        // (and Safari) block window.open as a popup even when the URL would
-        // download cleanly — and even if not blocked, you get a flicker of
-        // a blank tab opening + closing. A real <a> with the download attr,
-        // combined with R2's Content-Disposition: attachment header, is the
-        // reliable single-click-to-save pattern.
-        const a = document.createElement('a');
-        a.href = j.url;
-        a.rel = 'noopener';
-        // download="" hints to the browser to use the Content-Disposition
-        // filename. Empty string is the canonical "filename comes from
-        // the server" form.
-        a.download = '';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-      } catch (e) {
-        alert('Download failed: ' + (e.message || 'unknown'));
-      } finally {
-        setDownloadBusy(false);
-      }
+    const download = useCallback((id) => {
+      // The route is now a streaming endpoint (not a JSON response with a
+      // signed URL). It needs the admin's cookies, which the browser sends
+      // automatically on same-origin navigation. A programmatic <a download>
+      // pointing at the API URL is the cleanest single-click pattern:
+      //   - same origin → cookies attached
+      //   - server returns Content-Disposition: attachment → browser saves
+      //   - no popup blocker, no fetch+blob memory copy, no signed-URL TTL
+      const a = document.createElement('a');
+      a.href = '/api/admin/support/logs/' + id + '/download';
+      a.rel = 'noopener';
+      a.download = '';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
     }, []);
 
     const setStatus = useCallback(async (id, status) => {

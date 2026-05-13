@@ -1,14 +1,27 @@
 import { NextResponse } from "next/server"
 import { checkAdmin } from "@/lib/admin-auth"
 import { createClient, SupabaseClient } from "@supabase/supabase-js"
-import { signedDownloadUrl } from "@/lib/r2"
+import { fetchSupportLogBytes } from "@/lib/r2"
+import { gunzipSync } from "node:zlib"
 
 // =====================================================================
 // /api/admin/support/logs/[id]/download
 //
-// Admin-only. Returns a 5-minute signed R2 GET URL for the log file.
-// The admin frontend hits this and immediately redirects the browser
-// to the URL, which streams the .jsonl.gz file directly from R2.
+// Admin-only. Streams the support log to the browser as a .json file.
+//
+// Previously this returned a signed R2 GET URL with Content-Encoding=gzip,
+// and the admin frontend redirected the browser to it. Problem: some
+// uploads land in R2 with bytes that aren't actually gzip-formatted
+// despite the upload route setting ContentEncoding=gzip on the PutObject.
+// (Most likely a plugin-side encoding bug — JUCE's base64 boundary or a
+// pre-shipped build that does something extra before gzipping.) Chrome's
+// download decompressor aborts on those with "Failed - Network error",
+// and the admin can't get the log.
+//
+// New approach: pull the bytes server-side, detect-and-decompress if the
+// magic is gzip (1f 8b) or fall back to raw passthrough for malformed
+// uploads, then stream the result as application/json with a download
+// disposition. Robust against any upload pipeline weirdness.
 // =====================================================================
 
 export const dynamic = "force-dynamic"
@@ -54,13 +67,55 @@ export async function GET(
     return NextResponse.json({ error: "not_found" }, { status: 404 })
   }
 
-  let url: string
+  let raw: Buffer
   try {
-    url = await signedDownloadUrl(log.log_path as string, 5 * 60)
+    raw = await fetchSupportLogBytes(log.log_path as string)
   } catch (err) {
-    console.error("[admin/support/logs/download] sign:", err)
-    return NextResponse.json({ error: "sign_failed" }, { status: 502 })
+    console.error("[admin/support/logs/download] r2 fetch:", err)
+    return NextResponse.json({ error: "fetch_failed" }, { status: 502 })
   }
 
-  return NextResponse.json({ url, expires_in: 5 * 60 })
+  // Detect gzip magic (1f 8b). If present, decompress. Otherwise return as-is.
+  // We intentionally don't `throw` on a malformed gzip: we want the admin to
+  // be able to download SOMETHING (even raw bytes) for forensics on broken
+  // uploads. The malformed-bytes case will land as a .json with whatever
+  // was stored — admin can inspect manually.
+  let body: Buffer = raw
+  let kind = "unknown"
+  if (raw.length >= 2 && raw[0] === 0x1f && raw[1] === 0x8b) {
+    try {
+      body = gunzipSync(raw)
+      kind = "gzip"
+    } catch (err) {
+      console.warn(
+        "[admin/support/logs/download] gzip magic present but decompress failed; passing through raw:",
+        (err as Error).message,
+      )
+      body = raw
+      kind = "gzip-malformed"
+    }
+  } else {
+    kind = "non-gzip"
+  }
+
+  // Build the filename from the R2 key's basename, with .gz stripped and .json
+  // forced. Chrome treats `.json` as a universally-trusted extension and will
+  // download without Safe Browsing interference.
+  const sourceName = (log.log_path as string).split("/").pop() ?? "log"
+  const baseName = sourceName.replace(/\.jsonl?\.gz$/i, "").replace(/\.gz$/i, "")
+  const filename = (baseName.endsWith(".json") ? baseName : baseName + ".json").replace(/"/g, "")
+
+  console.log(
+    `[admin/support/logs/download] served id=${id} key=${log.log_path} kind=${kind} bytes=${body.length}`,
+  )
+
+  return new NextResponse(body, {
+    headers: {
+      "Content-Type": "application/json",
+      "Content-Length": String(body.length),
+      "Content-Disposition": `attachment; filename="${filename}"`,
+      "Cache-Control": "private, no-store",
+      "X-LB-Stored-Kind": kind,
+    },
+  })
 }
