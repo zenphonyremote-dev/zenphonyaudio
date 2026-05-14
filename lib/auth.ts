@@ -71,9 +71,19 @@ export const auth = betterAuth({
   session: {
     expiresIn: 60 * 60 * 24 * 30, // 30 days
     updateAge: 60 * 60 * 24, // refresh when < 1 day remains
+    // 2026-05-14: was cookieCache.enabled=true, maxAge=300s. Caused the
+    // "can't access admin without restarting Chrome" bug — Better Auth
+    // stored session state in a 5-min HttpOnly cookie, so any state drift
+    // between the cached cookie and the DB session (e.g. tab idle > 5 min,
+    // login from another device, session refresh mid-flight) made the
+    // server return stale "no session" responses that Chrome held onto
+    // until the cookie was flushed. Disabling forces a DB read on every
+    // auth check — sub-ms overhead on Supabase's pool, eliminates the
+    // stale-cache bug class entirely. Re-enable with a tighter maxAge
+    // (≤ 30s) only if profile-page latency becomes a measurable problem
+    // under load.
     cookieCache: {
-      enabled: true,
-      maxAge: 60 * 5, // 5 min client-side cookie cache
+      enabled: false,
     },
   },
 

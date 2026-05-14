@@ -10,9 +10,17 @@
 // HMAC-signed cookie. /ZenMode checks for it on every render; if missing
 // or expired it serves the elevation form instead of the admin shell.
 //
-// Cookie is HttpOnly + Secure + SameSite=Strict + Path=/. We don't trust
+// Cookie is HttpOnly + Secure + SameSite=Lax + Path=/. We don't trust
 // the cookie value alone — the HMAC ensures it can't be forged by anyone
 // without ZENMODE_ELEVATE_SECRET (or, by fallback, SUPABASE_SERVICE_ROLE_KEY).
+//
+// 2026-05-14: relaxed from SameSite=Strict to SameSite=Lax. Strict blocked
+// the cookie on bookmark clicks + cross-tab navigation from external pages
+// (e.g. mail-link → /ZenMode), which the admin uses routinely. Lax still
+// withholds the cookie on cross-site POST/PUT/DELETE (CSRF protection is
+// preserved), and the HMAC + 30-min TTL + DB is_admin check provide the
+// real authorization gate. Net result: bookmark clicks land correctly,
+// CSRF attack surface unchanged.
 
 import crypto from "node:crypto"
 
@@ -90,7 +98,7 @@ export function serializeElevationCookie(value: string, expiresAt: number): stri
     "Path=/",
     "HttpOnly",
     "Secure",
-    "SameSite=Strict",
+    "SameSite=Lax",
     `Expires=${expires}`,
   ].join("; ")
 }
@@ -102,7 +110,7 @@ export function clearElevationCookie(): string {
     "Path=/",
     "HttpOnly",
     "Secure",
-    "SameSite=Strict",
+    "SameSite=Lax",
     "Expires=Thu, 01 Jan 1970 00:00:00 GMT",
     "Max-Age=0",
   ].join("; ")
