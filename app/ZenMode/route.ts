@@ -127,6 +127,11 @@ export async function GET(request: Request) {
   if (!check.ok) {
     const url = new URL("/account", request.url)
     if (check.reason === "expired") url.searchParams.set("reauth", "1")
+    // 2026-05-15: surface the precise reason in the URL so the admin can
+    // tell at a glance whether the redirect is "no session detected",
+    // "session > 8h old", or "is_admin = false". Non-sensitive enum, safe
+    // to expose. /account doesn't display this — it's just diagnostic.
+    url.searchParams.set("zenmode_reason", check.reason)
     return NextResponse.redirect(url, { status: 302 })
   }
 

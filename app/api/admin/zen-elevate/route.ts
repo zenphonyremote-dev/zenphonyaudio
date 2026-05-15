@@ -78,15 +78,26 @@ export async function POST(request: Request) {
     }
 
     const cookie = mintElevationCookie(result.user.id)
-    const setCookie = serializeElevationCookie(cookie.value, cookie.expiresAt)
-    return new NextResponse(JSON.stringify({ ok: true, expires_at: cookie.expiresAt }), {
-      status: 200,
-      headers: {
-        "Content-Type": "application/json",
-        "Set-Cookie": setCookie,
-        "Cache-Control": "no-store",
-      },
+    // 2026-05-15: use NextResponse.cookies API so the Better Auth session
+    // cookie that signInEmail just minted (via nextCookies plugin) is also
+    // attached to the response. Previously we constructed `new NextResponse`
+    // with an explicit `Set-Cookie` header in init, which clobbered the BA
+    // session cookie — after elevation, /ZenMode would still bounce to
+    // /account because no session was sent on the reload.
+    const response = NextResponse.json(
+      { ok: true, expires_at: cookie.expiresAt },
+      { status: 200, headers: { "Cache-Control": "no-store" } },
+    )
+    response.cookies.set({
+      name: cookie.name,
+      value: cookie.value,
+      expires: new Date(cookie.expiresAt),
+      path: "/",
+      httpOnly: true,
+      secure: true,
+      sameSite: "lax",
     })
+    return response
   } catch (e) {
     console.warn("[zen-elevate] failure:", (e as Error).message)
     return NextResponse.json(FAIL, { status: FAIL_STATUS })
