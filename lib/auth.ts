@@ -102,9 +102,18 @@ export const auth = betterAuth({
     },
   },
 
+  // 2026-05-16: zenphonyaudio.com is the canonical production domain.
+  // zenphonyaudio.vercel.app is still alive as the Vercel preview URL and we
+  // keep it trusted so existing logged-in sessions there don't break overnight.
+  // localhost:3005 is for local dev. The dedupe filter avoids double-listing
+  // if NEXT_PUBLIC_BASE_URL == one of the static entries.
   trustedOrigins: [
-    process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3005",
-  ],
+    "https://zenphonyaudio.com",
+    "https://www.zenphonyaudio.com",
+    "https://zenphonyaudio.vercel.app",
+    process.env.NEXT_PUBLIC_BASE_URL || "",
+    "http://localhost:3005",
+  ].filter((v, i, a) => v && a.indexOf(v) === i),
 
   plugins: [nextCookies()],
 })
